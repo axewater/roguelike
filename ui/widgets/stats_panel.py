@@ -1,14 +1,14 @@
 """
 Stats panel widget displaying player info, equipment, abilities, and combat log
 """
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QGridLayout, QLabel, QFrame
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QGridLayout, QLabel, QFrame, QHBoxLayout
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
 import constants as c
 from game import Game
 from ui.widgets.progress_bar import ProgressBar
-from ui.widgets.ability_button import AbilityButton
+from ui.widgets.ability_icon import AbilityIcon
 from ui.widgets.combat_log import CombatLogWidget
 
 
@@ -88,15 +88,28 @@ class StatsPanel(QWidget):
 
         main_grid.addWidget(equip_container, 1, 1)  # Row 1, Col 1
 
-        # ROW 2, COL 0: Abilities
+        # ROW 2, COL 0: Abilities (circular icons in horizontal row)
         abilities_container, abilities_layout = self._create_section_container("Abilities")
 
-        self.ability_buttons = []
+        # Create horizontal layout for ability icons
+        icons_row = QHBoxLayout()
+        icons_row.setSpacing(c.ABILITY_ICON_SPACING)
+        icons_row.setContentsMargins(0, 0, 0, 0)
+
+        self.ability_icons = []
         for i in range(3):  # Max 3 abilities
-            button = AbilityButton(i)
-            button.ability_clicked.connect(self._on_ability_clicked)
-            self.ability_buttons.append(button)
-            abilities_layout.addWidget(button)
+            icon = AbilityIcon(i)
+            icon.ability_clicked.connect(self._on_ability_clicked)
+            self.ability_icons.append(icon)
+            icons_row.addWidget(icon)
+
+        # Center the icons
+        icons_row.addStretch()
+
+        # Add the icons row to the abilities layout
+        icons_widget = QWidget()
+        icons_widget.setLayout(icons_row)
+        abilities_layout.addWidget(icons_widget)
 
         main_grid.addWidget(abilities_container, 2, 0)  # Row 2, Col 0
 
@@ -207,16 +220,21 @@ class StatsPanel(QWidget):
         self.accessory_label.setText(f"Accessory: {p.equipment[c.SLOT_ACCESSORY].get_name() if p.equipment[c.SLOT_ACCESSORY] else 'None'}")
         self.boots_label.setText(f"Boots: {p.equipment[c.SLOT_BOOTS].get_name() if p.equipment[c.SLOT_BOOTS] else 'None'}")
 
-        # Update ability buttons
-        for i, button in enumerate(self.ability_buttons):
+        # Update ability icons
+        for i, icon in enumerate(self.ability_icons):
             if i < len(p.abilities):
                 ability = p.abilities[i]
                 is_ready = ability.is_ready()
-                status = "READY" if is_ready else f"CD: {ability.current_cooldown}"
-                button.set_ability_state(ability.name, is_ready, status)
-                button.setVisible(True)
+                icon.set_ability_state(
+                    ability.name,
+                    ability.description,
+                    is_ready,
+                    ability.current_cooldown,
+                    ability.max_cooldown
+                )
+                icon.setVisible(True)
             else:
-                button.setVisible(False)
+                icon.setVisible(False)
 
         # Update nearby items
         nearby_items = self._get_nearby_items(5)  # Within 5 tiles

@@ -105,6 +105,30 @@ COLOR_CLASS_MAGE = QColor(100, 150, 255)  # Blue
 COLOR_CLASS_ROGUE = QColor(180, 100, 255)  # Purple
 COLOR_CLASS_RANGER = QColor(100, 200, 100)  # Green
 
+# Ability colors and visual settings
+ABILITY_ICON_SIZE = 70  # Diameter of circular ability icons
+ABILITY_ICON_SPACING = 12  # Space between icons
+
+# Ability-specific colors
+COLOR_ABILITY_FIREBALL = QColor(255, 120, 40)  # Orange-red fire
+COLOR_ABILITY_FIREBALL_SECONDARY = QColor(255, 60, 0)  # Deep red
+COLOR_ABILITY_DASH = QColor(120, 180, 255)  # Electric blue
+COLOR_ABILITY_DASH_SECONDARY = QColor(200, 220, 255)  # Light blue
+COLOR_ABILITY_HEALING = QColor(80, 220, 120)  # Vibrant green
+COLOR_ABILITY_HEALING_SECONDARY = QColor(180, 255, 200)  # Light green
+COLOR_ABILITY_FROST = QColor(150, 220, 255)  # Ice blue
+COLOR_ABILITY_FROST_SECONDARY = QColor(200, 240, 255)  # Pale ice
+COLOR_ABILITY_WHIRLWIND = QColor(255, 100, 100)  # Red
+COLOR_ABILITY_WHIRLWIND_SECONDARY = QColor(255, 180, 180)  # Light red
+COLOR_ABILITY_SHADOW = QColor(120, 60, 180)  # Dark purple
+COLOR_ABILITY_SHADOW_SECONDARY = QColor(60, 20, 100)  # Deep shadow
+
+# Ability icon states
+COLOR_ABILITY_READY_GLOW = QColor(255, 255, 150)  # Golden glow when ready
+COLOR_ABILITY_COOLDOWN_OVERLAY = QColor(20, 20, 30, 200)  # Dark overlay
+COLOR_ABILITY_BORDER = QColor(80, 80, 90)  # Default border
+COLOR_ABILITY_HOVER_BORDER = QColor(200, 200, 220)  # Hover border
+
 # Enemy types
 ENEMY_GOBLIN = "goblin"
 ENEMY_SKELETON = "skeleton"
