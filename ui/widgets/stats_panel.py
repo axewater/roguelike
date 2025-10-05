@@ -9,6 +9,7 @@ import constants as c
 from game import Game
 from ui.widgets.progress_bar import ProgressBar
 from ui.widgets.ability_button import AbilityButton
+from ui.widgets.combat_log import CombatLogWidget
 
 
 class StatsPanel(QWidget):
@@ -113,19 +114,10 @@ class StatsPanel(QWidget):
 
         main_grid.addWidget(items_container, 2, 1)  # Row 2, Col 1
 
-        # ROW 3: Combat Log (span full width)
-        log_container, log_layout = self._create_section_container("Combat Log")
-
-        self.messages_label = QLabel()
-        self.messages_label.setFont(QFont("Courier New", 10))
-        self.messages_label.setWordWrap(True)
-        self.messages_label.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.messages_label.setTextFormat(Qt.TextFormat.RichText)
-        self.messages_label.setStyleSheet("color: rgb(200, 200, 200); padding: 4px; border: none;")
-        self.messages_label.setMinimumHeight(100)
-        log_layout.addWidget(self.messages_label)
-
-        main_grid.addWidget(log_container, 3, 0, 1, 2)  # Row 3, span 2 columns
+        # ROW 3: Combat Log (span full width) - New visual widget
+        self.combat_log = CombatLogWidget()
+        self.combat_log.setMinimumHeight(180)
+        main_grid.addWidget(self.combat_log, 3, 0, 1, 2)  # Row 3, span 2 columns
 
         # Set row stretch to push everything to top
         main_grid.setRowStretch(4, 1)
@@ -242,26 +234,38 @@ class StatsPanel(QWidget):
         else:
             self.nearby_items_label.setText('<span style="color: #666;">No items nearby</span>')
 
-        # Update messages with color coding
-        colored_messages = []
-        for message, msg_type in self.game.messages[-6:]:
-            color = self._get_message_color(msg_type)
-            colored_messages.append(f'<span style="color: {color};">{message}</span>')
+        # Combat log is now handled separately through add_message_to_log method
+        # No need to update here - it's event-driven
 
-        messages_html = "<br>".join(colored_messages)
-        self.messages_label.setText(messages_html)
-
-    def _get_message_color(self, msg_type: str) -> str:
-        """Get color for message type"""
-        color_map = {
-            "damage": c.COLOR_MSG_DAMAGE,
-            "heal": c.COLOR_MSG_HEAL,
-            "item": c.COLOR_MSG_ITEM,
-            "event": c.COLOR_MSG_EVENT,
-            "death": c.COLOR_MSG_DEATH,
-            "levelup": c.COLOR_MSG_LEVELUP,
+    def add_message_to_log(self, message: str, msg_type: str):
+        """Add a message to the visual combat log"""
+        # Map old msg_type to new event_type format
+        event_type_map = {
+            "damage": "damage",
+            "heal": "heal",
+            "item": "loot",
+            "event": "event",
+            "death": "death",
+            "kill": "kill",
+            "levelup": "levelup",
+            "player_attack": "player_attack",
+            "enemy_attack": "enemy_attack",
+            "crit": "crit",
+            "loot": "loot",
+            "loot_rare": "loot_rare",
+            "loot_legendary": "loot_legendary",
+            "potion": "potion",
+            "stairs": "stairs",
         }
-        return color_map.get(msg_type, c.COLOR_MSG_EVENT)
+
+        # Determine if message is critical (should glow/pulse)
+        is_critical = msg_type in ["death", "levelup", "crit", "loot_legendary", "kill"]
+
+        # Get mapped event type
+        event_type = event_type_map.get(msg_type, "event")
+
+        # Add to visual log
+        self.combat_log.add_entry(message, event_type, is_critical)
 
     def _get_nearby_items(self, max_distance: int) -> list:
         """Get items within max_distance tiles of player, sorted by distance"""

@@ -64,6 +64,9 @@ class MainWindow(QMainWindow):
         self.stats_panel = StatsPanel(self.game)
         game_layout.addWidget(self.stats_panel)
 
+        # Wire up the combat log callback
+        self.game.message_callback = self.stats_panel.add_message_to_log
+
         self.game_screen.setLayout(game_layout)
         self.stacked_widget.addWidget(self.game_screen)
 

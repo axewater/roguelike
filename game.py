@@ -30,6 +30,7 @@ class Game:
         self.ambient_timer = 0.0  # Timer for spawning ambient particles
         self.camera_x = 0  # Camera position (top-left of viewport in world coords)
         self.camera_y = 0
+        self.message_callback = None  # Callback for visual combat log
 
     def update_camera(self):
         """Center camera on player with boundary clamping"""
@@ -324,7 +325,13 @@ class Game:
             self.audio_manager.play_enemy_death(enemy.enemy_type, position=(enemy.x, enemy.y),
                                                player_position=(self.player.x, self.player.y))
 
-        self.add_message(message, "damage")
+        # Use more specific event types for better visual feedback
+        if enemy_died:
+            self.add_message(message, "kill")
+        elif is_crit:
+            self.add_message(message, "crit")
+        else:
+            self.add_message(message, "player_attack")
 
         if enemy_died:
             self.enemies.remove(enemy)
@@ -378,7 +385,7 @@ class Game:
                     self.anim_manager.add_screen_shake(8.0, 0.3)
                     self.audio_manager.play_gameover()
 
-                self.add_message(message, "damage")
+                self.add_message(message, "enemy_attack")
 
                 if player_died:
                     self.game_over = True
@@ -399,13 +406,20 @@ class Game:
 
                 # Determine message type based on item
                 if item.item_type == c.ITEM_HEALTH_POTION:
-                    msg_type = "heal"
+                    msg_type = "potion"
                     from PyQt6.QtGui import QColor
                     self.anim_manager.add_heal_sparkles(self.player.x, self.player.y)
                     # Play potion sound
                     self.audio_manager.play_potion()
                 else:
-                    msg_type = "item"
+                    # Use rarity-based event type for loot
+                    if item.rarity in [c.RARITY_LEGENDARY, c.RARITY_EPIC]:
+                        msg_type = "loot_legendary"
+                    elif item.rarity == c.RARITY_RARE:
+                        msg_type = "loot_rare"
+                    else:
+                        msg_type = "loot"
+
                     from PyQt6.QtGui import QColor
                     self.anim_manager.add_particle_burst(self.player.x, self.player.y,
                                                         QColor(255, 215, 0), count=6, particle_type="star")
@@ -419,7 +433,7 @@ class Game:
     def _descend_stairs(self):
         """Descend to next level"""
         self.current_level += 1
-        self.add_message(f"Descending to level {self.current_level}...", "event")
+        self.add_message(f"Descending to level {self.current_level}...", "stairs")
 
         # Play stairs sound
         self.audio_manager.play_stairs()
@@ -570,6 +584,10 @@ class Game:
         self.messages.append((message, msg_type))
         if len(self.messages) > self.max_messages:
             self.messages.pop(0)
+
+        # Also send to visual combat log if callback is set
+        if self.message_callback:
+            self.message_callback(message, msg_type)
 
     def get_entity_at(self, x: int, y: int):
         """Get entity at position for rendering"""
