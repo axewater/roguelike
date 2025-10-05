@@ -1,20 +1,8 @@
-# Dungeon Delver 🎮
+# Dungeon Delver 1.0 beta 🎮
 
 A feature-rich roguelike game built with Python and PyQt6, featuring procedural dungeon generation, class-based combat, and stunning particle effects.
 
-## 🚀 Quick Start
-
-### Installation
-
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Run the game
-python main.py
-```
-
-### Requirements
+### Tech Stack
 - Python 3.8+
 - PyQt6 >= 6.4.0
 - pygame >= 2.5.0
@@ -40,11 +28,14 @@ python main.py
 
 ### Core Modules
 
-| File | Purpose |
+| File/Directory | Purpose |
 |------|---------|
 | `main.py` | Entry point, initializes PyQt6 application |
 | `game.py` | Game state, turn management, core game loop |
-| `ui.py` | PyQt6 widgets (rendering, input, UI panels) |
+| **`ui/`** | **Modular UI package with screens and widgets** |
+| ├─ `main_window.py` | Main window orchestration and screen management |
+| ├─ `screens/` | UI screens (title, menu, settings, class selection) |
+| ├─ `widgets/` | Reusable widgets (game view, stats panel, buttons) |
 | `entities.py` | Player, Enemy, Item classes with stats |
 | `dungeon.py` | Procedural dungeon generation (BSP rooms) |
 | `combat.py` | Damage calculation and combat resolution |
@@ -53,6 +44,33 @@ python main.py
 | `audio.py` | 🔊 Audio engine with procedural sound synthesis |
 | `graphics.py` | Geometric shape rendering for entities/tiles |
 | `constants.py` | All game configuration and constants |
+
+### UI Module Structure
+
+The UI has been refactored into a clean modular architecture:
+
+```
+ui/
+├── __init__.py                    # Exports all components
+├── main_window.py                 # Main window & screen switching
+├── screens/                       # Full-screen UI screens
+│   ├── title_screen.py           # Animated title screen
+│   ├── main_menu.py              # Main menu navigation
+│   ├── settings_screen.py        # Audio settings
+│   └── class_selection.py        # Class selection with preview
+└── widgets/                       # Reusable UI components
+    ├── ability_button.py         # Ability button with cooldown display
+    ├── progress_bar.py           # HP/XP progress bars
+    ├── game_widget.py            # Main game rendering & pathfinding
+    └── stats_panel.py            # Stats, equipment, combat log
+```
+
+**Benefits of modular structure:**
+- Each file ~50-700 lines (was 2,407 lines in single file)
+- Logical separation of screens vs reusable widgets
+- Easy to locate and modify specific UI components
+- Multiple developers can work on different screens simultaneously
+- Individual components can be tested in isolation
 
 ### Game Flow
 
@@ -164,7 +182,7 @@ self.audio_manager.update_music_intensity(enemies_nearby, in_combat)
 audio = get_audio_manager()
 audio.play_ability_sound('Fireball')
 
-# ui.py - UI feedback
+# ui/screens/main_menu.py - UI feedback
 audio = get_audio_manager()
 audio.play_ui_select()
 ```
@@ -188,7 +206,7 @@ CLASS_ABILITIES[CLASS_NECROMANCER] = [SummonUndead(), DrainLife(), DarkPact()]
 elif class_type == c.CLASS_NECROMANCER:
     # Draw skull/staff shape
 
-# 5. ui.py - Add to class selection screen
+# 5. ui/screens/class_selection.py - Add to class selection screen
 ```
 
 ### Add a New Ability
@@ -337,7 +355,7 @@ MAX_ROOMS = 15                  # Dungeon room count
 ## 🐛 Common Pitfalls & Troubleshooting
 
 ### Code Pitfalls
-1. **Importing**: New modules need imports in `game.py` and `ui.py`
+1. **Importing**: New modules need imports in `game.py` and relevant UI files in `ui/`
 2. **Cooldowns**: Always call `_reduce_ability_cooldowns()` after turns
 3. **Animation cleanup**: AnimationManager auto-removes dead animations
 4. **Equipment stats**: Use `@property` decorators for dynamic calculation
@@ -350,20 +368,6 @@ MAX_ROOMS = 15                  # Dungeon room count
 **"operands could not be broadcast together"**
 - You're trying to add numpy arrays of different lengths
 - Solution: Use `combine_waves()` instead of `+` operator
-
-**No sound playing**
-- Check pygame mixer initialized: `pygame.mixer.get_init()` should not be None
-- Verify sound volume: `audio.set_sfx_volume(0.7)`
-- Check if audio is enabled: `audio.enabled = True`
-
-**Crackling/distortion**
-- Sound amplitude too high (>1.0)
-- Reduce volume parameters in wave generation
-- Use `combine_waves()` which auto-normalizes
-
-**Audio lag/delay**
-- Reduce pygame buffer size in `pygame.mixer.pre_init(22050, -16, 2, 512)`
-- Lower value = less latency but more CPU
 
 ## 📝 Code Style
 
@@ -385,17 +389,9 @@ MAX_ROOMS = 15                  # Dungeon room count
 - **Audio Enhancements**: Reverb/echo effects, enemy proximity warning sounds
 - **Volume Controls**: In-game settings menu for SFX/Music volume sliders
 
-## 📄 License
-
-Your choice - have fun building!
-
-## 🤝 Contributing
-
-Feel free to fork, modify, and expand this game. The architecture is designed to be modular and extensible.
-
 ---
 
 **Built with**: Python 3, PyQt6, pygame (audio), numpy (sound synthesis)
-**Architecture**: MVC pattern (Model: game.py, View: ui.py, Controller: input handling)
+**Architecture**: Modular MVC pattern (Model: game.py, View: ui/ package, Controller: input handling)
 **Graphics**: Geometric shapes with particle effects (no sprites needed!)
-**Audio**: Procedurally generated sounds (no audio files needed!)
+**Audio**: Procedurally generated sounds
