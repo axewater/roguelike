@@ -144,9 +144,11 @@ class VoiceSynthesizer:
             except:
                 pass  # Pitch/voice selection not available on this system
 
-            print("✓ Voice synthesizer initialized")
+            print("✓ Voice synthesizer initialized (pyttsx3 working)")
         except Exception as e:
             print(f"⚠ Voice synthesis unavailable: {e}")
+            print("  To enable voice taunts, install: pip install pyttsx3")
+            print("  Linux users also need: sudo apt-get install espeak")
             self.engine = None
             self.enabled = False
 
@@ -680,6 +682,17 @@ class AudioManager:
     def play_voice_class(self, class_name: str):
         """Play class name voice line"""
         self.play_voice(class_name, volume=1.1)
+
+    def play_voice_taunt(self):
+        """Play random menacing taunt"""
+        import constants as c
+        taunt = random.choice(c.VOICE_TAUNTS)
+        print(f"🔊 Playing taunt: '{taunt}'")
+        if not self.enabled:
+            print("⚠ Audio disabled - taunt not played")
+        elif not self.voice_synth.enabled:
+            print("⚠ Voice synthesis disabled - taunt not played")
+        self.play_voice(taunt, volume=0.9)
 
     def start_background_music(self):
         """Start playing background music"""

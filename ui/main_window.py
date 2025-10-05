@@ -349,6 +349,12 @@ class MainWindow(QMainWindow):
             # Restart game - go back to main menu
             self.stacked_widget.setCurrentWidget(self.main_menu)
             return
+        elif key == Qt.Key.Key_T:
+            # Test taunt (debug feature)
+            print("🎮 Test taunt key pressed!")
+            audio = get_audio_manager()
+            audio.play_voice_taunt()
+            return
         elif key == Qt.Key.Key_Q:
             # Quit
             self.close()

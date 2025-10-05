@@ -200,3 +200,23 @@ ITEMS_PER_LEVEL = 3
 
 # Game mechanics
 DAMAGE_VARIANCE = 0.2  # +/- 20% damage variance
+
+# Voice taunts
+VOICE_TAUNTS = [
+    "You will never get there",
+    "You will fail miserably",
+    "Your death is inevitable",
+    "Give up now",
+    "You cannot win",
+    "Pathetic effort",
+    "Is that all you have",
+    "Weakness",
+    "You are doomed",
+    "Futile resistance",
+]
+
+# Taunt configuration
+TAUNT_COOLDOWN = 5.0  # Minimum seconds between taunts (reduced for testing)
+TAUNT_CHANCE_ON_DAMAGE = 0.80  # 80% chance when player takes damage (increased for testing)
+TAUNT_CHANCE_ON_LEVEL = 0.80  # 80% chance when entering new level (increased for testing)
+TAUNT_LOW_HP_THRESHOLD = 0.30  # Trigger when below 30% health

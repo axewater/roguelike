@@ -31,6 +31,8 @@ class Game:
         self.camera_x = 0  # Camera position (top-left of viewport in world coords)
         self.camera_y = 0
         self.message_callback = None  # Callback for visual combat log
+        self.taunt_timer = 0.0  # Timer for taunt cooldown
+        self.taunt_triggered_low_hp = False  # Track if low HP taunt was triggered this level
 
     def update_camera(self):
         """Center camera on player with boundary clamping"""
@@ -84,6 +86,16 @@ class Game:
         self._spawn_items()
 
         self.add_message(f"Entered dungeon level {self.current_level}.", "event")
+
+        # Reset low HP taunt flag for new level
+        self.taunt_triggered_low_hp = False
+
+        # Chance to taunt on level entry (except first level)
+        if self.current_level > 1:
+            roll = random.random()
+            print(f"🎲 Level entry taunt check: {roll:.2f} < {c.TAUNT_CHANCE_ON_LEVEL} = {roll < c.TAUNT_CHANCE_ON_LEVEL}")
+            if roll < c.TAUNT_CHANCE_ON_LEVEL:
+                self._try_play_taunt()
 
     def _spawn_enemies(self):
         """Spawn enemies on current level"""
@@ -398,6 +410,12 @@ class Game:
                     self.anim_manager.add_screen_shake(8.0, 0.3)
                     self.audio_manager.play_gameover()
                     self.audio_manager.play_voice_gameover()
+                else:
+                    # Chance to taunt when player takes damage
+                    roll = random.random()
+                    print(f"🎲 Damage taunt check: {roll:.2f} < {c.TAUNT_CHANCE_ON_DAMAGE} = {roll < c.TAUNT_CHANCE_ON_DAMAGE}")
+                    if roll < c.TAUNT_CHANCE_ON_DAMAGE:
+                        self._try_play_taunt()
 
                 self.add_message(message, "enemy_attack")
 
@@ -543,6 +561,18 @@ class Game:
         if self.player and self.player.is_moving:
             self._spawn_footstep_particles()
 
+        # Update taunt timer
+        if self.taunt_timer > 0:
+            self.taunt_timer -= dt
+
+        # Check for low HP taunt trigger
+        if self.player and not self.taunt_triggered_low_hp:
+            hp_percent = self.player.hp / self.player.max_hp
+            if hp_percent < c.TAUNT_LOW_HP_THRESHOLD:
+                print(f"💀 Low HP taunt triggered! (HP: {hp_percent:.0%})")
+                self._try_play_taunt()
+                self.taunt_triggered_low_hp = True
+
         # Update music intensity based on nearby enemies
         if self.player:
             # Count enemies within 8 tiles
@@ -651,6 +681,15 @@ class Game:
                 apply_gravity=False
             )
             self.anim_manager.particles.append(particle)
+
+    def _try_play_taunt(self):
+        """Try to play a taunt if cooldown allows"""
+        if self.taunt_timer <= 0:
+            print(f"🎭 Taunt triggered! (cooldown reset to {c.TAUNT_COOLDOWN}s)")
+            self.audio_manager.play_voice_taunt()
+            self.taunt_timer = c.TAUNT_COOLDOWN
+        else:
+            print(f"🎭 Taunt on cooldown ({self.taunt_timer:.1f}s remaining)")
 
     def add_message(self, message: str, msg_type: str = "event"):
         """Add message to message log with type for color coding"""
