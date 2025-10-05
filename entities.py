@@ -6,20 +6,103 @@ import constants as c
 
 
 class Entity:
-    """Base entity class"""
+    """Base entity class with animation support"""
     def __init__(self, x: int, y: int, entity_type: str):
+        # Grid position (logical, integer)
         self.x = x
         self.y = y
         self.entity_type = entity_type
 
+        # Animation fields
+        self.display_x = float(x)  # Visual position (interpolated)
+        self.display_y = float(y)
+        self.facing_direction = (0, 1)  # (dx, dy) - default facing down
+        self.is_moving = False
+        self.move_progress = 0.0  # 0.0 to 1.0
+        self.move_duration = 0.2  # Seconds to complete movement
+        self.move_start_x = float(x)
+        self.move_start_y = float(y)
+        self.move_target_x = float(x)
+        self.move_target_y = float(y)
+        self.idle_time = 0.0  # For idle breathing animation
+        self.bob_offset = 0.0  # Vertical offset for walk bob
+
     def get_pos(self) -> Tuple[int, int]:
-        """Get entity position"""
+        """Get entity grid position"""
         return (self.x, self.y)
 
+    def get_display_pos(self) -> Tuple[float, float]:
+        """Get entity visual position with bob offset"""
+        return (self.display_x, self.display_y + self.bob_offset)
+
     def set_pos(self, x: int, y: int):
-        """Set entity position"""
+        """Set entity position and immediately update display position"""
         self.x = x
         self.y = y
+        self.display_x = float(x)
+        self.display_y = float(y)
+        self.is_moving = False
+        self.move_progress = 1.0
+
+    def start_move(self, target_x: int, target_y: int):
+        """Start movement animation to target position"""
+        # Update facing direction
+        dx = target_x - self.x
+        dy = target_y - self.y
+        if dx != 0 or dy != 0:
+            self.facing_direction = (dx, dy)
+
+        # Update logical position immediately (for game logic)
+        self.x = target_x
+        self.y = target_y
+
+        # Set up animation
+        self.move_start_x = self.display_x
+        self.move_start_y = self.display_y
+        self.move_target_x = float(target_x)
+        self.move_target_y = float(target_y)
+        self.move_progress = 0.0
+        self.is_moving = True
+
+    def update(self, dt: float):
+        """Update entity animations"""
+        if self.is_moving:
+            # Update movement progress
+            self.move_progress += dt / self.move_duration
+            if self.move_progress >= 1.0:
+                self.move_progress = 1.0
+                self.is_moving = False
+                self.display_x = self.move_target_x
+                self.display_y = self.move_target_y
+                self.bob_offset = 0.0
+            else:
+                # Smooth interpolation (ease-out)
+                t = self.move_progress
+                smooth_t = 1.0 - (1.0 - t) * (1.0 - t)  # Ease-out quad
+
+                # Lerp position
+                self.display_x = self.move_start_x + (self.move_target_x - self.move_start_x) * smooth_t
+                self.display_y = self.move_start_y + (self.move_target_y - self.move_start_y) * smooth_t
+
+                # Calculate walking bob (sine wave)
+                import math
+                bob_amplitude = self._get_bob_amplitude()
+                bob_speed = self._get_bob_speed()
+                self.bob_offset = math.sin(self.move_progress * math.pi * bob_speed) * bob_amplitude
+        else:
+            # Idle breathing animation
+            import math
+            self.idle_time += dt
+            idle_amplitude = 0.03  # Very subtle
+            self.bob_offset = math.sin(self.idle_time * 0.8) * idle_amplitude
+
+    def _get_bob_amplitude(self) -> float:
+        """Get bob amplitude based on entity type - override in subclasses"""
+        return 0.15  # Default bob height
+
+    def _get_bob_speed(self) -> float:
+        """Get bob speed (cycles per move) - override in subclasses"""
+        return 2.0  # 2 full bobs per movement
 
 
 class Player(Entity):
@@ -159,6 +242,26 @@ class Player(Entity):
         }
         return names.get(self.class_type, "Unknown")
 
+    def _get_bob_amplitude(self) -> float:
+        """Get bob amplitude based on class"""
+        amplitudes = {
+            c.CLASS_WARRIOR: 0.20,  # Heavy stomping
+            c.CLASS_MAGE: 0.08,     # Floating glide
+            c.CLASS_ROGUE: 0.12,    # Stealthy, subtle
+            c.CLASS_RANGER: 0.15,   # Natural stride
+        }
+        return amplitudes.get(self.class_type, 0.15)
+
+    def _get_bob_speed(self) -> float:
+        """Get bob speed based on class"""
+        speeds = {
+            c.CLASS_WARRIOR: 1.5,   # Slow, heavy steps
+            c.CLASS_MAGE: 2.5,      # Smooth, floating
+            c.CLASS_ROGUE: 3.0,     # Quick, light steps
+            c.CLASS_RANGER: 2.0,    # Balanced pace
+        }
+        return speeds.get(self.class_type, 2.0)
+
 
 class Enemy(Entity):
     """Enemy entity"""
@@ -224,6 +327,24 @@ class Enemy(Entity):
         """Reduce duration of status effects"""
         if self.frozen_turns > 0:
             self.frozen_turns -= 1
+
+    def _get_bob_amplitude(self) -> float:
+        """Get bob amplitude based on enemy type"""
+        amplitudes = {
+            c.ENEMY_GOBLIN: 0.18,    # Quick, jittery
+            c.ENEMY_SKELETON: 0.14,  # Rattling, uneven
+            c.ENEMY_DRAGON: 0.25,    # Heavy, imposing
+        }
+        return amplitudes.get(self.enemy_type, 0.15)
+
+    def _get_bob_speed(self) -> float:
+        """Get bob speed based on enemy type"""
+        speeds = {
+            c.ENEMY_GOBLIN: 3.5,     # Fast, nervous movement
+            c.ENEMY_SKELETON: 2.2,   # Jerky, unnatural
+            c.ENEMY_DRAGON: 1.2,     # Slow, powerful
+        }
+        return speeds.get(self.enemy_type, 2.0)
 
 
 class Item(Entity):

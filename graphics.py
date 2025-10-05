@@ -82,11 +82,23 @@ def draw_stairs_tile(painter: QPainter, x: int, y: int, tile_size: int):
         painter.drawLine(x_start, y_pos, x_end, y_pos)
 
 
-def draw_player(painter: QPainter, x: int, y: int, tile_size: int, color: QColor, class_type: str):
-    """Draw player character based on class - Enhanced with full character bodies"""
-    center_x = x * tile_size + tile_size // 2
-    center_y = y * tile_size + tile_size // 2
+def draw_player(painter: QPainter, x: float, y: float, tile_size: int, color: QColor, class_type: str, facing_direction: tuple = (0, 1)):
+    """Draw player character based on class with directional facing"""
+    center_x = int(x * tile_size + tile_size // 2)
+    center_y = int(y * tile_size + tile_size // 2)
     import math
+
+    # Determine if we need to flip (facing left)
+    facing_dx, facing_dy = facing_direction
+    flip_horizontal = facing_dx < 0
+
+    # Save painter state
+    painter.save()
+
+    # Apply horizontal flip if facing left
+    if flip_horizontal:
+        painter.translate(center_x * 2, 0)
+        painter.scale(-1, 1)
 
     # Enhanced drop shadow (larger, softer)
     shadow_color = QColor(0, 0, 0, 100)
@@ -481,11 +493,26 @@ def draw_player(painter: QPainter, x: int, y: int, tile_size: int, color: QColor
             ]
             painter.drawPolygon(leaf_points)
 
+    # Restore painter state (undo any flip)
+    painter.restore()
 
-def draw_enemy(painter: QPainter, x: int, y: int, tile_size: int, color: QColor, enemy_type: str):
-    """Draw enemy based on type"""
-    center_x = x * tile_size + tile_size // 2
-    center_y = y * tile_size + tile_size // 2
+
+def draw_enemy(painter: QPainter, x: float, y: float, tile_size: int, color: QColor, enemy_type: str, facing_direction: tuple = (0, 1)):
+    """Draw enemy based on type with directional facing"""
+    center_x = int(x * tile_size + tile_size // 2)
+    center_y = int(y * tile_size + tile_size // 2)
+
+    # Determine if we need to flip (facing left)
+    facing_dx, facing_dy = facing_direction
+    flip_horizontal = facing_dx < 0
+
+    # Save painter state
+    painter.save()
+
+    # Apply horizontal flip if facing left
+    if flip_horizontal:
+        painter.translate(center_x * 2, 0)
+        painter.scale(-1, 1)
 
     # Drop shadow
     shadow_color = QColor(0, 0, 0, 80)
@@ -593,11 +620,14 @@ def draw_enemy(painter: QPainter, x: int, y: int, tile_size: int, color: QColor,
         painter.drawEllipse(center_x + tile_size // 4, center_y - tile_size // 4,
                            tile_size // 4, tile_size // 4)
 
+    # Restore painter state (undo any flip)
+    painter.restore()
 
-def draw_item(painter: QPainter, x: int, y: int, tile_size: int, color: QColor, item_type: str):
+
+def draw_item(painter: QPainter, x: float, y: float, tile_size: int, color: QColor, item_type: str):
     """Draw item based on type"""
-    center_x = x * tile_size + tile_size // 2
-    center_y = y * tile_size + tile_size // 2
+    center_x = int(x * tile_size + tile_size // 2)
+    center_y = int(y * tile_size + tile_size // 2)
 
     # Drop shadow
     shadow_color = QColor(0, 0, 0, 60)

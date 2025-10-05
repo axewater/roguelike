@@ -225,13 +225,13 @@ class Game:
 
         # Check for stairs
         if self.dungeon.get_tile(new_x, new_y) == c.TILE_STAIRS:
-            self.player.set_pos(new_x, new_y)
+            self.player.start_move(new_x, new_y)
             self.update_camera()
             self._descend_stairs()
             return True
 
-        # Move player
-        self.player.set_pos(new_x, new_y)
+        # Move player with animation
+        self.player.start_move(new_x, new_y)
         self.update_camera()
 
         # Play footstep sound
@@ -388,7 +388,7 @@ class Game:
             # Move if walkable and not occupied
             elif self.dungeon.is_walkable(new_x, new_y):
                 if not self._is_position_occupied(new_x, new_y):
-                    enemy.set_pos(new_x, new_y)
+                    enemy.start_move(new_x, new_y)
 
     def _check_item_pickup(self):
         """Check if player is on item and pick it up"""
@@ -435,12 +435,26 @@ class Game:
 
     def update(self, dt: float):
         """Update game state (called every frame)"""
+        # Update entity animations
+        if self.player:
+            self.player.update(dt)
+
+        for enemy in self.enemies:
+            enemy.update(dt)
+
+        for item in self.items:
+            item.update(dt)
+
         # Spawn ambient particles periodically
         self.ambient_timer += dt
         if self.ambient_timer >= 0.5:  # Every 0.5 seconds
             self.ambient_timer = 0.0
             # Spawn 2-4 ambient particles
             self.anim_manager.add_ambient_particles(count=random.randint(2, 4))
+
+        # Spawn footstep particles during movement
+        if self.player and self.player.is_moving:
+            self._spawn_footstep_particles()
 
         # Update music intensity based on nearby enemies
         if self.player:
@@ -452,6 +466,104 @@ class Game:
             in_combat = len(self.messages) > 0 and self.messages[-1][1] == "damage"
 
             self.audio_manager.update_music_intensity(enemies_nearby, in_combat)
+
+    def _spawn_footstep_particles(self):
+        """Spawn footstep particles based on walk cycle"""
+        if not self.player:
+            return
+
+        # Spawn particles at specific points in the bob cycle (when foot touches ground)
+        # Footstep happens when bob is at bottom of sine wave
+        import math
+        bob_speed = self.player._get_bob_speed()
+        phase = (self.player.move_progress * math.pi * bob_speed) % (2 * math.pi)
+
+        # Check if we're at a "step" moment (bottom of bob cycle)
+        # We want to spawn when crossing certain phase thresholds
+        step_threshold = 0.2  # Tolerance for detecting step moment
+
+        # Check for step moments (bottom of sine waves at pi/2 and 3pi/2 for each cycle)
+        cycles = int(self.player.move_progress * bob_speed)
+        current_cycle_progress = (self.player.move_progress * bob_speed) % 1.0
+
+        # Step happens at ~0.25 and ~0.75 of each cycle
+        is_step_moment = (abs(current_cycle_progress - 0.25) < step_threshold or
+                         abs(current_cycle_progress - 0.75) < step_threshold)
+
+        # Only spawn if we haven't spawned recently (debounce)
+        if not hasattr(self, '_last_footstep_phase'):
+            self._last_footstep_phase = -1.0
+
+        phase_diff = abs(self.player.move_progress - self._last_footstep_phase)
+
+        if is_step_moment and phase_diff > 0.15:  # Minimum time between footsteps
+            self._last_footstep_phase = self.player.move_progress
+            self._create_footstep_particles()
+
+    def _create_footstep_particles(self):
+        """Create actual footstep particle burst"""
+        if not self.player:
+            return
+
+        from PyQt6.QtGui import QColor
+
+        # Get class-specific particle style
+        if self.player.class_type == c.CLASS_WARRIOR:
+            # Heavy dust cloud
+            color = QColor(150, 140, 120, 180)
+            count = 6
+            size_range = (2, 5)
+        elif self.player.class_type == c.CLASS_MAGE:
+            # Magical sparkles
+            color = QColor(150, 150, 255, 160)
+            count = 4
+            size_range = (1, 3)
+        elif self.player.class_type == c.CLASS_ROGUE:
+            # Minimal, stealthy
+            color = QColor(100, 100, 120, 100)
+            count = 2
+            size_range = (1, 2)
+        elif self.player.class_type == c.CLASS_RANGER:
+            # Small leaves/dust
+            color = QColor(120, 180, 100, 140)
+            count = 4
+            size_range = (1, 3)
+        else:
+            color = QColor(150, 150, 150, 150)
+            count = 3
+            size_range = (2, 4)
+
+        # Spawn particles at player's display position
+        display_x, display_y = self.player.get_display_pos()
+
+        # Convert to pixel coordinates
+        center_x = display_x * c.TILE_SIZE + c.TILE_SIZE / 2
+        center_y = (display_y + 0.3) * c.TILE_SIZE + c.TILE_SIZE / 2  # Offset to feet
+
+        from animations import Particle
+        for _ in range(count):
+            # Spread particles horizontally
+            offset_x = random.uniform(-c.TILE_SIZE / 4, c.TILE_SIZE / 4)
+            offset_y = random.uniform(-c.TILE_SIZE / 8, c.TILE_SIZE / 8)
+
+            # Small upward and outward velocity
+            vx = random.uniform(-1, 1)
+            vy = random.uniform(-0.5, -0.1)  # Slight upward
+
+            size = random.uniform(*size_range)
+            lifetime = random.uniform(0.2, 0.4)
+
+            particle = Particle(
+                center_x + offset_x,
+                center_y + offset_y,
+                vx, vy,
+                color,
+                size=size,
+                lifetime=lifetime,
+                particle_type="circle",
+                apply_gravity=False
+            )
+            self.anim_manager.particles.append(particle)
 
     def add_message(self, message: str, msg_type: str = "event"):
         """Add message to message log with type for color coding"""

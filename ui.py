@@ -1215,27 +1215,46 @@ class GameWidget(QWidget):
                     gfx.draw_floor_tile(painter, screen_x, screen_y, c.TILE_SIZE)  # Draw floor underneath
                     gfx.draw_stairs_tile(painter, screen_x, screen_y, c.TILE_SIZE)
 
-        # Draw entities with graphics (only visible viewport)
-        for screen_y in range(c.VIEWPORT_HEIGHT):
-            for screen_x in range(c.VIEWPORT_WIDTH):
-                # Convert screen coords to world coords
-                world_x = screen_x + self.game.camera_x
-                world_y = screen_y + self.game.camera_y
+        # Draw entities with graphics using display positions
+        # Collect all entities to draw
+        entities_to_draw = []
 
-                # Check bounds
-                if not (0 <= world_x < c.GRID_WIDTH and 0 <= world_y < c.GRID_HEIGHT):
-                    continue
+        # Add items (draw first, bottom layer)
+        for item in self.game.items:
+            display_x, display_y = item.get_display_pos()
+            entities_to_draw.append((item, display_x, display_y, 0))  # Priority 0 (bottom)
 
-                entity = self.game.get_entity_at(world_x, world_y)
-                if entity:
-                    color = self._get_entity_color(entity)
+        # Add enemies (middle layer)
+        for enemy in self.game.enemies:
+            display_x, display_y = enemy.get_display_pos()
+            entities_to_draw.append((enemy, display_x, display_y, 1))  # Priority 1
 
-                    if entity.entity_type == c.ENTITY_PLAYER:
-                        gfx.draw_player(painter, screen_x, screen_y, c.TILE_SIZE, color, entity.class_type)
-                    elif entity.entity_type == c.ENTITY_ENEMY:
-                        gfx.draw_enemy(painter, screen_x, screen_y, c.TILE_SIZE, color, entity.enemy_type)
-                    elif entity.entity_type == c.ENTITY_ITEM:
-                        gfx.draw_item(painter, screen_x, screen_y, c.TILE_SIZE, color, entity.item_type)
+        # Add player (top layer)
+        if self.game.player:
+            display_x, display_y = self.game.player.get_display_pos()
+            entities_to_draw.append((self.game.player, display_x, display_y, 2))  # Priority 2 (top)
+
+        # Sort by y position for proper depth, then by priority
+        entities_to_draw.sort(key=lambda e: (e[2], e[3]))
+
+        # Draw each entity at its display position
+        for entity, display_x, display_y, _ in entities_to_draw:
+            # Convert world display coords to screen coords
+            screen_x = display_x - self.game.camera_x
+            screen_y = display_y - self.game.camera_y
+
+            # Only draw if visible (with some margin for bob animation)
+            if not (-1 <= screen_x < c.VIEWPORT_WIDTH + 1 and -1 <= screen_y < c.VIEWPORT_HEIGHT + 1):
+                continue
+
+            color = self._get_entity_color(entity)
+
+            if entity.entity_type == c.ENTITY_PLAYER:
+                gfx.draw_player(painter, screen_x, screen_y, c.TILE_SIZE, color, entity.class_type, entity.facing_direction)
+            elif entity.entity_type == c.ENTITY_ENEMY:
+                gfx.draw_enemy(painter, screen_x, screen_y, c.TILE_SIZE, color, entity.enemy_type, entity.facing_direction)
+            elif entity.entity_type == c.ENTITY_ITEM:
+                gfx.draw_item(painter, screen_x, screen_y, c.TILE_SIZE, color, entity.item_type)
 
         # Draw enemy health bars
         self._draw_enemy_health_bars(painter)
@@ -1423,21 +1442,24 @@ class GameWidget(QWidget):
         return QColor(255, 255, 255)
 
     def _draw_enemy_health_bars(self, painter: QPainter):
-        """Draw health bars below enemies"""
+        """Draw health bars below enemies at their display positions"""
         for enemy in self.game.enemies:
-            # Convert world coords to screen coords
-            screen_x = enemy.x - self.game.camera_x
-            screen_y = enemy.y - self.game.camera_y
+            # Get display position (includes bob offset)
+            display_x, display_y = enemy.get_display_pos()
 
-            # Only draw if enemy is visible in viewport
-            if not (0 <= screen_x < c.VIEWPORT_WIDTH and 0 <= screen_y < c.VIEWPORT_HEIGHT):
+            # Convert world display coords to screen coords
+            screen_x = display_x - self.game.camera_x
+            screen_y = display_y - self.game.camera_y
+
+            # Only draw if enemy is visible in viewport (with margin)
+            if not (-1 <= screen_x < c.VIEWPORT_WIDTH + 1 and -1 <= screen_y < c.VIEWPORT_HEIGHT + 1):
                 continue
 
             # Calculate bar dimensions
             bar_width = c.TILE_SIZE - 4
             bar_height = 3
-            bar_x = screen_x * c.TILE_SIZE + 2
-            bar_y = screen_y * c.TILE_SIZE + c.TILE_SIZE - 5
+            bar_x = int(screen_x * c.TILE_SIZE + 2)
+            bar_y = int(screen_y * c.TILE_SIZE + c.TILE_SIZE - 5)
 
             # Draw background
             painter.fillRect(bar_x, bar_y, bar_width, bar_height, c.COLOR_ENEMY_HP_BAR_BG)
