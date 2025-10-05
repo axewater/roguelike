@@ -11,6 +11,71 @@ from audio import get_audio_manager
 import graphics as gfx
 
 
+class AbilityButton(QPushButton):
+    """Custom button for abilities with visual feedback"""
+    ability_clicked = pyqtSignal(int)  # Emits ability index
+
+    def __init__(self, ability_index: int):
+        super().__init__()
+        self.ability_index = ability_index
+        self.is_ready = False
+        self.ability_name = ""
+        self.ability_status = ""
+
+        self.setMinimumHeight(32)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.clicked.connect(lambda: self.ability_clicked.emit(self.ability_index))
+
+    def set_ability_state(self, name: str, is_ready: bool, status: str):
+        """Update ability state and appearance"""
+        self.ability_name = name
+        self.is_ready = is_ready
+        self.ability_status = status
+
+        # Update text
+        key_num = self.ability_index + 1
+        self.setText(f"[{key_num}] {name}: {status}")
+
+        # Update style based on readiness
+        if is_ready:
+            self.setStyleSheet("""
+                QPushButton {
+                    background-color: rgba(81, 207, 102, 0.2);
+                    color: rgb(81, 207, 102);
+                    border: 2px solid rgb(81, 207, 102);
+                    border-radius: 4px;
+                    padding: 6px;
+                    font-family: 'Courier New';
+                    font-size: 9pt;
+                    font-weight: bold;
+                    text-align: left;
+                }
+                QPushButton:hover {
+                    background-color: rgba(81, 207, 102, 0.4);
+                    border: 2px solid rgb(100, 230, 120);
+                }
+                QPushButton:pressed {
+                    background-color: rgba(81, 207, 102, 0.6);
+                }
+            """)
+        else:
+            self.setStyleSheet("""
+                QPushButton {
+                    background-color: rgba(100, 100, 100, 0.2);
+                    color: rgb(150, 150, 150);
+                    border: 2px solid rgb(100, 100, 100);
+                    border-radius: 4px;
+                    padding: 6px;
+                    font-family: 'Courier New';
+                    font-size: 9pt;
+                    text-align: left;
+                }
+                QPushButton:hover {
+                    background-color: rgba(100, 100, 100, 0.3);
+                }
+            """)
+
+
 class ProgressBar(QWidget):
     """Custom progress bar widget"""
     def __init__(self, height=20):
@@ -155,6 +220,15 @@ class GameWidget(QWidget):
         self.setFixedSize(c.VIEWPORT_WIDTH * c.TILE_SIZE, c.VIEWPORT_HEIGHT * c.TILE_SIZE)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setStyleSheet(f"background-color: rgb({c.COLOR_FLOOR.red()}, {c.COLOR_FLOOR.green()}, {c.COLOR_FLOOR.blue()});")
+
+        # Mouse tracking for hover effects
+        self.setMouseTracking(True)
+        self.hover_world_x = None
+        self.hover_world_y = None
+
+        # Ability targeting mode
+        self.targeting_mode = False
+        self.targeting_ability_index = None
 
     def paintEvent(self, event):
         """Render the game grid"""
@@ -352,6 +426,14 @@ class GameWidget(QWidget):
             painter.drawText(int(text_x - 20), int(text_y - 10), 40, 20,
                            Qt.AlignmentFlag.AlignCenter, ftext.text)
 
+        # Draw ability range indicator if in targeting mode
+        if self.targeting_mode and self.targeting_ability_index is not None:
+            self._draw_ability_range(painter)
+
+        # Draw hover highlight (before game over overlay)
+        if self.hover_world_x is not None and self.hover_world_y is not None:
+            self._draw_hover_highlight(painter)
+
         # Draw game over overlay
         if self.game.game_over:
             # Reset transform for overlay
@@ -418,6 +500,324 @@ class GameWidget(QWidget):
             # Draw border
             painter.setPen(c.COLOR_ENEMY_HP_BAR_BORDER)
             painter.drawRect(bar_x, bar_y, bar_width, bar_height)
+
+    def _draw_ability_range(self, painter: QPainter):
+        """Draw ability range/area indicator when in targeting mode"""
+        if not self.game.player or self.targeting_ability_index >= len(self.game.player.abilities):
+            return
+
+        ability = self.game.player.abilities[self.targeting_ability_index]
+        player_x, player_y = self.game.player.x, self.game.player.y
+
+        # Define range and area based on ability type
+        range_color = QColor(100, 150, 255, 60)
+        area_color = QColor(255, 100, 100, 80)
+
+        # Ability-specific range visualization
+        if ability.name == "Fireball":
+            # Show max range and AOE area
+            max_range = 8  # Fireball can be cast far
+            radius = 1
+
+            # Show range circles
+            for y in range(c.GRID_HEIGHT):
+                for x in range(c.GRID_WIDTH):
+                    dist = abs(x - player_x) + abs(y - player_y)
+                    if dist <= max_range:
+                        screen_x = x - self.game.camera_x
+                        screen_y = y - self.game.camera_y
+                        if 0 <= screen_x < c.VIEWPORT_WIDTH and 0 <= screen_y < c.VIEWPORT_HEIGHT:
+                            painter.fillRect(screen_x * c.TILE_SIZE, screen_y * c.TILE_SIZE,
+                                           c.TILE_SIZE, c.TILE_SIZE, range_color)
+
+            # Show AOE at cursor position
+            if self.hover_world_x is not None and self.hover_world_y is not None:
+                for dy in range(-radius, radius + 1):
+                    for dx in range(-radius, radius + 1):
+                        aoe_x = self.hover_world_x + dx
+                        aoe_y = self.hover_world_y + dy
+                        screen_x = aoe_x - self.game.camera_x
+                        screen_y = aoe_y - self.game.camera_y
+                        if 0 <= screen_x < c.VIEWPORT_WIDTH and 0 <= screen_y < c.VIEWPORT_HEIGHT:
+                            painter.fillRect(screen_x * c.TILE_SIZE, screen_y * c.TILE_SIZE,
+                                           c.TILE_SIZE, c.TILE_SIZE, area_color)
+
+        elif ability.name == "Dash":
+            # Show max dash range
+            max_distance = 4
+            for y in range(c.GRID_HEIGHT):
+                for x in range(c.GRID_WIDTH):
+                    dist = abs(x - player_x) + abs(y - player_y)
+                    if dist <= max_distance and self.game.dungeon.is_walkable(x, y):
+                        screen_x = x - self.game.camera_x
+                        screen_y = y - self.game.camera_y
+                        if 0 <= screen_x < c.VIEWPORT_WIDTH and 0 <= screen_y < c.VIEWPORT_HEIGHT:
+                            painter.fillRect(screen_x * c.TILE_SIZE, screen_y * c.TILE_SIZE,
+                                           c.TILE_SIZE, c.TILE_SIZE, QColor(150, 200, 255, 80))
+
+        elif ability.name == "Shadow Step":
+            # Show enemy targets
+            for enemy in self.game.enemies:
+                # Check if there's a valid position behind enemy
+                dx = enemy.x - player_x
+                dy = enemy.y - player_y
+                behind_x = enemy.x + (1 if dx > 0 else -1 if dx < 0 else 0)
+                behind_y = enemy.y + (1 if dy > 0 else -1 if dy < 0 else 0)
+
+                valid = self.game.dungeon.is_walkable(behind_x, behind_y)
+                color = QColor(180, 100, 255, 100) if valid else QColor(100, 100, 100, 50)
+
+                screen_x = enemy.x - self.game.camera_x
+                screen_y = enemy.y - self.game.camera_y
+                if 0 <= screen_x < c.VIEWPORT_WIDTH and 0 <= screen_y < c.VIEWPORT_HEIGHT:
+                    painter.fillRect(screen_x * c.TILE_SIZE, screen_y * c.TILE_SIZE,
+                                   c.TILE_SIZE, c.TILE_SIZE, color)
+
+        elif ability.name == "Frost Nova":
+            # Show radius around player
+            radius = 2
+            for dy in range(-radius, radius + 1):
+                for dx in range(-radius, radius + 1):
+                    if abs(dx) + abs(dy) <= radius:
+                        nova_x = player_x + dx
+                        nova_y = player_y + dy
+                        screen_x = nova_x - self.game.camera_x
+                        screen_y = nova_y - self.game.camera_y
+                        if 0 <= screen_x < c.VIEWPORT_WIDTH and 0 <= screen_y < c.VIEWPORT_HEIGHT:
+                            painter.fillRect(screen_x * c.TILE_SIZE, screen_y * c.TILE_SIZE,
+                                           c.TILE_SIZE, c.TILE_SIZE, QColor(150, 220, 255, 80))
+
+        elif ability.name == "Whirlwind":
+            # Show adjacent tiles
+            for dy in range(-1, 2):
+                for dx in range(-1, 2):
+                    if dx != 0 or dy != 0:
+                        whirl_x = player_x + dx
+                        whirl_y = player_y + dy
+                        screen_x = whirl_x - self.game.camera_x
+                        screen_y = whirl_y - self.game.camera_y
+                        if 0 <= screen_x < c.VIEWPORT_WIDTH and 0 <= screen_y < c.VIEWPORT_HEIGHT:
+                            painter.fillRect(screen_x * c.TILE_SIZE, screen_y * c.TILE_SIZE,
+                                           c.TILE_SIZE, c.TILE_SIZE, QColor(255, 150, 150, 80))
+
+    def _draw_hover_highlight(self, painter: QPainter):
+        """Draw hover highlight on the tile under cursor"""
+        # Convert world coords to screen coords
+        screen_x = self.hover_world_x - self.game.camera_x
+        screen_y = self.hover_world_y - self.game.camera_y
+
+        # Only draw if visible in viewport
+        if not (0 <= screen_x < c.VIEWPORT_WIDTH and 0 <= screen_y < c.VIEWPORT_HEIGHT):
+            return
+
+        # Determine highlight color based on what's at the tile
+        highlight_color, can_interact = self._get_hover_color()
+
+        if can_interact:
+            # Draw highlight border
+            painter.setPen(highlight_color)
+            for i in range(3):  # Draw multiple borders for glow effect
+                alpha = 255 - (i * 60)
+                glow_color = QColor(highlight_color.red(), highlight_color.green(),
+                                   highlight_color.blue(), alpha)
+                painter.setPen(glow_color)
+                offset = i * 2
+                painter.drawRect(
+                    screen_x * c.TILE_SIZE - offset,
+                    screen_y * c.TILE_SIZE - offset,
+                    c.TILE_SIZE + offset * 2 - 1,
+                    c.TILE_SIZE + offset * 2 - 1
+                )
+
+            # Fill with semi-transparent color
+            fill_color = QColor(highlight_color.red(), highlight_color.green(),
+                               highlight_color.blue(), 40)
+            painter.fillRect(
+                screen_x * c.TILE_SIZE,
+                screen_y * c.TILE_SIZE,
+                c.TILE_SIZE,
+                c.TILE_SIZE,
+                fill_color
+            )
+
+    def _get_hover_color(self) -> tuple:
+        """Get hover highlight color based on tile content. Returns (color, can_interact)"""
+        if not self.game.player or self.game.game_over:
+            return (QColor(100, 100, 100), False)
+
+        x, y = self.hover_world_x, self.hover_world_y
+
+        # Check if player is hovering over themselves
+        if x == self.game.player.x and y == self.game.player.y:
+            return (QColor(100, 200, 255), False)  # Blue, but no interaction
+
+        # Check for enemy (attack)
+        entity = self.game.get_entity_at(x, y)
+        if entity and entity.entity_type == c.ENTITY_ENEMY:
+            # Check if adjacent
+            if abs(x - self.game.player.x) + abs(y - self.game.player.y) == 1:
+                return (QColor(255, 80, 80), True)  # Red - attack
+            else:
+                return (QColor(255, 150, 80), False)  # Orange - out of range
+
+        # Check for item
+        if entity and entity.entity_type == c.ENTITY_ITEM:
+            return (QColor(255, 215, 0), True)  # Gold - pickup
+
+        # Check for stairs
+        if self.game.dungeon and self.game.dungeon.get_tile(x, y) == c.TILE_STAIRS:
+            return (QColor(180, 100, 255), True)  # Purple - descend
+
+        # Check if walkable
+        if self.game.dungeon and self.game.dungeon.is_walkable(x, y):
+            return (QColor(100, 220, 100), True)  # Green - move
+
+        # Wall or unwalkable
+        return (QColor(100, 100, 100), False)  # Gray - blocked
+
+    def _find_path_step(self, start_x: int, start_y: int, goal_x: int, goal_y: int):
+        """
+        A* pathfinding to find the next step towards goal.
+        Returns (dx, dy) for the next move, or (0, 0) if no path.
+        """
+        from collections import deque
+        import heapq
+
+        # Simple heuristic (Manhattan distance)
+        def heuristic(x, y):
+            return abs(x - goal_x) + abs(y - goal_y)
+
+        # Priority queue: (f_score, counter, x, y)
+        counter = 0
+        open_set = [(heuristic(start_x, start_y), counter, start_x, start_y)]
+        counter += 1
+
+        # Track where we came from
+        came_from = {}
+
+        # Cost from start
+        g_score = {(start_x, start_y): 0}
+
+        # Visited set
+        visited = set()
+
+        while open_set:
+            _, _, current_x, current_y = heapq.heappop(open_set)
+
+            # Skip if already visited
+            if (current_x, current_y) in visited:
+                continue
+            visited.add((current_x, current_y))
+
+            # Reached goal
+            if current_x == goal_x and current_y == goal_y:
+                # Reconstruct path to find first step
+                path = []
+                cx, cy = current_x, current_y
+                while (cx, cy) in came_from:
+                    path.append((cx, cy))
+                    cx, cy = came_from[(cx, cy)]
+
+                if len(path) >= 1:
+                    # Get the first step after start
+                    next_x, next_y = path[-1]
+                    return (next_x - start_x, next_y - start_y)
+                else:
+                    return (0, 0)
+
+            # Explore neighbors (4-directional)
+            current_g = g_score[(current_x, current_y)]
+            for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+                nx, ny = current_x + dx, current_y + dy
+
+                # Check if walkable
+                if not self.game.dungeon.is_walkable(nx, ny):
+                    continue
+
+                # Skip if occupied by enemy (unless it's the goal - attacking)
+                if (nx, ny) != (goal_x, goal_y):
+                    entity = self.game.get_entity_at(nx, ny)
+                    if entity and entity.entity_type == c.ENTITY_ENEMY:
+                        continue
+
+                tentative_g = current_g + 1
+
+                if (nx, ny) not in g_score or tentative_g < g_score[(nx, ny)]:
+                    came_from[(nx, ny)] = (current_x, current_y)
+                    g_score[(nx, ny)] = tentative_g
+                    f_score = tentative_g + heuristic(nx, ny)
+                    heapq.heappush(open_set, (f_score, counter, nx, ny))
+                    counter += 1
+
+        # No path found
+        return (0, 0)
+
+    def mouseMoveEvent(self, event):
+        """Track mouse position for hover effects"""
+        # Convert mouse position to world coordinates
+        mouse_x = event.pos().x()
+        mouse_y = event.pos().y()
+
+        screen_x = mouse_x // c.TILE_SIZE
+        screen_y = mouse_y // c.TILE_SIZE
+
+        self.hover_world_x = screen_x + self.game.camera_x
+        self.hover_world_y = screen_y + self.game.camera_y
+
+        # Trigger repaint for hover effect
+        self.update()
+
+    def mousePressEvent(self, event):
+        """Handle mouse clicks for movement and interaction"""
+        if self.game.game_over or not self.game.player:
+            return
+
+        # Get world coordinates of click
+        mouse_x = event.pos().x()
+        mouse_y = event.pos().y()
+
+        screen_x = mouse_x // c.TILE_SIZE
+        screen_y = mouse_y // c.TILE_SIZE
+
+        world_x = screen_x + self.game.camera_x
+        world_y = screen_y + self.game.camera_y
+
+        # Handle targeting mode
+        if self.targeting_mode and event.button() == Qt.MouseButton.LeftButton:
+            # Use ability at target position
+            self.game.use_ability(self.targeting_ability_index, world_x, world_y)
+            self.targeting_mode = False
+            self.targeting_ability_index = None
+            self.update()
+            return
+
+        # Cancel targeting with right click
+        if self.targeting_mode and event.button() == Qt.MouseButton.RightButton:
+            self.targeting_mode = False
+            self.targeting_ability_index = None
+            self.update()
+            return
+
+        # Normal movement/interaction (left click only)
+        if event.button() != Qt.MouseButton.LeftButton:
+            return
+
+        # Don't do anything if clicking on player
+        if world_x == self.game.player.x and world_y == self.game.player.y:
+            return
+
+        # Use A* pathfinding to find next step
+        dx, dy = self._find_path_step(
+            self.game.player.x, self.game.player.y,
+            world_x, world_y
+        )
+
+        # If pathfinding found a valid move, execute it
+        if dx != 0 or dy != 0:
+            self.game.player_move(dx, dy)
+
+        # Update display
+        self.update()
 
     def _draw_game_over_overlay(self, painter: QPainter):
         """Draw game over overlay with enhanced visuals"""
@@ -572,15 +972,12 @@ class StatsPanel(QWidget):
         abilities_container, abilities_layout = self._create_section_container()
         layout.addWidget(abilities_container)
 
-        self.ability_labels = []
+        self.ability_buttons = []
         for i in range(3):  # Max 3 abilities
-            label = QLabel()
-            label.setFont(QFont("Courier New", 9))
-            label.setStyleSheet("color: rgb(200, 200, 200); padding: 2px; border: none;")
-            label.setWordWrap(True)
-            label.setTextFormat(Qt.TextFormat.RichText)
-            self.ability_labels.append(label)
-            abilities_layout.addWidget(label)
+            button = AbilityButton(i)
+            button.ability_clicked.connect(self._on_ability_clicked)
+            self.ability_buttons.append(button)
+            abilities_layout.addWidget(button)
 
         # Nearby Items section
         items_container, items_layout = self._create_section_container("Nearby Items")
@@ -625,6 +1022,30 @@ class StatsPanel(QWidget):
         controls_layout.addWidget(controls)
 
         self.setLayout(layout)
+
+    def _on_ability_clicked(self, ability_index: int):
+        """Handle ability button click"""
+        if not self.game or not self.game.player:
+            return
+
+        if ability_index >= len(self.game.player.abilities):
+            return
+
+        ability = self.game.player.abilities[ability_index]
+
+        # Abilities that need targeting
+        targeting_abilities = ["Fireball", "Dash", "Shadow Step"]
+
+        if ability.name in targeting_abilities:
+            # Enter targeting mode
+            # Find the game widget to set targeting mode
+            main_window = self.window()
+            if hasattr(main_window, 'game_widget'):
+                main_window.game_widget.targeting_mode = True
+                main_window.game_widget.targeting_ability_index = ability_index
+        else:
+            # Use ability immediately (no targeting needed)
+            self.game.use_ability(ability_index)
 
     def _create_section_container(self, title: str = None) -> tuple:
         """Create a styled section container with optional title. Returns (container, content_layout)"""
@@ -685,21 +1106,16 @@ class StatsPanel(QWidget):
         self.accessory_label.setText(f"Accessory: {p.equipment[c.SLOT_ACCESSORY].get_name() if p.equipment[c.SLOT_ACCESSORY] else 'None'}")
         self.boots_label.setText(f"Boots: {p.equipment[c.SLOT_BOOTS].get_name() if p.equipment[c.SLOT_BOOTS] else 'None'}")
 
-        # Update ability labels
-        for i, label in enumerate(self.ability_labels):
+        # Update ability buttons
+        for i, button in enumerate(self.ability_buttons):
             if i < len(p.abilities):
                 ability = p.abilities[i]
-                key_num = i + 1
-                if ability.is_ready():
-                    color = "#51cf66"  # Green when ready
-                    status = "READY"
-                else:
-                    color = "#ff6b6b"  # Red when on cooldown
-                    status = f"CD: {ability.current_cooldown}"
-
-                label.setText(f'<span style="color: {color};">[{key_num}] {ability.name}: {status}</span>')
+                is_ready = ability.is_ready()
+                status = "READY" if is_ready else f"CD: {ability.current_cooldown}"
+                button.set_ability_state(ability.name, is_ready, status)
+                button.setVisible(True)
             else:
-                label.setText("")
+                button.setVisible(False)
 
         # Update nearby items
         nearby_items = self._get_nearby_items(5)  # Within 5 tiles
@@ -851,6 +1267,14 @@ class MainWindow(QMainWindow):
     def keyPressEvent(self, event: QKeyEvent):
         """Handle key presses"""
         key = event.key()
+
+        # ESC to cancel targeting mode
+        if key == Qt.Key.Key_Escape:
+            if self.game_widget.targeting_mode:
+                self.game_widget.targeting_mode = False
+                self.game_widget.targeting_ability_index = None
+                self.update_display()
+                return
 
         # Abilities (keys 1, 2, 3)
         if key == Qt.Key.Key_1:
