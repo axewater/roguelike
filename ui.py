@@ -5,10 +5,291 @@ from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLab
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QPainter, QColor, QFont, QKeyEvent
 import time
+import math
 import constants as c
 from game import Game
 from audio import get_audio_manager
+from animations import AnimationManager
 import graphics as gfx
+
+
+class TitleScreen(QWidget):
+    """Animated title screen with particles"""
+    continue_pressed = pyqtSignal()
+
+    def __init__(self):
+        super().__init__()
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.setStyleSheet(f"background-color: rgb(20, 20, 25);")
+
+        # Animation manager for particles
+        self.anim_manager = AnimationManager()
+        self.time_elapsed = 0.0
+        self.last_time = time.time()
+
+        # Pulse animation for title
+        self.title_pulse = 0.0
+
+        # Fade animation for "Press Any Key"
+        self.prompt_fade = 0.0
+
+        # Timer for animations
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_animation)
+        self.timer.start(16)  # ~60 FPS
+
+        # Spawn initial particles
+        for _ in range(30):
+            self.anim_manager.add_ambient_particles(count=1)
+
+    def update_animation(self):
+        """Update animations"""
+        current_time = time.time()
+        dt = current_time - self.last_time
+        self.last_time = current_time
+
+        self.time_elapsed += dt
+
+        # Update animations
+        self.anim_manager.update(dt)
+
+        # Spawn ambient particles periodically
+        if len(self.anim_manager.ambient_particles) < 40:
+            self.anim_manager.add_ambient_particles(count=2)
+
+        # Update pulse animation (sine wave for smooth pulsing)
+        self.title_pulse = math.sin(self.time_elapsed * 2.0) * 0.5 + 0.5
+
+        # Update prompt fade (slower sine wave)
+        self.prompt_fade = math.sin(self.time_elapsed * 3.0) * 0.5 + 0.5
+
+        self.update()
+
+    def paintEvent(self, event):
+        """Paint the title screen"""
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        # Draw background gradient
+        for y in range(self.height()):
+            progress = y / self.height()
+            r = int(20 + progress * 15)
+            g = int(20 + progress * 15)
+            b = int(25 + progress * 20)
+            painter.setPen(QColor(r, g, b))
+            painter.drawLine(0, y, self.width(), y)
+
+        # Draw ambient particles
+        for particle in self.anim_manager.ambient_particles:
+            particle_color = QColor(particle.color.red(), particle.color.green(),
+                                   particle.color.blue(), particle.alpha)
+            painter.setBrush(particle_color)
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.drawEllipse(int(particle.x - particle.size / 2),
+                              int(particle.y - particle.size / 2),
+                              int(particle.size), int(particle.size))
+
+        # Draw glowing title - "DUNGEON DELVER"
+        title_y = self.height() // 3
+
+        # Glow effect (multiple layers)
+        glow_intensity = int(self.title_pulse * 100)
+        for i in range(5, 0, -1):
+            glow_alpha = glow_intensity - (i * 15)
+            if glow_alpha > 0:
+                glow_color = QColor(150, 100, 255, glow_alpha)
+                painter.setPen(glow_color)
+                painter.setFont(QFont("Arial", 56 + i * 2, QFont.Weight.Bold))
+                painter.drawText(0, title_y - i, self.width(), 100,
+                               Qt.AlignmentFlag.AlignCenter, "DUNGEON DELVER")
+
+        # Main title
+        title_brightness = int(200 + self.title_pulse * 55)
+        title_color = QColor(title_brightness, int(title_brightness * 0.7), 255)
+        painter.setPen(title_color)
+        painter.setFont(QFont("Arial", 56, QFont.Weight.Bold))
+        painter.drawText(0, title_y, self.width(), 100,
+                        Qt.AlignmentFlag.AlignCenter, "DUNGEON DELVER")
+
+        # Subtitle
+        subtitle_y = title_y + 90
+        painter.setPen(QColor(150, 150, 160))
+        painter.setFont(QFont("Arial", 18, QFont.Weight.Normal))
+        painter.drawText(0, subtitle_y, self.width(), 30,
+                        Qt.AlignmentFlag.AlignCenter, "A Roguelike Adventure")
+
+        # "Press Any Key" prompt with fade
+        prompt_y = self.height() - 150
+        prompt_alpha = int(150 + self.prompt_fade * 105)
+        prompt_color = QColor(200, 200, 210, prompt_alpha)
+        painter.setPen(prompt_color)
+        painter.setFont(QFont("Arial", 20, QFont.Weight.Bold))
+        painter.drawText(0, prompt_y, self.width(), 40,
+                        Qt.AlignmentFlag.AlignCenter, "Press Any Key to Continue")
+
+        # Version info
+        painter.setPen(QColor(100, 100, 110))
+        painter.setFont(QFont("Arial", 10))
+        painter.drawText(10, self.height() - 20, "v1.0.0")
+
+    def keyPressEvent(self, event):
+        """Handle any key press to continue"""
+        audio = get_audio_manager()
+        audio.play_ui_select()
+        self.continue_pressed.emit()
+
+
+class MainMenuScreen(QWidget):
+    """Main menu screen with navigation options"""
+    new_game_clicked = pyqtSignal()
+    how_to_play_clicked = pyqtSignal()
+    quit_clicked = pyqtSignal()
+
+    def __init__(self):
+        super().__init__()
+        self.setStyleSheet(f"background-color: rgb({c.COLOR_PANEL_BG.red()}, {c.COLOR_PANEL_BG.green()}, {c.COLOR_PANEL_BG.blue()});")
+
+        # Animation manager for particles
+        self.anim_manager = AnimationManager()
+        self.time_elapsed = 0.0
+        self.last_time = time.time()
+
+        # Timer for animations
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_animation)
+        self.timer.start(16)  # ~60 FPS
+
+        # Spawn initial particles
+        for _ in range(25):
+            self.anim_manager.add_ambient_particles(count=1)
+
+        self.setup_ui()
+
+    def setup_ui(self):
+        """Setup the UI"""
+        layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.setSpacing(30)
+
+        # Title
+        title = QLabel("DUNGEON DELVER")
+        title.setFont(QFont("Arial", 42, QFont.Weight.Bold))
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setStyleSheet(f"color: rgb({c.COLOR_TEXT_LIGHT.red()}, {c.COLOR_TEXT_LIGHT.green()}, {c.COLOR_TEXT_LIGHT.blue()}); padding: 30px;")
+        layout.addWidget(title)
+
+        # Menu buttons
+        button_width = 400
+        button_height = 60
+
+        # New Game button
+        new_game_btn = self._create_menu_button("New Game", button_width, button_height)
+        new_game_btn.clicked.connect(self._on_new_game)
+        layout.addWidget(new_game_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        # How to Play button
+        how_to_btn = self._create_menu_button("How to Play", button_width, button_height)
+        how_to_btn.clicked.connect(self._on_how_to_play)
+        layout.addWidget(how_to_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        # Quit button
+        quit_btn = self._create_menu_button("Quit", button_width, button_height)
+        quit_btn.clicked.connect(self._on_quit)
+        layout.addWidget(quit_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        self.setLayout(layout)
+
+    def _create_menu_button(self, text: str, width: int, height: int) -> QPushButton:
+        """Create a styled menu button"""
+        button = QPushButton(text)
+        button.setFixedSize(width, height)
+        button.setFont(QFont("Arial", 22, QFont.Weight.Bold))
+        button.setCursor(Qt.CursorShape.PointingHandCursor)
+
+        # Install event filter for hover sound
+        button.installEventFilter(self)
+
+        button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: rgb(60, 60, 70);
+                color: rgb(220, 220, 220);
+                border: 3px solid rgb(100, 100, 120);
+                border-radius: 10px;
+                padding: 15px;
+            }}
+            QPushButton:hover {{
+                background-color: rgb(80, 80, 100);
+                border: 3px solid rgb(150, 100, 255);
+                color: rgb(255, 255, 255);
+            }}
+            QPushButton:pressed {{
+                background-color: rgb(100, 100, 130);
+                border: 3px solid rgb(180, 130, 255);
+            }}
+        """)
+
+        return button
+
+    def eventFilter(self, obj, event):
+        """Filter events to detect hover for sound"""
+        if isinstance(obj, QPushButton) and event.type() == event.Type.Enter:
+            # Play hover sound
+            audio = get_audio_manager()
+            audio.play_ui_hover()
+        return super().eventFilter(obj, event)
+
+    def _on_new_game(self):
+        """Handle New Game click"""
+        audio = get_audio_manager()
+        audio.play_ui_select()
+        self.new_game_clicked.emit()
+
+    def _on_how_to_play(self):
+        """Handle How to Play click"""
+        audio = get_audio_manager()
+        audio.play_ui_select()
+        self.how_to_play_clicked.emit()
+
+    def _on_quit(self):
+        """Handle Quit click"""
+        audio = get_audio_manager()
+        audio.play_ui_select()
+        self.quit_clicked.emit()
+
+    def update_animation(self):
+        """Update animations"""
+        current_time = time.time()
+        dt = current_time - self.last_time
+        self.last_time = current_time
+
+        self.time_elapsed += dt
+
+        # Update animations
+        self.anim_manager.update(dt)
+
+        # Spawn ambient particles periodically
+        if len(self.anim_manager.ambient_particles) < 30:
+            self.anim_manager.add_ambient_particles(count=1)
+
+        self.update()
+
+    def paintEvent(self, event):
+        """Paint the menu screen with particles"""
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        # Draw background
+        painter.fillRect(0, 0, self.width(), self.height(), c.COLOR_PANEL_BG)
+
+        # Draw ambient particles
+        for particle in self.anim_manager.ambient_particles:
+            particle_color = QColor(particle.color.red(), particle.color.green(),
+                                   particle.color.blue(), particle.alpha)
+            painter.setBrush(particle_color)
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.drawEllipse(int(particle.x - particle.size / 2),
+                              int(particle.y - particle.size / 2),
+                              int(particle.size), int(particle.size))
 
 
 class AbilityButton(QPushButton):
@@ -125,9 +406,19 @@ class ProgressBar(QWidget):
 class ClassSelectionScreen(QWidget):
     """Class selection screen"""
     class_selected = pyqtSignal(str)
+    back_clicked = pyqtSignal()
 
     def __init__(self):
         super().__init__()
+
+        # Class ability descriptions
+        self.class_abilities = {
+            c.CLASS_WARRIOR: ["Healing Touch", "Whirlwind", "Dash"],
+            c.CLASS_MAGE: ["Fireball", "Frost Nova", "Healing Touch"],
+            c.CLASS_ROGUE: ["Shadow Step", "Dash", "Healing Touch"],
+            c.CLASS_RANGER: ["Fireball", "Dash", "Healing Touch"],
+        }
+
         self.setup_ui()
 
     def setup_ui(self):
@@ -155,6 +446,28 @@ class ClassSelectionScreen(QWidget):
 
         for class_type, color, label_text in classes:
             self._create_class_button(layout, class_type, color, label_text)
+
+        # Back to Menu button
+        back_button = QPushButton("Back to Menu")
+        back_button.setFont(QFont("Arial", 14, QFont.Weight.Bold))
+        back_button.setFixedHeight(40)
+        back_button.setFixedWidth(200)
+        back_button.setStyleSheet("""
+            QPushButton {
+                background-color: rgb(60, 60, 70);
+                color: rgb(180, 180, 185);
+                border: 2px solid rgb(80, 80, 90);
+                border-radius: 5px;
+                padding: 8px;
+            }
+            QPushButton:hover {
+                background-color: rgb(80, 80, 90);
+                border: 2px solid rgb(120, 120, 140);
+            }
+        """)
+        back_button.clicked.connect(self._on_back_clicked)
+        back_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        layout.addWidget(back_button, alignment=Qt.AlignmentFlag.AlignCenter)
 
         self.setLayout(layout)
 
@@ -193,6 +506,15 @@ class ClassSelectionScreen(QWidget):
         stats_label.setStyleSheet(f"color: rgb(220, 220, 220); border: none;")
         container_layout.addWidget(stats_label)
 
+        # Abilities
+        abilities_text = "Abilities: " + " • ".join(self.class_abilities[class_type])
+        abilities_label = QLabel(abilities_text)
+        abilities_label.setFont(QFont("Arial", 10))
+        abilities_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        abilities_label.setWordWrap(True)
+        abilities_label.setStyleSheet(f"color: rgb(150, 150, 200); border: none; padding: 8px;")
+        container_layout.addWidget(abilities_label)
+
         # Select button
         button = QPushButton("SELECT")
         button.setFont(QFont("Arial", 14, QFont.Weight.Bold))
@@ -210,6 +532,12 @@ class ClassSelectionScreen(QWidget):
         audio = get_audio_manager()
         audio.play_ui_select()
         self.class_selected.emit(class_type)
+
+    def _on_back_clicked(self):
+        """Handle back button click"""
+        audio = get_audio_manager()
+        audio.play_ui_select()
+        self.back_clicked.emit()
 
 
 class GameWidget(QWidget):
@@ -1211,9 +1539,22 @@ class MainWindow(QMainWindow):
         # Create stacked widget to switch between screens
         self.stacked_widget = QStackedWidget()
 
+        # Title screen (shown first)
+        self.title_screen = TitleScreen()
+        self.title_screen.continue_pressed.connect(self.on_title_continue)
+        self.stacked_widget.addWidget(self.title_screen)
+
+        # Main menu screen
+        self.main_menu = MainMenuScreen()
+        self.main_menu.new_game_clicked.connect(self.on_new_game)
+        self.main_menu.how_to_play_clicked.connect(self.on_how_to_play)
+        self.main_menu.quit_clicked.connect(self.close)
+        self.stacked_widget.addWidget(self.main_menu)
+
         # Class selection screen
         self.class_selection = ClassSelectionScreen()
         self.class_selection.class_selected.connect(self.on_class_selected)
+        self.class_selection.back_clicked.connect(self.on_class_back)
         self.stacked_widget.addWidget(self.class_selection)
 
         # Game screen
@@ -1239,6 +1580,98 @@ class MainWindow(QMainWindow):
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_display)
         self.timer.start(16)  # ~60 FPS
+
+        # Start background music on title screen
+        audio = get_audio_manager()
+        audio.start_background_music()
+
+    def on_title_continue(self):
+        """Handle title screen continue"""
+        self.stacked_widget.setCurrentWidget(self.main_menu)
+
+    def on_new_game(self):
+        """Handle New Game from main menu"""
+        self.stacked_widget.setCurrentWidget(self.class_selection)
+
+    def on_class_back(self):
+        """Handle back from class selection"""
+        self.stacked_widget.setCurrentWidget(self.main_menu)
+
+    def on_how_to_play(self):
+        """Show How to Play dialog"""
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("How to Play")
+        dialog.setModal(True)
+        dialog.setFixedSize(600, 500)
+        dialog.setStyleSheet(f"background-color: rgb({c.COLOR_PANEL_BG.red()}, {c.COLOR_PANEL_BG.green()}, {c.COLOR_PANEL_BG.blue()});")
+
+        layout = QVBoxLayout()
+
+        # Title
+        title = QLabel("HOW TO PLAY")
+        title.setFont(QFont("Arial", 24, QFont.Weight.Bold))
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setStyleSheet(f"color: rgb({c.COLOR_TEXT_LIGHT.red()}, {c.COLOR_TEXT_LIGHT.green()}, {c.COLOR_TEXT_LIGHT.blue()}); padding: 15px;")
+        layout.addWidget(title)
+
+        # Instructions
+        instructions = """
+        <p style='color: rgb(200, 200, 200); font-size: 12pt; line-height: 1.8;'>
+        <b>OBJECTIVE:</b><br/>
+        Explore procedurally generated dungeons, defeat enemies, collect loot, and descend deeper!<br/><br/>
+
+        <b>CONTROLS:</b><br/>
+        • <b>WASD / Arrow Keys</b> - Move your character<br/>
+        • <b>Click</b> - Move to location (pathfinding)<br/>
+        • <b>Bump into enemies</b> - Attack them<br/>
+        • <b>1, 2, 3</b> - Use abilities (class-specific)<br/>
+        • <b>R</b> - Restart game<br/>
+        • <b>Q</b> - Quit<br/><br/>
+
+        <b>GAMEPLAY:</b><br/>
+        • Fight enemies to gain XP and level up<br/>
+        • Collect equipment to boost your stats<br/>
+        • Find the stairs (purple) to descend to the next level<br/>
+        • Health potions restore HP immediately<br/>
+        • Abilities have cooldowns (shown in turns)<br/><br/>
+
+        <b>TIPS:</b><br/>
+        • Choose your class wisely - each has unique abilities<br/>
+        • Higher dungeon levels have better loot but stronger enemies<br/>
+        • Equipment rarity affects stat bonuses (Common → Legendary)<br/>
+        </p>
+        """
+
+        info_label = QLabel(instructions)
+        info_label.setWordWrap(True)
+        info_label.setTextFormat(Qt.TextFormat.RichText)
+        info_label.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        info_label.setStyleSheet("padding: 10px;")
+        layout.addWidget(info_label)
+
+        # Close button
+        close_btn = QPushButton("Got it!")
+        close_btn.setFont(QFont("Arial", 14, QFont.Weight.Bold))
+        close_btn.setFixedHeight(40)
+        close_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgb(100, 100, 255);
+                color: rgb(255, 255, 255);
+                border: none;
+                border-radius: 5px;
+                padding: 10px;
+            }
+            QPushButton:hover {
+                background-color: rgb(130, 130, 255);
+            }
+        """)
+        close_btn.clicked.connect(dialog.accept)
+        layout.addWidget(close_btn)
+
+        dialog.setLayout(layout)
+        dialog.exec()
 
     def on_class_selected(self, class_type: str):
         """Handle class selection"""
@@ -1301,8 +1734,8 @@ class MainWindow(QMainWindow):
         elif key in (Qt.Key.Key_D, Qt.Key.Key_Right):
             dx = 1
         elif key == Qt.Key.Key_R:
-            # Restart game - go back to class selection
-            self.stacked_widget.setCurrentWidget(self.class_selection)
+            # Restart game - go back to main menu
+            self.stacked_widget.setCurrentWidget(self.main_menu)
             return
         elif key == Qt.Key.Key_Q:
             # Quit

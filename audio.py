@@ -285,6 +285,10 @@ class AudioManager:
         select = synth.generate_sine_wave(800, 0.05, 0.3)
         self.sounds['ui_select'] = synth.array_to_sound(select)
 
+        # Menu hover - soft tick
+        hover = synth.generate_sine_wave(600, 0.03, 0.15)
+        self.sounds['ui_hover'] = synth.array_to_sound(hover)
+
         print(f"✓ Generated {len(self.sounds)} procedural sound effects")
 
     def _generate_ambient_music(self):
@@ -415,6 +419,10 @@ class AudioManager:
     def play_ui_select(self):
         """Play UI selection sound"""
         self.play_sound('ui_select', volume=0.5)
+
+    def play_ui_hover(self):
+        """Play UI hover sound (softer than select)"""
+        self.play_sound('ui_hover', volume=0.3)
 
     def start_background_music(self):
         """Start playing background music"""
