@@ -26,6 +26,21 @@ class Game:
         self.anim_manager = AnimationManager()
         self.selected_class = c.CLASS_WARRIOR  # Default class
         self.ambient_timer = 0.0  # Timer for spawning ambient particles
+        self.camera_x = 0  # Camera position (top-left of viewport in world coords)
+        self.camera_y = 0
+
+    def update_camera(self):
+        """Center camera on player with boundary clamping"""
+        if not self.player:
+            return
+
+        # Center camera on player
+        self.camera_x = self.player.x - c.VIEWPORT_WIDTH // 2
+        self.camera_y = self.player.y - c.VIEWPORT_HEIGHT // 2
+
+        # Clamp to dungeon boundaries
+        self.camera_x = max(0, min(self.camera_x, c.GRID_WIDTH - c.VIEWPORT_WIDTH))
+        self.camera_y = max(0, min(self.camera_y, c.GRID_HEIGHT - c.VIEWPORT_HEIGHT))
 
     def start_new_game(self):
         """Start a new game"""
@@ -49,6 +64,9 @@ class Game:
             self.player.abilities = CLASS_ABILITIES.get(self.selected_class, [])
         else:
             self.player.set_pos(start_x, start_y)
+
+        # Update camera to center on player
+        self.update_camera()
 
         # Spawn enemies
         self._spawn_enemies()
@@ -203,11 +221,13 @@ class Game:
         # Check for stairs
         if self.dungeon.get_tile(new_x, new_y) == c.TILE_STAIRS:
             self.player.set_pos(new_x, new_y)
+            self.update_camera()
             self._descend_stairs()
             return True
 
         # Move player
         self.player.set_pos(new_x, new_y)
+        self.update_camera()
 
         # Check for item pickup
         self._check_item_pickup()

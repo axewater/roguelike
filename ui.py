@@ -161,42 +161,66 @@ class GameWidget(QWidget):
         shake_x, shake_y = self.game.anim_manager.get_screen_offset()
         painter.translate(shake_x, shake_y)
 
-        # Draw tiles with graphics
-        for y in range(c.GRID_HEIGHT):
-            for x in range(c.GRID_WIDTH):
-                tile = self.game.dungeon.get_tile(x, y)
+        # Draw tiles with graphics (only visible viewport)
+        for screen_y in range(c.VIEWPORT_HEIGHT):
+            for screen_x in range(c.VIEWPORT_WIDTH):
+                # Convert screen coords to world coords
+                world_x = screen_x + self.game.camera_x
+                world_y = screen_y + self.game.camera_y
+
+                # Check bounds
+                if not (0 <= world_x < c.GRID_WIDTH and 0 <= world_y < c.GRID_HEIGHT):
+                    continue
+
+                tile = self.game.dungeon.get_tile(world_x, world_y)
 
                 if tile == c.TILE_WALL:
-                    gfx.draw_wall_tile(painter, x, y, c.TILE_SIZE)
+                    gfx.draw_wall_tile(painter, screen_x, screen_y, c.TILE_SIZE)
                 elif tile == c.TILE_FLOOR:
-                    gfx.draw_floor_tile(painter, x, y, c.TILE_SIZE)
+                    gfx.draw_floor_tile(painter, screen_x, screen_y, c.TILE_SIZE)
                 elif tile == c.TILE_STAIRS:
-                    gfx.draw_floor_tile(painter, x, y, c.TILE_SIZE)  # Draw floor underneath
-                    gfx.draw_stairs_tile(painter, x, y, c.TILE_SIZE)
+                    gfx.draw_floor_tile(painter, screen_x, screen_y, c.TILE_SIZE)  # Draw floor underneath
+                    gfx.draw_stairs_tile(painter, screen_x, screen_y, c.TILE_SIZE)
 
-        # Draw entities with graphics
-        for y in range(c.GRID_HEIGHT):
-            for x in range(c.GRID_WIDTH):
-                entity = self.game.get_entity_at(x, y)
+        # Draw entities with graphics (only visible viewport)
+        for screen_y in range(c.VIEWPORT_HEIGHT):
+            for screen_x in range(c.VIEWPORT_WIDTH):
+                # Convert screen coords to world coords
+                world_x = screen_x + self.game.camera_x
+                world_y = screen_y + self.game.camera_y
+
+                # Check bounds
+                if not (0 <= world_x < c.GRID_WIDTH and 0 <= world_y < c.GRID_HEIGHT):
+                    continue
+
+                entity = self.game.get_entity_at(world_x, world_y)
                 if entity:
                     color = self._get_entity_color(entity)
 
                     if entity.entity_type == c.ENTITY_PLAYER:
-                        gfx.draw_player(painter, x, y, c.TILE_SIZE, color, entity.class_type)
+                        gfx.draw_player(painter, screen_x, screen_y, c.TILE_SIZE, color, entity.class_type)
                     elif entity.entity_type == c.ENTITY_ENEMY:
-                        gfx.draw_enemy(painter, x, y, c.TILE_SIZE, color, entity.enemy_type)
+                        gfx.draw_enemy(painter, screen_x, screen_y, c.TILE_SIZE, color, entity.enemy_type)
                     elif entity.entity_type == c.ENTITY_ITEM:
-                        gfx.draw_item(painter, x, y, c.TILE_SIZE, color, entity.item_type)
+                        gfx.draw_item(painter, screen_x, screen_y, c.TILE_SIZE, color, entity.item_type)
 
         # Draw enemy health bars
         self._draw_enemy_health_bars(painter)
 
         # Draw flash effects (before other animations)
         for flash in self.game.anim_manager.flash_effects:
+            # Convert to screen coords
+            screen_x = flash.x - self.game.camera_x
+            screen_y = flash.y - self.game.camera_y
+
+            # Only draw if visible
+            if not (0 <= screen_x < c.VIEWPORT_WIDTH and 0 <= screen_y < c.VIEWPORT_HEIGHT):
+                continue
+
             flash_color = QColor(flash.color.red(), flash.color.green(), flash.color.blue(), flash.alpha)
             painter.fillRect(
-                flash.x * c.TILE_SIZE,
-                flash.y * c.TILE_SIZE,
+                screen_x * c.TILE_SIZE,
+                screen_y * c.TILE_SIZE,
                 c.TILE_SIZE,
                 c.TILE_SIZE,
                 flash_color
@@ -204,63 +228,106 @@ class GameWidget(QWidget):
 
         # Draw ambient particles (background layer)
         for particle in self.game.anim_manager.ambient_particles:
+            # Convert pixel coords to screen space
+            screen_pixel_x = particle.x - (self.game.camera_x * c.TILE_SIZE)
+            screen_pixel_y = particle.y - (self.game.camera_y * c.TILE_SIZE)
+
+            # Only draw if within viewport bounds
+            if not (0 <= screen_pixel_x < c.VIEWPORT_WIDTH * c.TILE_SIZE and
+                    0 <= screen_pixel_y < c.VIEWPORT_HEIGHT * c.TILE_SIZE):
+                continue
+
             particle_color = QColor(particle.color.red(), particle.color.green(),
                                    particle.color.blue(), particle.alpha)
             painter.setBrush(particle_color)
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawEllipse(int(particle.x - particle.size / 2),
-                              int(particle.y - particle.size / 2),
+            painter.drawEllipse(int(screen_pixel_x - particle.size / 2),
+                              int(screen_pixel_y - particle.size / 2),
                               int(particle.size), int(particle.size))
 
         # Draw trail effects
         for trail in self.game.anim_manager.trails:
+            # Convert to screen coords
+            screen_x = trail.x - self.game.camera_x
+            screen_y = trail.y - self.game.camera_y
+
+            # Only draw if visible
+            if not (0 <= screen_x < c.VIEWPORT_WIDTH and 0 <= screen_y < c.VIEWPORT_HEIGHT):
+                continue
+
             trail_color = QColor(trail.color.red(), trail.color.green(),
                                trail.color.blue(), trail.alpha)
             painter.setBrush(trail_color)
             painter.setPen(Qt.PenStyle.NoPen)
 
             # Draw as fading circle
-            painter.drawEllipse(int(trail.x * c.TILE_SIZE + c.TILE_SIZE / 2 - trail.size / 2),
-                              int(trail.y * c.TILE_SIZE + c.TILE_SIZE / 2 - trail.size / 2),
+            painter.drawEllipse(int(screen_x * c.TILE_SIZE + c.TILE_SIZE / 2 - trail.size / 2),
+                              int(screen_y * c.TILE_SIZE + c.TILE_SIZE / 2 - trail.size / 2),
                               int(trail.size), int(trail.size))
 
         # Draw regular particles
         for particle in self.game.anim_manager.particles:
+            # Convert pixel coords to screen space
+            screen_pixel_x = particle.x - (self.game.camera_x * c.TILE_SIZE)
+            screen_pixel_y = particle.y - (self.game.camera_y * c.TILE_SIZE)
+
+            # Only draw if within viewport bounds
+            if not (0 <= screen_pixel_x < c.VIEWPORT_WIDTH * c.TILE_SIZE and
+                    0 <= screen_pixel_y < c.VIEWPORT_HEIGHT * c.TILE_SIZE):
+                continue
+
             particle_color = QColor(particle.color.red(), particle.color.green(),
                                    particle.color.blue(), particle.alpha)
             painter.setBrush(particle_color)
             painter.setPen(Qt.PenStyle.NoPen)
 
             if particle.particle_type == "circle":
-                painter.drawEllipse(int(particle.x - particle.size / 2),
-                                  int(particle.y - particle.size / 2),
+                painter.drawEllipse(int(screen_pixel_x - particle.size / 2),
+                                  int(screen_pixel_y - particle.size / 2),
                                   int(particle.size), int(particle.size))
             else:  # square or star
-                painter.fillRect(int(particle.x - particle.size / 2),
-                               int(particle.y - particle.size / 2),
+                painter.fillRect(int(screen_pixel_x - particle.size / 2),
+                               int(screen_pixel_y - particle.size / 2),
                                int(particle.size), int(particle.size),
                                particle_color)
 
         # Draw directional particles
         for particle in self.game.anim_manager.directional_particles:
+            # Convert pixel coords to screen space
+            screen_pixel_x = particle.x - (self.game.camera_x * c.TILE_SIZE)
+            screen_pixel_y = particle.y - (self.game.camera_y * c.TILE_SIZE)
+
+            # Only draw if within viewport bounds
+            if not (0 <= screen_pixel_x < c.VIEWPORT_WIDTH * c.TILE_SIZE and
+                    0 <= screen_pixel_y < c.VIEWPORT_HEIGHT * c.TILE_SIZE):
+                continue
+
             particle_color = QColor(particle.color.red(), particle.color.green(),
                                    particle.color.blue(), particle.alpha)
             painter.setBrush(particle_color)
             painter.setPen(Qt.PenStyle.NoPen)
 
             if particle.particle_type == "circle":
-                painter.drawEllipse(int(particle.x - particle.size / 2),
-                                  int(particle.y - particle.size / 2),
+                painter.drawEllipse(int(screen_pixel_x - particle.size / 2),
+                                  int(screen_pixel_y - particle.size / 2),
                                   int(particle.size), int(particle.size))
             else:
-                painter.fillRect(int(particle.x - particle.size / 2),
-                               int(particle.y - particle.size / 2),
+                painter.fillRect(int(screen_pixel_x - particle.size / 2),
+                               int(screen_pixel_y - particle.size / 2),
                                int(particle.size), int(particle.size),
                                particle_color)
 
         # Draw floating text
         text_font = QFont("Arial", 14, QFont.Weight.Bold)
         for ftext in self.game.anim_manager.floating_texts:
+            # Convert to screen coords
+            screen_x = ftext.x - self.game.camera_x
+            screen_y = ftext.y - self.game.camera_y
+
+            # Only draw if visible
+            if not (0 <= screen_x < c.VIEWPORT_WIDTH and 0 <= screen_y < c.VIEWPORT_HEIGHT):
+                continue
+
             if ftext.is_crit:
                 text_font.setPointSize(18)
             else:
@@ -272,8 +339,8 @@ class GameWidget(QWidget):
             painter.setPen(text_color)
 
             # Calculate position
-            text_x = ftext.x * c.TILE_SIZE + c.TILE_SIZE // 2
-            text_y = ftext.y * c.TILE_SIZE + int(ftext.offset_y * c.TILE_SIZE)
+            text_x = screen_x * c.TILE_SIZE + c.TILE_SIZE // 2
+            text_y = screen_y * c.TILE_SIZE + int(ftext.offset_y * c.TILE_SIZE)
 
             painter.drawText(int(text_x - 20), int(text_y - 10), 40, 20,
                            Qt.AlignmentFlag.AlignCenter, ftext.text)
@@ -317,11 +384,19 @@ class GameWidget(QWidget):
     def _draw_enemy_health_bars(self, painter: QPainter):
         """Draw health bars below enemies"""
         for enemy in self.game.enemies:
+            # Convert world coords to screen coords
+            screen_x = enemy.x - self.game.camera_x
+            screen_y = enemy.y - self.game.camera_y
+
+            # Only draw if enemy is visible in viewport
+            if not (0 <= screen_x < c.VIEWPORT_WIDTH and 0 <= screen_y < c.VIEWPORT_HEIGHT):
+                continue
+
             # Calculate bar dimensions
             bar_width = c.TILE_SIZE - 4
             bar_height = 3
-            bar_x = enemy.x * c.TILE_SIZE + 2
-            bar_y = enemy.y * c.TILE_SIZE + c.TILE_SIZE - 5
+            bar_x = screen_x * c.TILE_SIZE + 2
+            bar_y = screen_y * c.TILE_SIZE + c.TILE_SIZE - 5
 
             # Draw background
             painter.fillRect(bar_x, bar_y, bar_width, bar_height, c.COLOR_ENEMY_HP_BAR_BG)

@@ -368,8 +368,8 @@ class AnimationManager:
         """Add ambient atmospheric particles"""
         for _ in range(count):
             # Random position across the screen
-            x = random.uniform(0, c.GRID_WIDTH * c.TILE_SIZE)
-            y = random.uniform(0, c.GRID_HEIGHT * c.TILE_SIZE)
+            x = random.uniform(0, c.VIEWPORT_WIDTH * c.TILE_SIZE)
+            y = random.uniform(0, c.VIEWPORT_HEIGHT * c.TILE_SIZE)
 
             # Subtle dust color
             dust_color = QColor(180, 180, 200)

@@ -6,7 +6,11 @@ from PyQt6.QtGui import QColor
 # Grid settings
 GRID_WIDTH = 50
 GRID_HEIGHT = 30
-TILE_SIZE = 24  # pixels (increased for better visibility)
+TILE_SIZE = 48  # pixels (2x scale for detailed sprites)
+
+# Viewport/Camera settings
+VIEWPORT_WIDTH = 25   # Tiles visible on screen
+VIEWPORT_HEIGHT = 15  # Tiles visible on screen
 
 # Window settings
 SIDEBAR_WIDTH = 300
