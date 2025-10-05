@@ -25,6 +25,7 @@ class Game:
         self.max_messages = 15
         self.anim_manager = AnimationManager()
         self.selected_class = c.CLASS_WARRIOR  # Default class
+        self.ambient_timer = 0.0  # Timer for spawning ambient particles
 
     def start_new_game(self):
         """Start a new game"""
@@ -258,14 +259,29 @@ class Game:
         message, enemy_died, xp = combat.player_attack_enemy(self.player, enemy)
         damage = combat.calculate_damage(self.player.attack, enemy.defense)
 
+        # Check if crit (rogue has crit chance)
+        is_crit = hasattr(self.player, 'crit_chance') and random.random() < getattr(self.player, 'crit_chance', 0)
+
         # Create animations
         from PyQt6.QtGui import QColor
-        self.anim_manager.add_floating_text(enemy.x, enemy.y, str(damage), QColor(255, 100, 100))
+
+        # Directional impact particles (spray away from player)
+        impact_color = QColor(255, 80, 80) if not is_crit else QColor(255, 200, 50)
+        self.anim_manager.add_directional_impact(
+            enemy.x, enemy.y,
+            self.player.x, self.player.y,
+            impact_color, count=12 if not is_crit else 20, is_crit=is_crit
+        )
+
+        self.anim_manager.add_floating_text(enemy.x, enemy.y, str(damage),
+                                           QColor(255, 100, 100) if not is_crit else QColor(255, 220, 50),
+                                           is_crit=is_crit)
         self.anim_manager.add_flash_effect(enemy.x, enemy.y, QColor(255, 200, 200))
 
         if enemy_died:
-            self.anim_manager.add_blood_splatter(enemy.x, enemy.y)
-            self.anim_manager.add_screen_shake(3.0, 0.15)
+            # Enhanced death effect with enemy-specific particles
+            self.anim_manager.add_death_burst(enemy.x, enemy.y, enemy.enemy_type)
+            self.anim_manager.add_screen_shake(4.0, 0.2)
 
         self.add_message(message, "damage")
 
@@ -297,6 +313,14 @@ class Game:
 
                 # Create animations
                 from PyQt6.QtGui import QColor
+
+                # Directional impact particles (spray away from enemy)
+                self.anim_manager.add_directional_impact(
+                    self.player.x, self.player.y,
+                    enemy.x, enemy.y,
+                    QColor(255, 50, 50), count=10
+                )
+
                 self.anim_manager.add_floating_text(self.player.x, self.player.y, str(damage), QColor(255, 50, 50))
                 self.anim_manager.add_flash_effect(self.player.x, self.player.y, QColor(255, 100, 100))
 
@@ -346,6 +370,15 @@ class Game:
             if enemy.x == x and enemy.y == y:
                 return enemy
         return None
+
+    def update(self, dt: float):
+        """Update game state (called every frame)"""
+        # Spawn ambient particles periodically
+        self.ambient_timer += dt
+        if self.ambient_timer >= 0.5:  # Every 0.5 seconds
+            self.ambient_timer = 0.0
+            # Spawn 2-4 ambient particles
+            self.anim_manager.add_ambient_particles(count=random.randint(2, 4))
 
     def add_message(self, message: str, msg_type: str = "event"):
         """Add message to message log with type for color coding"""

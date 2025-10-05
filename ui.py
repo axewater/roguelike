@@ -202,7 +202,29 @@ class GameWidget(QWidget):
                 flash_color
             )
 
-        # Draw particles
+        # Draw ambient particles (background layer)
+        for particle in self.game.anim_manager.ambient_particles:
+            particle_color = QColor(particle.color.red(), particle.color.green(),
+                                   particle.color.blue(), particle.alpha)
+            painter.setBrush(particle_color)
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.drawEllipse(int(particle.x - particle.size / 2),
+                              int(particle.y - particle.size / 2),
+                              int(particle.size), int(particle.size))
+
+        # Draw trail effects
+        for trail in self.game.anim_manager.trails:
+            trail_color = QColor(trail.color.red(), trail.color.green(),
+                               trail.color.blue(), trail.alpha)
+            painter.setBrush(trail_color)
+            painter.setPen(Qt.PenStyle.NoPen)
+
+            # Draw as fading circle
+            painter.drawEllipse(int(trail.x * c.TILE_SIZE + c.TILE_SIZE / 2 - trail.size / 2),
+                              int(trail.y * c.TILE_SIZE + c.TILE_SIZE / 2 - trail.size / 2),
+                              int(trail.size), int(trail.size))
+
+        # Draw regular particles
         for particle in self.game.anim_manager.particles:
             particle_color = QColor(particle.color.red(), particle.color.green(),
                                    particle.color.blue(), particle.alpha)
@@ -214,6 +236,23 @@ class GameWidget(QWidget):
                                   int(particle.y - particle.size / 2),
                                   int(particle.size), int(particle.size))
             else:  # square or star
+                painter.fillRect(int(particle.x - particle.size / 2),
+                               int(particle.y - particle.size / 2),
+                               int(particle.size), int(particle.size),
+                               particle_color)
+
+        # Draw directional particles
+        for particle in self.game.anim_manager.directional_particles:
+            particle_color = QColor(particle.color.red(), particle.color.green(),
+                                   particle.color.blue(), particle.alpha)
+            painter.setBrush(particle_color)
+            painter.setPen(Qt.PenStyle.NoPen)
+
+            if particle.particle_type == "circle":
+                painter.drawEllipse(int(particle.x - particle.size / 2),
+                                  int(particle.y - particle.size / 2),
+                                  int(particle.size), int(particle.size))
+            else:
                 painter.fillRect(int(particle.x - particle.size / 2),
                                int(particle.y - particle.size / 2),
                                int(particle.size), int(particle.size),
@@ -716,6 +755,9 @@ class MainWindow(QMainWindow):
         current_time = time.time()
         dt = current_time - self.last_time
         self.last_time = current_time
+
+        # Update game state
+        self.game.update(dt)
 
         # Update animations
         self.game.anim_manager.update(dt)

@@ -71,7 +71,8 @@ class FlashEffect:
 class Particle:
     """Generic particle for blood, sparks, explosions, etc."""
     def __init__(self, x: float, y: float, vx: float, vy: float, color: QColor,
-                 size: float = 3.0, lifetime: float = 0.5, particle_type: str = "square"):
+                 size: float = 3.0, lifetime: float = 0.5, particle_type: str = "square",
+                 apply_gravity: bool = True):
         self.x = x
         self.y = y
         self.vx = vx  # Velocity X
@@ -82,6 +83,7 @@ class Particle:
         self.lifetime = 0.0
         self.alpha = 255
         self.particle_type = particle_type  # "square", "circle", "star"
+        self.apply_gravity = apply_gravity
 
     def update(self, dt: float) -> bool:
         """Update particle physics. Returns False when dead"""
@@ -95,11 +97,112 @@ class Particle:
         self.y += self.vy * dt * 30
 
         # Apply gravity (for blood splatter)
-        self.vy += 0.5 * dt * 30
+        if self.apply_gravity:
+            self.vy += 0.5 * dt * 30
 
         # Fade out
         progress = self.lifetime / self.max_lifetime
         self.alpha = int(255 * (1.0 - progress))
+
+        return True
+
+
+class DirectionalParticle(Particle):
+    """Particle that sprays in a specific direction (for impacts)"""
+    def __init__(self, x: float, y: float, direction_x: float, direction_y: float,
+                 color: QColor, speed: float = 5.0, size: float = 4.0,
+                 lifetime: float = 0.4, particle_type: str = "square"):
+        # Calculate velocity from direction and speed
+        vx = direction_x * speed
+        vy = direction_y * speed
+        super().__init__(x, y, vx, vy, color, size, lifetime, particle_type, apply_gravity=False)
+
+        # Directional particles fade faster and slow down
+        self.friction = 0.95
+
+    def update(self, dt: float) -> bool:
+        """Update with friction to slow down"""
+        if not super().update(dt):
+            return False
+
+        # Apply friction
+        self.vx *= self.friction
+        self.vy *= self.friction
+
+        return True
+
+
+class TrailEffect:
+    """Trail effect that follows moving entities or abilities"""
+    def __init__(self, x: int, y: int, color: QColor, trail_type: str = "fade"):
+        self.x = x
+        self.y = y
+        self.color = color
+        self.trail_type = trail_type  # "fade", "sparkle", "smoke"
+        self.lifetime = 0.0
+        self.max_lifetime = 0.3
+        self.alpha = 180
+        self.size = 8.0
+
+    def update(self, dt: float) -> bool:
+        """Update trail. Returns False when dead"""
+        self.lifetime += dt
+
+        if self.lifetime >= self.max_lifetime:
+            return False
+
+        # Fade out and shrink
+        progress = self.lifetime / self.max_lifetime
+        self.alpha = int(180 * (1.0 - progress))
+        self.size = 8.0 * (1.0 - progress * 0.5)
+
+        return True
+
+
+class AmbientParticle:
+    """Subtle floating particles for atmosphere"""
+    def __init__(self, x: float, y: float, color: QColor):
+        self.x = x
+        self.y = y
+        self.color = color
+        self.lifetime = 0.0
+        self.max_lifetime = random.uniform(3.0, 6.0)
+        self.alpha = random.randint(30, 80)
+        self.size = random.uniform(1.5, 3.0)
+
+        # Slow drift
+        self.vx = random.uniform(-0.3, 0.3)
+        self.vy = random.uniform(-0.5, -0.1)  # Mostly upward
+
+        # Gentle wave motion
+        self.wave_offset = random.uniform(0, 6.28)
+        self.wave_amplitude = random.uniform(0.1, 0.3)
+        self.wave_speed = random.uniform(1.0, 2.0)
+
+    def update(self, dt: float) -> bool:
+        """Update ambient particle. Returns False when dead"""
+        self.lifetime += dt
+
+        if self.lifetime >= self.max_lifetime:
+            return False
+
+        # Apply drift
+        self.x += self.vx * dt * 10
+        self.y += self.vy * dt * 10
+
+        # Add wave motion
+        self.x += self.wave_amplitude * dt * 10 * random.uniform(-1, 1)
+
+        # Gentle fade in/out
+        progress = self.lifetime / self.max_lifetime
+        if progress < 0.2:
+            # Fade in
+            fade_progress = progress / 0.2
+            self.alpha = int(self.alpha * fade_progress)
+        elif progress > 0.8:
+            # Fade out
+            fade_progress = (progress - 0.8) / 0.2
+            self.alpha = int(self.alpha * (1.0 - fade_progress))
 
         return True
 
@@ -138,6 +241,9 @@ class AnimationManager:
         self.floating_texts: List[FloatingText] = []
         self.flash_effects: List[FlashEffect] = []
         self.particles: List[Particle] = []
+        self.directional_particles: List[DirectionalParticle] = []
+        self.trails: List[TrailEffect] = []
+        self.ambient_particles: List[AmbientParticle] = []
         self.screen_shake: ScreenShake = None
         self.last_update_time = 0.0
 
@@ -185,6 +291,131 @@ class AnimationManager:
         """Add screen shake effect"""
         self.screen_shake = ScreenShake(intensity, duration)
 
+    def add_directional_impact(self, x: int, y: int, from_x: int, from_y: int,
+                               color: QColor, count: int = 10, is_crit: bool = False):
+        """Create directional particle burst (sprays away from attacker)"""
+        center_x = x * c.TILE_SIZE + c.TILE_SIZE / 2
+        center_y = y * c.TILE_SIZE + c.TILE_SIZE / 2
+
+        # Calculate direction (away from attacker)
+        dx = x - from_x
+        dy = y - from_y
+        length = (dx * dx + dy * dy) ** 0.5
+        if length > 0:
+            dx /= length
+            dy /= length
+        else:
+            dx, dy = 1, 0
+
+        # Create particles spraying in direction
+        for _ in range(count):
+            # Add spread to direction
+            spread = 0.6  # How much particles spread out
+            angle_offset = random.uniform(-spread, spread)
+            import math
+            base_angle = math.atan2(dy, dx)
+            final_angle = base_angle + angle_offset
+
+            dir_x = math.cos(final_angle)
+            dir_y = math.sin(final_angle)
+
+            speed = random.uniform(4, 8) if not is_crit else random.uniform(6, 12)
+            size = random.uniform(3, 6) if not is_crit else random.uniform(5, 9)
+
+            self.directional_particles.append(
+                DirectionalParticle(center_x, center_y, dir_x, dir_y, color,
+                                  speed=speed, size=size, particle_type="circle")
+            )
+
+    def add_trail(self, x: int, y: int, color: QColor, trail_type: str = "fade"):
+        """Add trail effect at position"""
+        self.trails.append(TrailEffect(x, y, color, trail_type))
+
+    def add_ability_trail(self, x: int, y: int, color: QColor, ability_type: str):
+        """Add ability-specific trail effect"""
+        center_x = x * c.TILE_SIZE + c.TILE_SIZE / 2
+        center_y = y * c.TILE_SIZE + c.TILE_SIZE / 2
+
+        if ability_type == "fireball":
+            # Burning trail
+            for _ in range(3):
+                offset_x = random.uniform(-c.TILE_SIZE / 4, c.TILE_SIZE / 4)
+                offset_y = random.uniform(-c.TILE_SIZE / 4, c.TILE_SIZE / 4)
+                fire_color = QColor(255, random.randint(100, 200), 0)
+                self.particles.append(
+                    Particle(center_x + offset_x, center_y + offset_y,
+                           random.uniform(-1, 1), random.uniform(-1, 1),
+                           fire_color, size=random.uniform(4, 7),
+                           lifetime=0.4, particle_type="circle", apply_gravity=False)
+                )
+        elif ability_type == "ice":
+            # Ice crystals
+            for _ in range(2):
+                offset_x = random.uniform(-c.TILE_SIZE / 3, c.TILE_SIZE / 3)
+                offset_y = random.uniform(-c.TILE_SIZE / 3, c.TILE_SIZE / 3)
+                ice_color = QColor(150, 200, 255, 200)
+                self.particles.append(
+                    Particle(center_x + offset_x, center_y + offset_y,
+                           0, random.uniform(0.5, 1.5),
+                           ice_color, size=random.uniform(2, 4),
+                           lifetime=0.5, particle_type="star", apply_gravity=False)
+                )
+        elif ability_type == "dash":
+            # Speed lines
+            self.trails.append(TrailEffect(x, y, color, "fade"))
+
+    def add_ambient_particles(self, count: int = 1):
+        """Add ambient atmospheric particles"""
+        for _ in range(count):
+            # Random position across the screen
+            x = random.uniform(0, c.GRID_WIDTH * c.TILE_SIZE)
+            y = random.uniform(0, c.GRID_HEIGHT * c.TILE_SIZE)
+
+            # Subtle dust color
+            dust_color = QColor(180, 180, 200)
+
+            self.ambient_particles.append(AmbientParticle(x, y, dust_color))
+
+    def add_death_burst(self, x: int, y: int, enemy_type: str):
+        """Create dramatic death particle burst based on enemy type"""
+        center_x = x * c.TILE_SIZE + c.TILE_SIZE / 2
+        center_y = y * c.TILE_SIZE + c.TILE_SIZE / 2
+
+        # Different colors/patterns per enemy type
+        if enemy_type == c.ENEMY_GOBLIN:
+            color = QColor(100, 220, 80)
+            count = 20
+            particle_type = "circle"
+        elif enemy_type == c.ENEMY_SKELETON:
+            color = QColor(220, 220, 220)
+            count = 25
+            particle_type = "square"
+        elif enemy_type == c.ENEMY_DRAGON:
+            color = QColor(255, 150, 0)
+            count = 40  # More dramatic for boss
+            particle_type = "star"
+        else:
+            color = QColor(200, 200, 200)
+            count = 15
+            particle_type = "circle"
+
+        # Create burst
+        for _ in range(count):
+            angle = random.uniform(0, 6.28)
+            speed = random.uniform(3, 9)
+            import math
+            vx = speed * math.cos(angle)
+            vy = speed * math.sin(angle)
+
+            size = random.uniform(2, 6)
+            lifetime = random.uniform(0.5, 1.0)
+
+            self.particles.append(
+                Particle(center_x, center_y, vx, vy, color,
+                       size=size, lifetime=lifetime, particle_type=particle_type,
+                       apply_gravity=True)
+            )
+
     def update(self, dt: float):
         """Update all animations"""
         # Update floating texts
@@ -195,6 +426,15 @@ class AnimationManager:
 
         # Update particles
         self.particles = [p for p in self.particles if p.update(dt)]
+
+        # Update directional particles
+        self.directional_particles = [p for p in self.directional_particles if p.update(dt)]
+
+        # Update trails
+        self.trails = [t for t in self.trails if t.update(dt)]
+
+        # Update ambient particles
+        self.ambient_particles = [p for p in self.ambient_particles if p.update(dt)]
 
         # Update screen shake
         if self.screen_shake:
@@ -212,4 +452,7 @@ class AnimationManager:
         self.floating_texts.clear()
         self.flash_effects.clear()
         self.particles.clear()
+        self.directional_particles.clear()
+        self.trails.clear()
+        self.ambient_particles.clear()
         self.screen_shake = None
