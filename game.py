@@ -19,8 +19,8 @@ class Game:
         self.current_level = 1
         self.game_over = False
         self.victory = False
-        self.messages: List[str] = []
-        self.max_messages = 10
+        self.messages: List[Tuple[str, str]] = []  # (message, type)
+        self.max_messages = 15
 
     def start_new_game(self):
         """Start a new game"""
@@ -29,8 +29,8 @@ class Game:
         self.victory = False
         self.messages = []
         self._generate_level()
-        self.add_message("Welcome to Dungeon Delver! Descend the dungeon and defeat enemies.")
-        self.add_message("Use WASD or Arrow Keys to move. Bump into enemies to attack.")
+        self.add_message("Welcome to Dungeon Delver! Descend the dungeon and defeat enemies.", "event")
+        self.add_message("Use WASD or Arrow Keys to move. Bump into enemies to attack.", "event")
 
     def _generate_level(self):
         """Generate a new dungeon level"""
@@ -49,7 +49,7 @@ class Game:
         # Spawn items
         self._spawn_items()
 
-        self.add_message(f"Entered dungeon level {self.current_level}.")
+        self.add_message(f"Entered dungeon level {self.current_level}.", "event")
 
     def _spawn_enemies(self):
         """Spawn enemies on current level"""
@@ -159,13 +159,13 @@ class Game:
     def _player_attack(self, enemy: Enemy):
         """Player attacks enemy"""
         message, enemy_died, xp = combat.player_attack_enemy(self.player, enemy)
-        self.add_message(message)
+        self.add_message(message, "damage")
 
         if enemy_died:
             self.enemies.remove(enemy)
             leveled_up = self.player.gain_xp(xp)
             if leveled_up:
-                self.add_message(f"Level up! You are now level {self.player.level}!")
+                self.add_message(f"Level up! You are now level {self.player.level}!", "levelup")
 
     def _enemy_turn(self):
         """Process enemy turns"""
@@ -181,11 +181,11 @@ class Game:
             # Check if attacking player
             if new_x == self.player.x and new_y == self.player.y:
                 message, player_died = combat.enemy_attack_player(enemy, self.player)
-                self.add_message(message)
+                self.add_message(message, "damage")
 
                 if player_died:
                     self.game_over = True
-                    self.add_message("GAME OVER! Press R to restart.")
+                    self.add_message("GAME OVER! Press R to restart.", "death")
                     return
 
             # Move if walkable and not occupied
@@ -199,12 +199,18 @@ class Game:
             if item.x == self.player.x and item.y == self.player.y:
                 self.player.add_item(item)
                 self.items.remove(item)
-                self.add_message(f"Picked up {item.get_name()}!")
+
+                # Determine message type based on item
+                if item.item_type == c.ITEM_HEALTH_POTION:
+                    msg_type = "heal"
+                else:
+                    msg_type = "item"
+                self.add_message(f"Picked up {item.get_name()}!", msg_type)
 
     def _descend_stairs(self):
         """Descend to next level"""
         self.current_level += 1
-        self.add_message(f"Descending to level {self.current_level}...")
+        self.add_message(f"Descending to level {self.current_level}...", "event")
         self._generate_level()
 
     def _get_enemy_at(self, x: int, y: int) -> Optional[Enemy]:
@@ -214,9 +220,9 @@ class Game:
                 return enemy
         return None
 
-    def add_message(self, message: str):
-        """Add message to message log"""
-        self.messages.append(message)
+    def add_message(self, message: str, msg_type: str = "event"):
+        """Add message to message log with type for color coding"""
+        self.messages.append((message, msg_type))
         if len(self.messages) > self.max_messages:
             self.messages.pop(0)
 
