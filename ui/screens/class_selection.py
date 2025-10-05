@@ -537,6 +537,17 @@ class ClassSelectionScreen(QWidget):
         for ct, card in self.class_cards.items():
             card.set_selected(ct == class_type)
 
+        # Play class name voice
+        class_names = {
+            c.CLASS_WARRIOR: "Warrior",
+            c.CLASS_MAGE: "Mage",
+            c.CLASS_ROGUE: "Rogue",
+            c.CLASS_RANGER: "Ranger",
+        }
+        class_name = class_names.get(class_type, "")
+        if class_name:
+            audio.play_voice_class(class_name)
+
         # Emit signal to start game
         self.class_selected.emit(class_type)
 

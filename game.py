@@ -58,6 +58,9 @@ class Game:
         # Start background music
         self.audio_manager.start_background_music()
 
+        # Play welcome voice
+        self.audio_manager.play_voice_welcome()
+
     def _generate_level(self):
         """Generate a new dungeon level"""
         self.dungeon = Dungeon(c.GRID_WIDTH, c.GRID_HEIGHT)
@@ -325,11 +328,16 @@ class Game:
             self.audio_manager.play_enemy_death(enemy.enemy_type, position=(enemy.x, enemy.y),
                                                player_position=(self.player.x, self.player.y))
 
+            # Play special voice for dragon defeats
+            if enemy.enemy_type == c.ENEMY_DRAGON:
+                self.audio_manager.play_voice_dragon_defeated()
+
         # Use more specific event types for better visual feedback
         if enemy_died:
             self.add_message(message, "kill")
         elif is_crit:
             self.add_message(message, "crit")
+            self.audio_manager.play_voice_critical()
         else:
             self.add_message(message, "player_attack")
 
@@ -340,6 +348,7 @@ class Game:
                 self.add_message(f"Level up! You are now level {self.player.level}!", "levelup")
                 self.anim_manager.add_heal_sparkles(self.player.x, self.player.y)
                 self.audio_manager.play_levelup()
+                self.audio_manager.play_voice_levelup()
 
     def _enemy_turn(self):
         """Process enemy turns"""
@@ -384,6 +393,7 @@ class Game:
                 if player_died:
                     self.anim_manager.add_screen_shake(8.0, 0.3)
                     self.audio_manager.play_gameover()
+                    self.audio_manager.play_voice_gameover()
 
                 self.add_message(message, "enemy_attack")
 
@@ -428,6 +438,14 @@ class Game:
                     # Play equip sound
                     self.audio_manager.play_equip()
 
+                    # Play voice for special rarities
+                    if item.rarity == c.RARITY_LEGENDARY:
+                        self.audio_manager.play_voice_legendary()
+                    elif item.rarity == c.RARITY_EPIC:
+                        self.audio_manager.play_voice_epic()
+                    elif item.rarity == c.RARITY_RARE:
+                        self.audio_manager.play_voice_rare()
+
                 self.add_message(f"Picked up {item.get_name()}!", msg_type)
 
     def _descend_stairs(self):
@@ -437,6 +455,7 @@ class Game:
 
         # Play stairs sound
         self.audio_manager.play_stairs()
+        self.audio_manager.play_voice_descending()
 
         self._generate_level()
 

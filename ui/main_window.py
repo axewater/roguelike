@@ -253,3 +253,15 @@ class MainWindow(QMainWindow):
 
         # Update display after movement
         self.update_display()
+
+    def closeEvent(self, event):
+        """Handle window close event - cleanup audio"""
+        print("🚪 Closing window...")
+
+        # Shutdown audio manager to stop all sounds
+        audio = get_audio_manager()
+        audio.shutdown()
+
+        # Accept the close event
+        event.accept()
+        print("✓ Window closed")

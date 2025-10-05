@@ -219,9 +219,13 @@ class AbilityIcon(QWidget):
 
         # Show tooltip with ability info
         if self.ability_name:
-            tooltip = f"<b>{self.ability_name}</b><br/>{self.ability_description}"
+            tooltip = (f"<div style='color: white; background-color: rgba(30, 30, 35, 240); "
+                      f"padding: 4px; border: 1px solid #555;'>"
+                      f"<b style='color: #ffd43b;'>{self.ability_name}</b><br/>"
+                      f"<span style='color: #ddd;'>{self.ability_description}</span>")
             if not self.is_ready:
                 tooltip += f"<br/><span style='color: #ff6b6b;'>Cooldown: {self.current_cooldown}</span>"
+            tooltip += "</div>"
             QToolTip.showText(self.mapToGlobal(QPoint(0, -30)), tooltip, self)
 
     def leaveEvent(self, event):
