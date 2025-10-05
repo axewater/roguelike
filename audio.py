@@ -292,19 +292,111 @@ class AudioManager:
         print(f"✓ Generated {len(self.sounds)} procedural sound effects")
 
     def _generate_ambient_music(self):
-        """Generate ambient background music loop"""
+        """Generate ambient background music loop with melody and rhythm"""
         synth = SoundSynthesizer()
-        duration = 10.0  # 10 second loop
 
-        # Layered ambient tones
-        bass = synth.generate_sine_wave(110, duration, 0.15)  # A
-        drone1 = synth.generate_sine_wave(220, duration, 0.1)  # A (octave)
-        drone2 = synth.generate_sine_wave(165, duration, 0.08)  # E
+        # Musical parameters
+        note_duration = 0.8  # Each note lasts 0.8 seconds
+        gap_duration = 0.15  # Small gap between notes
+        phrase_gap = 1.0  # Longer gap between phrases
 
-        # Combine layers
-        music = synth.combine_waves(bass, drone1, drone2)
+        # Minor scale notes (A minor for dark atmosphere)
+        # A, B, C, D, E, F, G
+        scale_freqs = [220, 247, 262, 294, 330, 349, 392]  # A3 minor scale
 
-        return synth.array_to_sound(music)
+        # Create multiple melodic phrases
+        phrases = []
+
+        # Phrase 1: Descending arpeggio (A - E - C - A)
+        phrase1_notes = [scale_freqs[0], scale_freqs[4], scale_freqs[2], scale_freqs[0]]
+        phrase1 = self._create_phrase(synth, phrase1_notes, note_duration, gap_duration, 0.12)
+        phrases.append(phrase1)
+
+        # Phrase 2: Rising pattern (C - D - E - F)
+        phrase2_notes = [scale_freqs[2], scale_freqs[3], scale_freqs[4], scale_freqs[5]]
+        phrase2 = self._create_phrase(synth, phrase2_notes, note_duration, gap_duration, 0.10)
+        phrases.append(phrase2)
+
+        # Phrase 3: Ambient chord (A + C + E sustained with pulse)
+        chord = self._create_pulsing_chord(synth, [scale_freqs[0], scale_freqs[2], scale_freqs[4]],
+                                          duration=3.0, pulse_speed=0.5)
+        phrases.append(chord)
+
+        # Add silences between phrases
+        silence_short = np.zeros(int(SoundSynthesizer.SAMPLE_RATE * gap_duration))
+        silence_long = np.zeros(int(SoundSynthesizer.SAMPLE_RATE * phrase_gap))
+
+        # Combine phrases with gaps for breathing
+        music = np.concatenate([
+            phrases[0], silence_short,
+            phrases[1], silence_long,
+            phrases[2], silence_long,
+            phrases[0], silence_short,  # Repeat first phrase
+        ])
+
+        # Add subtle bass drone underneath (much quieter)
+        bass_duration = len(music) / SoundSynthesizer.SAMPLE_RATE
+        bass_drone = synth.generate_sine_wave(110, bass_duration, 0.05)  # Very quiet
+
+        # Apply slow amplitude modulation to bass for "breathing"
+        breath_rate = 0.3  # Hz
+        breath_envelope = np.sin(2 * np.pi * breath_rate * np.linspace(0, bass_duration, len(bass_drone))) * 0.5 + 0.5
+        bass_drone = bass_drone * breath_envelope
+
+        # Combine melody with bass
+        final_music = synth.combine_waves(music, bass_drone)
+
+        return synth.array_to_sound(final_music)
+
+    def _create_phrase(self, synth, frequencies, note_duration, gap_duration, volume):
+        """Create a melodic phrase from a sequence of notes"""
+        notes = []
+        for freq in frequencies:
+            # Generate note with fade in/out envelope
+            note = synth.generate_sine_wave(freq, note_duration, volume)
+
+            # Apply envelope (fade in and out) for smooth notes
+            envelope = self._create_envelope(len(note), attack=0.05, release=0.3)
+            note = note * envelope
+
+            notes.append(note)
+
+            # Add gap between notes
+            if gap_duration > 0:
+                gap = np.zeros(int(SoundSynthesizer.SAMPLE_RATE * gap_duration))
+                notes.append(gap)
+
+        return np.concatenate(notes)
+
+    def _create_pulsing_chord(self, synth, frequencies, duration, pulse_speed):
+        """Create a chord that pulses in volume"""
+        # Generate each note in the chord
+        chord_notes = [synth.generate_sine_wave(freq, duration, 0.08) for freq in frequencies]
+
+        # Combine into chord
+        chord = synth.combine_waves(*chord_notes)
+
+        # Apply pulsing envelope
+        pulse_envelope = np.sin(2 * np.pi * pulse_speed * np.linspace(0, duration, len(chord))) * 0.4 + 0.6
+        chord = chord * pulse_envelope
+
+        return chord
+
+    def _create_envelope(self, length, attack=0.1, release=0.2):
+        """Create an amplitude envelope (ADSR-style)"""
+        envelope = np.ones(length)
+
+        # Attack (fade in)
+        attack_samples = int(length * attack)
+        if attack_samples > 0:
+            envelope[:attack_samples] = np.linspace(0, 1, attack_samples)
+
+        # Release (fade out)
+        release_samples = int(length * release)
+        if release_samples > 0:
+            envelope[-release_samples:] = np.linspace(1, 0, release_samples)
+
+        return envelope
 
     def play_sound(self, sound_name: str, volume: float = 1.0, pitch_variation: float = 0.1,
                    position: tuple = None, player_position: tuple = None):
