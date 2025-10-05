@@ -6,6 +6,8 @@ from typing import List, Optional, Tuple
 import constants as c
 from entities import Player, Enemy, Item
 from dungeon import Dungeon
+from animations import AnimationManager
+from abilities import CLASS_ABILITIES
 import combat
 
 
@@ -21,6 +23,8 @@ class Game:
         self.victory = False
         self.messages: List[Tuple[str, str]] = []  # (message, type)
         self.max_messages = 15
+        self.anim_manager = AnimationManager()
+        self.selected_class = c.CLASS_WARRIOR  # Default class
 
     def start_new_game(self):
         """Start a new game"""
@@ -39,7 +43,9 @@ class Game:
 
         # Create player or move to new level
         if self.player is None:
-            self.player = Player(start_x, start_y)
+            self.player = Player(start_x, start_y, self.selected_class)
+            # Assign class-specific abilities
+            self.player.abilities = CLASS_ABILITIES.get(self.selected_class, [])
         else:
             self.player.set_pos(start_x, start_y)
 
@@ -79,13 +85,66 @@ class Game:
         self.items = []
 
         for _ in range(c.ITEMS_PER_LEVEL):
-            item_types = [c.ITEM_HEALTH_POTION, c.ITEM_SWORD, c.ITEM_SHIELD]
-            weights = [5, 3, 2]  # Health potions more common
+            # Choose item type
+            item_types = [c.ITEM_HEALTH_POTION, c.ITEM_SWORD, c.ITEM_SHIELD, c.ITEM_BOOTS, c.ITEM_RING]
+            weights = [5, 3, 2, 2, 2]  # Health potions more common
             item_type = random.choices(item_types, weights=weights)[0]
 
+            # Determine rarity based on dungeon level
+            rarity = self._determine_item_rarity()
+
+            # Generate random affixes for rare+ items
+            affixes = {}
+            if rarity in [c.RARITY_RARE, c.RARITY_EPIC, c.RARITY_LEGENDARY]:
+                affixes = self._generate_item_affixes(rarity)
+
             x, y = self._get_spawn_position()
-            item = Item(x, y, item_type)
+            item = Item(x, y, item_type, rarity, affixes)
             self.items.append(item)
+
+    def _determine_item_rarity(self) -> str:
+        """Determine item rarity based on dungeon level"""
+        # Higher levels have better drop rates
+        level_factor = min(self.current_level / 10, 1.0)
+
+        rarities = [
+            c.RARITY_COMMON,
+            c.RARITY_UNCOMMON,
+            c.RARITY_RARE,
+            c.RARITY_EPIC,
+            c.RARITY_LEGENDARY
+        ]
+
+        # Weights adjusted by dungeon level
+        weights = [
+            max(60 - level_factor * 40, 20),  # Common: 60% -> 20%
+            30 + level_factor * 10,            # Uncommon: 30% -> 40%
+            8 + level_factor * 20,             # Rare: 8% -> 28%
+            2 + level_factor * 8,              # Epic: 2% -> 10%
+            level_factor * 2                   # Legendary: 0% -> 2%
+        ]
+
+        return random.choices(rarities, weights=weights)[0]
+
+    def _generate_item_affixes(self, rarity: str) -> dict:
+        """Generate random stat affixes for an item"""
+        affixes = {}
+        num_affixes = {
+            c.RARITY_RARE: 1,
+            c.RARITY_EPIC: 2,
+            c.RARITY_LEGENDARY: 3
+        }.get(rarity, 0)
+
+        possible_stats = ["attack", "defense", "hp"]
+        selected_stats = random.sample(possible_stats, min(num_affixes, len(possible_stats)))
+
+        for stat in selected_stats:
+            if stat == "hp":
+                affixes["hp"] = random.randint(5, 15)
+            else:
+                affixes[stat] = random.randint(1, 5)
+
+        return affixes
 
     def _get_spawn_position(self) -> Tuple[int, int]:
         """Get a valid spawn position away from player"""
@@ -133,6 +192,7 @@ class Game:
         if enemy:
             self._player_attack(enemy)
             self._enemy_turn()
+            self._reduce_ability_cooldowns()
             return True
 
         # Check if walkable
@@ -154,11 +214,59 @@ class Game:
         # Enemy turn
         self._enemy_turn()
 
+        # Reduce ability cooldowns
+        self._reduce_ability_cooldowns()
+
         return True
+
+    def use_ability(self, ability_index: int, target_x: int = None, target_y: int = None) -> bool:
+        """
+        Use an ability. Returns True if turn was consumed.
+        """
+        if self.game_over or not self.player:
+            return False
+
+        if ability_index < 0 or ability_index >= len(self.player.abilities):
+            return False
+
+        ability = self.player.abilities[ability_index]
+
+        # Use player position as default target
+        if target_x is None or target_y is None:
+            target_x = self.player.x
+            target_y = self.player.y
+
+        # Use ability
+        success, message = ability.use(self.player, (target_x, target_y), self)
+        self.add_message(message, "event" if success else "damage")
+
+        if success:
+            # Enemy turn
+            self._enemy_turn()
+            # Reduce ability cooldowns
+            self._reduce_ability_cooldowns()
+
+        return success
+
+    def _reduce_ability_cooldowns(self):
+        """Reduce all ability cooldowns by 1"""
+        for ability in self.player.abilities:
+            ability.reduce_cooldown()
 
     def _player_attack(self, enemy: Enemy):
         """Player attacks enemy"""
         message, enemy_died, xp = combat.player_attack_enemy(self.player, enemy)
+        damage = combat.calculate_damage(self.player.attack, enemy.defense)
+
+        # Create animations
+        from PyQt6.QtGui import QColor
+        self.anim_manager.add_floating_text(enemy.x, enemy.y, str(damage), QColor(255, 100, 100))
+        self.anim_manager.add_flash_effect(enemy.x, enemy.y, QColor(255, 200, 200))
+
+        if enemy_died:
+            self.anim_manager.add_blood_splatter(enemy.x, enemy.y)
+            self.anim_manager.add_screen_shake(3.0, 0.15)
+
         self.add_message(message, "damage")
 
         if enemy_died:
@@ -166,6 +274,7 @@ class Game:
             leveled_up = self.player.gain_xp(xp)
             if leveled_up:
                 self.add_message(f"Level up! You are now level {self.player.level}!", "levelup")
+                self.anim_manager.add_heal_sparkles(self.player.x, self.player.y)
 
     def _enemy_turn(self):
         """Process enemy turns"""
@@ -181,6 +290,16 @@ class Game:
             # Check if attacking player
             if new_x == self.player.x and new_y == self.player.y:
                 message, player_died = combat.enemy_attack_player(enemy, self.player)
+                damage = combat.calculate_damage(enemy.attack, self.player.defense)
+
+                # Create animations
+                from PyQt6.QtGui import QColor
+                self.anim_manager.add_floating_text(self.player.x, self.player.y, str(damage), QColor(255, 50, 50))
+                self.anim_manager.add_flash_effect(self.player.x, self.player.y, QColor(255, 100, 100))
+
+                if player_died:
+                    self.anim_manager.add_screen_shake(8.0, 0.3)
+
                 self.add_message(message, "damage")
 
                 if player_died:
@@ -203,8 +322,13 @@ class Game:
                 # Determine message type based on item
                 if item.item_type == c.ITEM_HEALTH_POTION:
                     msg_type = "heal"
+                    from PyQt6.QtGui import QColor
+                    self.anim_manager.add_heal_sparkles(self.player.x, self.player.y)
                 else:
                     msg_type = "item"
+                    from PyQt6.QtGui import QColor
+                    self.anim_manager.add_particle_burst(self.player.x, self.player.y,
+                                                        QColor(255, 215, 0), count=6, particle_type="star")
                 self.add_message(f"Picked up {item.get_name()}!", msg_type)
 
     def _descend_stairs(self):

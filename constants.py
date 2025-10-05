@@ -55,6 +55,8 @@ SYMBOL_DRAGON = "D"
 SYMBOL_POTION = "!"
 SYMBOL_SWORD = "/"
 SYMBOL_SHIELD = "]"
+SYMBOL_BOOTS = "["
+SYMBOL_RING = "o"
 SYMBOL_STAIRS = ">"
 SYMBOL_WALL = "#"
 SYMBOL_FLOOR = "."
@@ -69,6 +71,26 @@ ENTITY_PLAYER = "player"
 ENTITY_ENEMY = "enemy"
 ENTITY_ITEM = "item"
 
+# Player class types
+CLASS_WARRIOR = "warrior"
+CLASS_MAGE = "mage"
+CLASS_ROGUE = "rogue"
+CLASS_RANGER = "ranger"
+
+# Class stats [HP, Attack, Defense]
+CLASS_STATS = {
+    CLASS_WARRIOR: {"hp": 120, "attack": 12, "defense": 8, "description": "High HP tank with strong defense"},
+    CLASS_MAGE: {"hp": 70, "attack": 15, "defense": 3, "description": "Glass cannon with powerful attacks"},
+    CLASS_ROGUE: {"hp": 85, "attack": 13, "defense": 4, "crit_chance": 0.25, "description": "High critical hit chance and dodge"},
+    CLASS_RANGER: {"hp": 90, "attack": 11, "defense": 5, "description": "Balanced fighter with ranged capabilities"},
+}
+
+# Class colors
+COLOR_CLASS_WARRIOR = QColor(200, 100, 100)  # Red
+COLOR_CLASS_MAGE = QColor(100, 150, 255)  # Blue
+COLOR_CLASS_ROGUE = QColor(180, 100, 255)  # Purple
+COLOR_CLASS_RANGER = QColor(100, 200, 100)  # Green
+
 # Enemy types
 ENEMY_GOBLIN = "goblin"
 ENEMY_SKELETON = "skeleton"
@@ -78,6 +100,36 @@ ENEMY_DRAGON = "dragon"
 ITEM_HEALTH_POTION = "health_potion"
 ITEM_SWORD = "sword"
 ITEM_SHIELD = "shield"
+ITEM_BOOTS = "boots"
+ITEM_RING = "ring"
+
+# Equipment slots
+SLOT_WEAPON = "weapon"
+SLOT_ARMOR = "armor"
+SLOT_ACCESSORY = "accessory"
+SLOT_BOOTS = "boots"
+
+# Equipment item types (can be equipped)
+EQUIPMENT_TYPES = {
+    ITEM_SWORD: SLOT_WEAPON,
+    ITEM_SHIELD: SLOT_ARMOR,
+    ITEM_BOOTS: SLOT_BOOTS,
+    ITEM_RING: SLOT_ACCESSORY,
+}
+
+# Item rarities
+RARITY_COMMON = "common"
+RARITY_UNCOMMON = "uncommon"
+RARITY_RARE = "rare"
+RARITY_EPIC = "epic"
+RARITY_LEGENDARY = "legendary"
+
+# Rarity colors
+COLOR_RARITY_COMMON = QColor(180, 180, 180)  # Gray
+COLOR_RARITY_UNCOMMON = QColor(100, 200, 100)  # Green
+COLOR_RARITY_RARE = QColor(100, 150, 255)  # Blue
+COLOR_RARITY_EPIC = QColor(200, 100, 255)  # Purple
+COLOR_RARITY_LEGENDARY = QColor(255, 180, 0)  # Gold
 
 # Player starting stats
 PLAYER_START_HP = 100
@@ -92,11 +144,13 @@ ENEMY_STATS = {
     ENEMY_DRAGON: {"hp": 150, "attack": 20, "defense": 10, "xp": 100},
 }
 
-# Item effects
+# Item effects (base values, modified by rarity)
 ITEM_EFFECTS = {
     ITEM_HEALTH_POTION: {"heal": 30},
     ITEM_SWORD: {"attack": 5},
     ITEM_SHIELD: {"defense": 3},
+    ITEM_BOOTS: {"defense": 2},
+    ITEM_RING: {"attack": 2, "defense": 1},
 }
 
 # Dungeon generation
