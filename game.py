@@ -105,7 +105,11 @@ class Game:
 
             enemy_type = random.choice(enemy_types)
             x, y = self._get_spawn_position()
-            enemy = Enemy(x, y, enemy_type, level_modifier)
+
+            # Determine which room the enemy spawned in
+            starting_room = self.dungeon.get_room_at(x, y)
+
+            enemy = Enemy(x, y, enemy_type, level_modifier, starting_room)
             self.enemies.append(enemy)
 
     def _spawn_items(self):
@@ -359,8 +363,8 @@ class Game:
             # Reduce status effects
             enemy.reduce_status_effects()
 
-            # Get AI action
-            dx, dy = enemy.get_ai_action(self.player.get_pos(), self.dungeon)
+            # Get AI action (pass game reference for line of sight checks)
+            dx, dy = enemy.get_ai_action(self.player.get_pos(), self.dungeon, self)
             new_x = enemy.x + dx
             new_y = enemy.y + dy
 
@@ -465,6 +469,56 @@ class Game:
             if enemy.x == x and enemy.y == y:
                 return enemy
         return None
+
+    def has_line_of_sight(self, x1: int, y1: int, x2: int, y2: int) -> bool:
+        """
+        Check if there's a clear line of sight between two points (no walls).
+        Uses Bresenham's line algorithm.
+        """
+        # Get all points along the line
+        points = self._bresenham_line(x1, y1, x2, y2)
+
+        # Check if any point (except start and end) is a wall
+        for i, (x, y) in enumerate(points):
+            # Skip the start and end points
+            if i == 0 or i == len(points) - 1:
+                continue
+
+            # Check if this point is a wall
+            if not self.dungeon.is_walkable(x, y):
+                return False
+
+        return True
+
+    def _bresenham_line(self, x1: int, y1: int, x2: int, y2: int) -> List[Tuple[int, int]]:
+        """
+        Get all points along a line using Bresenham's algorithm.
+        Returns list of (x, y) tuples.
+        """
+        points = []
+        dx = abs(x2 - x1)
+        dy = abs(y2 - y1)
+        sx = 1 if x1 < x2 else -1
+        sy = 1 if y1 < y2 else -1
+        err = dx - dy
+
+        x, y = x1, y1
+
+        while True:
+            points.append((x, y))
+
+            if x == x2 and y == y2:
+                break
+
+            e2 = 2 * err
+            if e2 > -dy:
+                err -= dy
+                x += sx
+            if e2 < dx:
+                err += dx
+                y += sy
+
+        return points
 
     def update(self, dt: float):
         """Update game state (called every frame)"""

@@ -265,7 +265,7 @@ class Player(Entity):
 
 class Enemy(Entity):
     """Enemy entity"""
-    def __init__(self, x: int, y: int, enemy_type: str, level_modifier: float = 1.0):
+    def __init__(self, x: int, y: int, enemy_type: str, level_modifier: float = 1.0, starting_room=None):
         super().__init__(x, y, c.ENTITY_ENEMY)
         self.enemy_type = enemy_type
 
@@ -280,31 +280,46 @@ class Enemy(Entity):
         # Status effects
         self.frozen_turns = 0
 
+        # AI state for patrol/chase behavior
+        self.starting_room = starting_room  # Room object where enemy spawned
+        self.ai_state = "patrol"  # "patrol" or "chase"
+        self.has_seen_player = False  # Once true, enemy stays aggressive
+
     def take_damage(self, damage: int) -> bool:
         """Take damage, return True if still alive"""
         self.hp = max(0, self.hp - damage)
         return self.hp > 0
 
-    def get_ai_action(self, player_pos: Tuple[int, int], dungeon_map) -> Tuple[int, int]:
-        """Determine next move based on AI type"""
+    def get_ai_action(self, player_pos: Tuple[int, int], dungeon_map, game=None) -> Tuple[int, int]:
+        """
+        Determine next move based on AI type with patrol/chase behavior.
+        Enemies patrol their starting room until they spot the player,
+        then switch to chase mode.
+        """
         # Check if frozen
         if self.frozen_turns > 0:
             return (0, 0)  # Can't move when frozen
 
-        if self.enemy_type == c.ENEMY_GOBLIN:
-            # Goblins chase the player
+        # Check line of sight if game reference is provided
+        has_los = False
+        if game:
+            has_los = game.has_line_of_sight(self.x, self.y, player_pos[0], player_pos[1])
+
+            # If we can see the player and haven't seen them before, switch to chase
+            if has_los and not self.has_seen_player:
+                self.has_seen_player = True
+                self.ai_state = "chase"
+
+            # If we've seen the player before, stay in chase mode
+            if self.has_seen_player:
+                self.ai_state = "chase"
+
+        # Execute behavior based on current state
+        if self.ai_state == "chase":
             return self._chase_player(player_pos)
-        elif self.enemy_type == c.ENEMY_SKELETON:
-            # Skeletons patrol randomly
-            return self._random_move()
-        elif self.enemy_type == c.ENEMY_DRAGON:
-            # Dragons chase if close, otherwise patrol
-            dist = abs(self.x - player_pos[0]) + abs(self.y - player_pos[1])
-            if dist <= 5:
-                return self._chase_player(player_pos)
-            else:
-                return self._random_move()
-        return (0, 0)
+        else:
+            # Patrol mode - stay in starting room
+            return self._patrol_room()
 
     def _chase_player(self, player_pos: Tuple[int, int]) -> Tuple[int, int]:
         """Move towards player"""
@@ -322,6 +337,35 @@ class Enemy(Entity):
         import random
         moves = [(0, -1), (0, 1), (-1, 0), (1, 0), (0, 0)]
         return random.choice(moves)
+
+    def _patrol_room(self) -> Tuple[int, int]:
+        """
+        Move randomly within starting room boundaries.
+        If no starting room, fallback to random movement.
+        """
+        import random
+
+        if not self.starting_room:
+            return self._random_move()
+
+        # Try to find a valid move within the room
+        moves = [(0, -1), (0, 1), (-1, 0), (1, 0), (0, 0)]
+        valid_moves = []
+
+        for dx, dy in moves:
+            new_x = self.x + dx
+            new_y = self.y + dy
+
+            # Check if new position is within starting room
+            if (self.starting_room.x <= new_x < self.starting_room.x + self.starting_room.width and
+                self.starting_room.y <= new_y < self.starting_room.y + self.starting_room.height):
+                valid_moves.append((dx, dy))
+
+        # If we have valid moves, choose one; otherwise stay still
+        if valid_moves:
+            return random.choice(valid_moves)
+        else:
+            return (0, 0)
 
     def reduce_status_effects(self):
         """Reduce duration of status effects"""

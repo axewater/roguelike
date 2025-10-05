@@ -133,3 +133,14 @@ class Dungeon:
         if self.rooms:
             return self.rooms[0].center()
         return (self.width // 2, self.height // 2)
+
+    def get_room_at(self, x: int, y: int) -> 'Room':
+        """
+        Get the room that contains the given position.
+        Returns the Room object or None if not in any room.
+        """
+        for room in self.rooms:
+            if (room.x <= x < room.x + room.width and
+                room.y <= y < room.y + room.height):
+                return room
+        return None

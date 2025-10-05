@@ -81,6 +81,9 @@ class MainWindow(QMainWindow):
         self.timer.timeout.connect(self.update_display)
         self.timer.start(16)  # ~60 FPS
 
+        # Track previous screen for settings navigation
+        self.previous_screen = None
+
         # Start background music on title screen
         audio = get_audio_manager()
         audio.start_background_music()
@@ -99,11 +102,19 @@ class MainWindow(QMainWindow):
 
     def on_settings(self):
         """Handle Settings from main menu"""
+        self.previous_screen = self.main_menu
         self.stacked_widget.setCurrentWidget(self.settings_screen)
 
     def on_settings_back(self):
         """Handle back from settings"""
-        self.stacked_widget.setCurrentWidget(self.main_menu)
+        # Return to previous screen (main menu or game)
+        if self.previous_screen:
+            self.stacked_widget.setCurrentWidget(self.previous_screen)
+            # Restore focus to game widget if returning to game
+            if self.previous_screen == self.game_screen:
+                self.game_widget.setFocus()
+        else:
+            self.stacked_widget.setCurrentWidget(self.main_menu)
 
     def on_how_to_play(self):
         """Show How to Play dialog"""
@@ -133,6 +144,7 @@ class MainWindow(QMainWindow):
         • <b>Click</b> - Move to location (pathfinding)<br/>
         • <b>Bump into enemies</b> - Attack them<br/>
         • <b>1, 2, 3</b> - Use abilities (class-specific)<br/>
+        • <b>ESC</b> - Pause menu (Resume/Settings/Main Menu)<br/>
         • <b>R</b> - Restart game<br/>
         • <b>Q</b> - Quit<br/><br/>
 
@@ -179,6 +191,94 @@ class MainWindow(QMainWindow):
         dialog.setLayout(layout)
         dialog.exec()
 
+    def show_pause_menu(self):
+        """Show pause menu during gameplay"""
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Paused")
+        dialog.setModal(True)
+        dialog.setFixedSize(400, 350)
+        dialog.setStyleSheet(f"background-color: rgb({c.COLOR_PANEL_BG.red()}, {c.COLOR_PANEL_BG.green()}, {c.COLOR_PANEL_BG.blue()});")
+
+        layout = QVBoxLayout()
+        layout.setSpacing(20)
+
+        # Title
+        title = QLabel("PAUSED")
+        title.setFont(QFont("Arial", 32, QFont.Weight.Bold))
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setStyleSheet(f"color: rgb({c.COLOR_TEXT_LIGHT.red()}, {c.COLOR_TEXT_LIGHT.green()}, {c.COLOR_TEXT_LIGHT.blue()}); padding: 20px;")
+        layout.addWidget(title)
+
+        # Resume button
+        resume_btn = QPushButton("Resume")
+        resume_btn.setFont(QFont("Arial", 16, QFont.Weight.Bold))
+        resume_btn.setFixedHeight(50)
+        resume_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        resume_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgb(100, 150, 255);
+                color: rgb(255, 255, 255);
+                border: 2px solid rgb(80, 120, 200);
+                border-radius: 8px;
+                padding: 10px;
+            }
+            QPushButton:hover {
+                background-color: rgb(130, 170, 255);
+            }
+        """)
+        resume_btn.clicked.connect(dialog.accept)
+        layout.addWidget(resume_btn)
+
+        # Settings button
+        settings_btn = QPushButton("Settings")
+        settings_btn.setFont(QFont("Arial", 16, QFont.Weight.Bold))
+        settings_btn.setFixedHeight(50)
+        settings_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        settings_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgb(100, 100, 150);
+                color: rgb(220, 220, 220);
+                border: 2px solid rgb(80, 80, 120);
+                border-radius: 8px;
+                padding: 10px;
+            }
+            QPushButton:hover {
+                background-color: rgb(120, 120, 170);
+            }
+        """)
+        def open_settings():
+            dialog.accept()
+            self.previous_screen = self.game_screen
+            self.stacked_widget.setCurrentWidget(self.settings_screen)
+        settings_btn.clicked.connect(open_settings)
+        layout.addWidget(settings_btn)
+
+        # Main Menu button
+        main_menu_btn = QPushButton("Main Menu")
+        main_menu_btn.setFont(QFont("Arial", 16, QFont.Weight.Bold))
+        main_menu_btn.setFixedHeight(50)
+        main_menu_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        main_menu_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgb(150, 80, 80);
+                color: rgb(220, 220, 220);
+                border: 2px solid rgb(120, 60, 60);
+                border-radius: 8px;
+                padding: 10px;
+            }
+            QPushButton:hover {
+                background-color: rgb(170, 100, 100);
+            }
+        """)
+        def go_to_main_menu():
+            dialog.accept()
+            self.stacked_widget.setCurrentWidget(self.main_menu)
+        main_menu_btn.clicked.connect(go_to_main_menu)
+        layout.addWidget(main_menu_btn)
+
+        dialog.setLayout(layout)
+        dialog.exec()
+
     def on_class_selected(self, class_type: str):
         """Handle class selection"""
         self.game.selected_class = class_type
@@ -207,12 +307,18 @@ class MainWindow(QMainWindow):
         """Handle key presses"""
         key = event.key()
 
-        # ESC to cancel targeting mode
+        # ESC to cancel targeting mode or show pause menu
         if key == Qt.Key.Key_Escape:
+            # First priority: cancel targeting mode if active
             if self.game_widget.targeting_mode:
                 self.game_widget.targeting_mode = False
                 self.game_widget.targeting_ability_index = None
                 self.update_display()
+                return
+
+            # Otherwise: show pause menu if in game
+            if self.stacked_widget.currentWidget() == self.game_screen and not self.game.game_over:
+                self.show_pause_menu()
                 return
 
         # Abilities (keys 1, 2, 3)
