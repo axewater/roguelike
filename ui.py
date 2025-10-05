@@ -393,7 +393,7 @@ class StatsPanel(QWidget):
         layout.addWidget(title)
 
         # Player stats section
-        stats_container, stats_layout = self._create_section_container("Player Stats")
+        stats_container, stats_layout = self._create_section_container()
         layout.addWidget(stats_container)
 
         # HP Bar
@@ -430,7 +430,7 @@ class StatsPanel(QWidget):
             stats_layout.addWidget(label)
 
         # Equipment section
-        equip_container, equip_layout = self._create_section_container("Equipment")
+        equip_container, equip_layout = self._create_section_container()
         layout.addWidget(equip_container)
 
         self.weapon_label = QLabel()
@@ -448,7 +448,7 @@ class StatsPanel(QWidget):
             equip_layout.addWidget(label)
 
         # Abilities section
-        abilities_container, abilities_layout = self._create_section_container("Abilities")
+        abilities_container, abilities_layout = self._create_section_container()
         layout.addWidget(abilities_container)
 
         self.ability_labels = []
