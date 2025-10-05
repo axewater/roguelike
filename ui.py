@@ -245,16 +245,6 @@ class GameWidget(QWidget):
             painter.resetTransform()
             self._draw_game_over_overlay(painter)
 
-    def _get_tile_color(self, tile: int) -> QColor:
-        """Get color for tile type"""
-        if tile == c.TILE_FLOOR:
-            return c.COLOR_FLOOR
-        elif tile == c.TILE_WALL:
-            return c.COLOR_WALL
-        elif tile == c.TILE_STAIRS:
-            return c.COLOR_STAIRS
-        return c.COLOR_WALL
-
     def _get_entity_color(self, entity) -> QColor:
         """Get color for entity"""
         if entity.entity_type == c.ENTITY_PLAYER:
@@ -284,41 +274,6 @@ class GameWidget(QWidget):
             }
             return rarity_colors.get(entity.rarity, c.COLOR_ITEM_POTION)
         return QColor(255, 255, 255)
-
-    def _get_entity_symbol(self, entity) -> str:
-        """Get symbol for entity"""
-        if entity.entity_type == c.ENTITY_PLAYER:
-            return c.SYMBOL_PLAYER
-        elif entity.entity_type == c.ENTITY_ENEMY:
-            if entity.enemy_type == c.ENEMY_GOBLIN:
-                return c.SYMBOL_GOBLIN
-            elif entity.enemy_type == c.ENEMY_SKELETON:
-                return c.SYMBOL_SKELETON
-            elif entity.enemy_type == c.ENEMY_DRAGON:
-                return c.SYMBOL_DRAGON
-        elif entity.entity_type == c.ENTITY_ITEM:
-            symbols = {
-                c.ITEM_HEALTH_POTION: c.SYMBOL_POTION,
-                c.ITEM_SWORD: c.SYMBOL_SWORD,
-                c.ITEM_SHIELD: c.SYMBOL_SHIELD,
-                c.ITEM_BOOTS: c.SYMBOL_BOOTS,
-                c.ITEM_RING: c.SYMBOL_RING,
-            }
-            return symbols.get(entity.item_type, "?")
-        return "?"
-
-    def _get_entity_text_color(self, entity) -> QColor:
-        """Get text color for entity symbol"""
-        # Use dark text on light backgrounds, light text on dark backgrounds
-        if entity.entity_type == c.ENTITY_PLAYER:
-            return c.COLOR_TEXT_DARK
-        elif entity.entity_type == c.ENTITY_ENEMY:
-            if entity.enemy_type == c.ENEMY_SKELETON:
-                return c.COLOR_TEXT_DARK
-            return c.COLOR_TEXT_DARK
-        elif entity.entity_type == c.ENTITY_ITEM:
-            return c.COLOR_TEXT_DARK
-        return c.COLOR_TEXT_LIGHT
 
     def _draw_enemy_health_bars(self, painter: QPainter):
         """Draw health bars below enemies"""

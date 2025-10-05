@@ -282,6 +282,9 @@ class Game:
             return
 
         for enemy in self.enemies[:]:  # Copy list to allow modification
+            # Reduce status effects
+            enemy.reduce_status_effects()
+
             # Get AI action
             dx, dy = enemy.get_ai_action(self.player.get_pos(), self.dungeon)
             new_x = enemy.x + dx

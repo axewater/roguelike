@@ -174,6 +174,9 @@ class Enemy(Entity):
         self.defense = int(stats["defense"] * level_modifier)
         self.xp_reward = int(stats["xp"] * level_modifier)
 
+        # Status effects
+        self.frozen_turns = 0
+
     def take_damage(self, damage: int) -> bool:
         """Take damage, return True if still alive"""
         self.hp = max(0, self.hp - damage)
@@ -181,6 +184,10 @@ class Enemy(Entity):
 
     def get_ai_action(self, player_pos: Tuple[int, int], dungeon_map) -> Tuple[int, int]:
         """Determine next move based on AI type"""
+        # Check if frozen
+        if self.frozen_turns > 0:
+            return (0, 0)  # Can't move when frozen
+
         if self.enemy_type == c.ENEMY_GOBLIN:
             # Goblins chase the player
             return self._chase_player(player_pos)
@@ -212,6 +219,11 @@ class Enemy(Entity):
         import random
         moves = [(0, -1), (0, 1), (-1, 0), (1, 0), (0, 0)]
         return random.choice(moves)
+
+    def reduce_status_effects(self):
+        """Reduce duration of status effects"""
+        if self.frozen_turns > 0:
+            self.frozen_turns -= 1
 
 
 class Item(Entity):
@@ -247,6 +259,8 @@ class Item(Entity):
             c.ITEM_HEALTH_POTION: "Health Potion",
             c.ITEM_SWORD: "Sword",
             c.ITEM_SHIELD: "Shield",
+            c.ITEM_BOOTS: "Boots",
+            c.ITEM_RING: "Ring",
         }
         base_name = base_names.get(self.item_type, "Unknown Item")
 

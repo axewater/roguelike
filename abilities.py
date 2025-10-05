@@ -151,14 +151,15 @@ class FrostNova(Ability):
         for enemy in game.enemies:
             dist = abs(enemy.x - user.x) + abs(enemy.y - user.y)
             if dist <= self.radius:
-                # TODO: Apply frozen status effect when status system is implemented
+                # Apply frozen status effect
+                enemy.frozen_turns = self.freeze_duration
                 frozen_count += 1
 
                 # Create animations
                 from PyQt6.QtGui import QColor
                 game.anim_manager.add_particle_burst(enemy.x, enemy.y, QColor(150, 200, 255), count=8, particle_type="circle")
 
-        return (True, f"Froze {frozen_count} enemies!")
+        return (True, f"Froze {frozen_count} enemies for {self.freeze_duration} turns!")
 
 
 class Whirlwind(Ability):
