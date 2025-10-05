@@ -220,6 +220,9 @@ class GameWidget(QWidget):
                             c.SYMBOL_STAIRS
                         )
 
+        # Draw enemy health bars
+        self._draw_enemy_health_bars(painter)
+
         # Draw flash effects (before other animations)
         for flash in self.game.anim_manager.flash_effects:
             flash_color = QColor(flash.color.red(), flash.color.green(), flash.color.blue(), flash.alpha)
@@ -349,36 +352,98 @@ class GameWidget(QWidget):
             return c.COLOR_TEXT_DARK
         return c.COLOR_TEXT_LIGHT
 
+    def _draw_enemy_health_bars(self, painter: QPainter):
+        """Draw health bars below enemies"""
+        for enemy in self.game.enemies:
+            # Calculate bar dimensions
+            bar_width = c.TILE_SIZE - 4
+            bar_height = 3
+            bar_x = enemy.x * c.TILE_SIZE + 2
+            bar_y = enemy.y * c.TILE_SIZE + c.TILE_SIZE - 5
+
+            # Draw background
+            painter.fillRect(bar_x, bar_y, bar_width, bar_height, c.COLOR_ENEMY_HP_BAR_BG)
+
+            # Draw health
+            hp_percent = enemy.hp / enemy.max_hp if enemy.max_hp > 0 else 0
+            health_width = int(bar_width * hp_percent)
+
+            if health_width > 0:
+                painter.fillRect(bar_x, bar_y, health_width, bar_height, c.COLOR_ENEMY_HP_BAR)
+
+            # Draw border
+            painter.setPen(c.COLOR_ENEMY_HP_BAR_BORDER)
+            painter.drawRect(bar_x, bar_y, bar_width, bar_height)
+
     def _draw_game_over_overlay(self, painter: QPainter):
-        """Draw game over overlay"""
-        # Semi-transparent dark overlay
-        overlay_color = QColor(0, 0, 0, 180)
+        """Draw game over overlay with enhanced visuals"""
+        # Dark overlay with gradient effect
+        overlay_color = QColor(0, 0, 0, 200)
         painter.fillRect(0, 0, self.width(), self.height(), overlay_color)
 
-        # Game over text
-        painter.setPen(QColor(255, 60, 60))
-        painter.setFont(QFont("Arial", 48, QFont.Weight.Bold))
-        painter.drawText(0, self.height() // 2 - 100, self.width(), 100,
+        # Draw decorative border
+        border_color = QColor(255, 60, 60, 100)
+        painter.setPen(border_color)
+        painter.drawRect(40, 40, self.width() - 80, self.height() - 80)
+
+        # Game over title with shadow
+        title_y = self.height() // 2 - 150
+
+        # Shadow
+        painter.setPen(QColor(0, 0, 0, 150))
+        painter.setFont(QFont("Arial", 56, QFont.Weight.Bold))
+        painter.drawText(2, title_y + 2, self.width(), 80,
                         Qt.AlignmentFlag.AlignCenter, "GAME OVER")
 
-        # Stats summary
+        # Main title
+        painter.setPen(QColor(255, 80, 80))
+        painter.drawText(0, title_y, self.width(), 80,
+                        Qt.AlignmentFlag.AlignCenter, "GAME OVER")
+
+        # Stats summary with better formatting
         if self.game.player:
+            stats_y = self.height() // 2 - 40
+
+            # Class and level
             painter.setPen(c.COLOR_TEXT_LIGHT)
-            painter.setFont(QFont("Arial", 18))
+            painter.setFont(QFont("Arial", 20, QFont.Weight.Bold))
+            painter.drawText(0, stats_y, self.width(), 30,
+                           Qt.AlignmentFlag.AlignCenter,
+                           f"{self.game.player.get_class_name()} - Level {self.game.player.level}")
 
-            stats_text = (
-                f"Level {self.game.player.level} Hero\n"
-                f"Reached Dungeon Level {self.game.current_level}\n"
-                f"Attack: {self.game.player.attack} | Defense: {self.game.player.defense}"
-            )
+            # Dungeon depth
+            painter.setFont(QFont("Arial", 16))
+            painter.setPen(QColor(180, 180, 200))
+            painter.drawText(0, stats_y + 40, self.width(), 25,
+                           Qt.AlignmentFlag.AlignCenter,
+                           f"Reached Dungeon Level {self.game.current_level}")
 
-            painter.drawText(0, self.height() // 2, self.width(), 150,
-                           Qt.AlignmentFlag.AlignCenter, stats_text)
+            # Stats box
+            box_y = stats_y + 80
+            painter.setPen(QColor(100, 100, 120))
+            painter.drawRect(self.width() // 2 - 120, box_y, 240, 60)
 
-        # Restart instruction
-        painter.setPen(QColor(150, 150, 150))
-        painter.setFont(QFont("Arial", 16))
-        painter.drawText(0, self.height() // 2 + 120, self.width(), 50,
+            # Stats text
+            painter.setPen(QColor(220, 220, 220))
+            painter.setFont(QFont("Courier New", 14, QFont.Weight.Bold))
+
+            # Attack
+            painter.drawText(self.width() // 2 - 110, box_y + 25, 100, 20,
+                           Qt.AlignmentFlag.AlignLeft, f"ATK: {self.game.player.attack}")
+
+            # Defense
+            painter.drawText(self.width() // 2 + 10, box_y + 25, 100, 20,
+                           Qt.AlignmentFlag.AlignLeft, f"DEF: {self.game.player.defense}")
+
+            # HP
+            painter.drawText(self.width() // 2 - 110, box_y + 50, 220, 20,
+                           Qt.AlignmentFlag.AlignCenter, f"Max HP: {self.game.player.max_hp}")
+
+        # Restart instruction with highlight
+        restart_y = self.height() // 2 + 180
+        painter.setPen(QColor(100, 200, 255))
+        painter.setFont(QFont("Arial", 18, QFont.Weight.Bold))
+        painter.drawText(0, restart_y, self.width(), 40,
                         Qt.AlignmentFlag.AlignCenter, "Press R to Restart")
 
 
@@ -394,43 +459,37 @@ class StatsPanel(QWidget):
 
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        layout.setContentsMargins(15, 15, 15, 15)
-        layout.setSpacing(10)
+        layout.setContentsMargins(12, 12, 12, 12)
+        layout.setSpacing(12)
 
         # Title
         title = QLabel("DUNGEON DELVER")
-        title.setFont(QFont("Arial", 18, QFont.Weight.Bold))
+        title.setFont(QFont("Arial", 20, QFont.Weight.Bold))
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet(f"color: rgb({c.COLOR_TEXT_LIGHT.red()}, {c.COLOR_TEXT_LIGHT.green()}, {c.COLOR_TEXT_LIGHT.blue()}); padding: 10px;")
+        title.setStyleSheet(f"color: rgb({c.COLOR_TEXT_LIGHT.red()}, {c.COLOR_TEXT_LIGHT.green()}, {c.COLOR_TEXT_LIGHT.blue()}); padding: 8px;")
         layout.addWidget(title)
 
-        # Divider
-        line1 = QFrame()
-        line1.setFrameShape(QFrame.Shape.HLine)
-        line1.setStyleSheet("background-color: rgb(70, 70, 75);")
-        layout.addWidget(line1)
+        # Player stats section
+        stats_container, stats_layout = self._create_section_container("Player Stats")
+        layout.addWidget(stats_container)
 
         # HP Bar
-        hp_title = QLabel("Health")
-        hp_title.setFont(QFont("Arial", 11, QFont.Weight.Bold))
-        hp_title.setStyleSheet(f"color: rgb({c.COLOR_TEXT_LIGHT.red()}, {c.COLOR_TEXT_LIGHT.green()}, {c.COLOR_TEXT_LIGHT.blue()});")
-        layout.addWidget(hp_title)
+        hp_label = QLabel("Health")
+        hp_label.setFont(QFont("Arial", 10, QFont.Weight.Bold))
+        hp_label.setStyleSheet(f"color: rgb({c.COLOR_TEXT_LIGHT.red()}, {c.COLOR_TEXT_LIGHT.green()}, {c.COLOR_TEXT_LIGHT.blue()}); border: none;")
+        stats_layout.addWidget(hp_label)
 
-        self.hp_bar = ProgressBar(24)
-        layout.addWidget(self.hp_bar)
-
-        layout.addSpacing(10)
+        self.hp_bar = ProgressBar(22)
+        stats_layout.addWidget(self.hp_bar)
 
         # XP Bar
-        xp_title = QLabel("Experience")
-        xp_title.setFont(QFont("Arial", 11, QFont.Weight.Bold))
-        xp_title.setStyleSheet(f"color: rgb({c.COLOR_TEXT_LIGHT.red()}, {c.COLOR_TEXT_LIGHT.green()}, {c.COLOR_TEXT_LIGHT.blue()});")
-        layout.addWidget(xp_title)
+        xp_label = QLabel("Experience")
+        xp_label.setFont(QFont("Arial", 10, QFont.Weight.Bold))
+        xp_label.setStyleSheet(f"color: rgb({c.COLOR_TEXT_LIGHT.red()}, {c.COLOR_TEXT_LIGHT.green()}, {c.COLOR_TEXT_LIGHT.blue()}); border: none;")
+        stats_layout.addWidget(xp_label)
 
-        self.xp_bar = ProgressBar(20)
-        layout.addWidget(self.xp_bar)
-
-        layout.addSpacing(10)
+        self.xp_bar = ProgressBar(18)
+        stats_layout.addWidget(self.xp_bar)
 
         # Stats labels
         self.class_label = QLabel()
@@ -439,27 +498,17 @@ class StatsPanel(QWidget):
         self.defense_label = QLabel()
         self.depth_label = QLabel()
 
-        font = QFont("Courier New", 11)
-        stat_style = f"color: rgb({c.COLOR_TEXT_LIGHT.red()}, {c.COLOR_TEXT_LIGHT.green()}, {c.COLOR_TEXT_LIGHT.blue()}); padding: 3px;"
+        font = QFont("Courier New", 10)
+        stat_style = f"color: rgb({c.COLOR_TEXT_LIGHT.red()}, {c.COLOR_TEXT_LIGHT.green()}, {c.COLOR_TEXT_LIGHT.blue()}); padding: 2px; border: none;"
 
         for label in [self.class_label, self.level_label, self.attack_label, self.defense_label, self.depth_label]:
             label.setFont(font)
             label.setStyleSheet(stat_style)
-            layout.addWidget(label)
-
-        layout.addSpacing(15)
-
-        # Divider
-        line2 = QFrame()
-        line2.setFrameShape(QFrame.Shape.HLine)
-        line2.setStyleSheet("background-color: rgb(70, 70, 75);")
-        layout.addWidget(line2)
+            stats_layout.addWidget(label)
 
         # Equipment section
-        equip_title = QLabel("Equipment")
-        equip_title.setFont(QFont("Arial", 12, QFont.Weight.Bold))
-        equip_title.setStyleSheet(f"color: rgb({c.COLOR_TEXT_LIGHT.red()}, {c.COLOR_TEXT_LIGHT.green()}, {c.COLOR_TEXT_LIGHT.blue()}); padding-top: 5px;")
-        layout.addWidget(equip_title)
+        equip_container, equip_layout = self._create_section_container("Equipment")
+        layout.addWidget(equip_container)
 
         self.weapon_label = QLabel()
         self.armor_label = QLabel()
@@ -467,81 +516,96 @@ class StatsPanel(QWidget):
         self.boots_label = QLabel()
 
         equip_font = QFont("Courier New", 9)
-        equip_style = f"color: rgb(200, 200, 200); padding: 2px;"
+        equip_style = f"color: rgb(200, 200, 200); padding: 2px; border: none;"
 
         for label in [self.weapon_label, self.armor_label, self.accessory_label, self.boots_label]:
             label.setFont(equip_font)
             label.setStyleSheet(equip_style)
             label.setWordWrap(True)
-            layout.addWidget(label)
-
-        layout.addSpacing(15)
-
-        # Divider
-        line3 = QFrame()
-        line3.setFrameShape(QFrame.Shape.HLine)
-        line3.setStyleSheet("background-color: rgb(70, 70, 75);")
-        layout.addWidget(line3)
+            equip_layout.addWidget(label)
 
         # Abilities section
-        abilities_title = QLabel("Abilities")
-        abilities_title.setFont(QFont("Arial", 12, QFont.Weight.Bold))
-        abilities_title.setStyleSheet(f"color: rgb({c.COLOR_TEXT_LIGHT.red()}, {c.COLOR_TEXT_LIGHT.green()}, {c.COLOR_TEXT_LIGHT.blue()}); padding-top: 5px;")
-        layout.addWidget(abilities_title)
+        abilities_container, abilities_layout = self._create_section_container("Abilities")
+        layout.addWidget(abilities_container)
 
         self.ability_labels = []
         for i in range(3):  # Max 3 abilities
             label = QLabel()
-            label.setFont(QFont("Courier New", 8))
-            label.setStyleSheet("color: rgb(200, 200, 200); padding: 2px;")
+            label.setFont(QFont("Courier New", 9))
+            label.setStyleSheet("color: rgb(200, 200, 200); padding: 2px; border: none;")
             label.setWordWrap(True)
             label.setTextFormat(Qt.TextFormat.RichText)
             self.ability_labels.append(label)
-            layout.addWidget(label)
+            abilities_layout.addWidget(label)
 
-        layout.addSpacing(15)
+        # Nearby Items section
+        items_container, items_layout = self._create_section_container("Nearby Items")
+        layout.addWidget(items_container)
 
-        # Divider
-        line3b = QFrame()
-        line3b.setFrameShape(QFrame.Shape.HLine)
-        line3b.setStyleSheet("background-color: rgb(70, 70, 75);")
-        layout.addWidget(line3b)
+        self.nearby_items_label = QLabel()
+        self.nearby_items_label.setFont(QFont("Courier New", 8))
+        self.nearby_items_label.setWordWrap(True)
+        self.nearby_items_label.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.nearby_items_label.setTextFormat(Qt.TextFormat.RichText)
+        self.nearby_items_label.setStyleSheet("color: rgb(200, 200, 200); padding: 2px; border: none;")
+        self.nearby_items_label.setMinimumHeight(60)
+        items_layout.addWidget(self.nearby_items_label)
 
-        # Messages label
-        messages_title = QLabel("Combat Log")
-        messages_title.setFont(QFont("Arial", 12, QFont.Weight.Bold))
-        messages_title.setStyleSheet(f"color: rgb({c.COLOR_TEXT_LIGHT.red()}, {c.COLOR_TEXT_LIGHT.green()}, {c.COLOR_TEXT_LIGHT.blue()}); padding-top: 5px;")
-        layout.addWidget(messages_title)
+        # Combat log section
+        log_container, log_layout = self._create_section_container("Combat Log")
+        layout.addWidget(log_container)
 
         self.messages_label = QLabel()
         self.messages_label.setFont(QFont("Courier New", 9))
         self.messages_label.setWordWrap(True)
         self.messages_label.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.messages_label.setTextFormat(Qt.TextFormat.RichText)
-        self.messages_label.setStyleSheet("color: rgb(200, 200, 200); padding: 5px;")
-        layout.addWidget(self.messages_label)
+        self.messages_label.setStyleSheet("color: rgb(200, 200, 200); padding: 2px; border: none;")
+        self.messages_label.setMinimumHeight(80)
+        log_layout.addWidget(self.messages_label)
 
         layout.addStretch()
 
-        # Divider
-        line4 = QFrame()
-        line4.setFrameShape(QFrame.Shape.HLine)
-        line4.setStyleSheet("background-color: rgb(70, 70, 75);")
-        layout.addWidget(line4)
+        # Controls section
+        controls_container, controls_layout = self._create_section_container("Controls")
+        layout.addWidget(controls_container)
 
-        # Controls
         controls = QLabel(
-            "Controls:\n"
             "WASD/Arrows - Move\n"
             "1/2/3 - Abilities\n"
             "R - Restart\n"
             "Q - Quit"
         )
         controls.setFont(QFont("Courier New", 9))
-        controls.setStyleSheet("color: rgb(120, 120, 125); padding: 5px;")
-        layout.addWidget(controls)
+        controls.setStyleSheet("color: rgb(180, 180, 185); padding: 2px; border: none;")
+        controls_layout.addWidget(controls)
 
         self.setLayout(layout)
+
+    def _create_section_container(self, title: str = None) -> tuple:
+        """Create a styled section container with optional title. Returns (container, content_layout)"""
+        container = QFrame()
+        container.setStyleSheet(f"""
+            QFrame {{
+                background-color: rgb({c.COLOR_SECTION_BG.red()}, {c.COLOR_SECTION_BG.green()}, {c.COLOR_SECTION_BG.blue()});
+                border: 1px solid rgb({c.COLOR_SECTION_BORDER.red()}, {c.COLOR_SECTION_BORDER.green()}, {c.COLOR_SECTION_BORDER.blue()});
+                border-radius: 6px;
+                padding: 8px;
+            }}
+        """)
+
+        content_layout = QVBoxLayout()
+        content_layout.setContentsMargins(4, 4, 4, 4)
+        content_layout.setSpacing(6)
+
+        if title:
+            title_label = QLabel(title)
+            title_label.setFont(QFont("Arial", 11, QFont.Weight.Bold))
+            title_label.setStyleSheet(f"color: rgb({c.COLOR_TEXT_LIGHT.red()}, {c.COLOR_TEXT_LIGHT.green()}, {c.COLOR_TEXT_LIGHT.blue()}); border: none; padding: 0px;")
+            content_layout.addWidget(title_label)
+
+        container.setLayout(content_layout)
+        return container, content_layout
 
     def update_stats(self):
         """Update stats display"""
@@ -593,9 +657,25 @@ class StatsPanel(QWidget):
             else:
                 label.setText("")
 
+        # Update nearby items
+        nearby_items = self._get_nearby_items(5)  # Within 5 tiles
+        if nearby_items:
+            items_html = []
+            for item, distance in nearby_items[:3]:  # Show max 3 items
+                rarity_color = self._get_rarity_color_hex(item.rarity)
+                stats_preview = self._get_item_stats_preview(item)
+                items_html.append(
+                    f'<span style="color: {rarity_color};">• {item.get_name()}</span> '
+                    f'<span style="color: #aaa;">({distance}t)</span><br/>'
+                    f'<span style="color: #888; font-size: 8pt;">{stats_preview}</span>'
+                )
+            self.nearby_items_label.setText("<br/>".join(items_html))
+        else:
+            self.nearby_items_label.setText('<span style="color: #666;">No items nearby</span>')
+
         # Update messages with color coding
         colored_messages = []
-        for message, msg_type in self.game.messages[-8:]:
+        for message, msg_type in self.game.messages[-6:]:
             color = self._get_message_color(msg_type)
             colored_messages.append(f'<span style="color: {color};">{message}</span>')
 
@@ -613,6 +693,50 @@ class StatsPanel(QWidget):
             "levelup": c.COLOR_MSG_LEVELUP,
         }
         return color_map.get(msg_type, c.COLOR_MSG_EVENT)
+
+    def _get_nearby_items(self, max_distance: int) -> list:
+        """Get items within max_distance tiles of player, sorted by distance"""
+        if not self.game.player:
+            return []
+
+        nearby = []
+        player_x, player_y = self.game.player.x, self.game.player.y
+
+        for item in self.game.items:
+            distance = abs(item.x - player_x) + abs(item.y - player_y)
+            if distance <= max_distance and distance > 0:  # Exclude current tile
+                nearby.append((item, distance))
+
+        # Sort by distance (closest first)
+        nearby.sort(key=lambda x: x[1])
+        return nearby
+
+    def _get_rarity_color_hex(self, rarity: str) -> str:
+        """Get hex color for item rarity"""
+        color_map = {
+            c.RARITY_COMMON: "#b4b4b4",
+            c.RARITY_UNCOMMON: "#64c864",
+            c.RARITY_RARE: "#6496ff",
+            c.RARITY_EPIC: "#c864ff",
+            c.RARITY_LEGENDARY: "#ffb400",
+        }
+        return color_map.get(rarity, "#ffffff")
+
+    def _get_item_stats_preview(self, item) -> str:
+        """Get stats preview string for an item"""
+        if item.item_type == c.ITEM_HEALTH_POTION:
+            heal_amount = c.ITEM_EFFECTS[c.ITEM_HEALTH_POTION]["heal"]
+            return f"+{heal_amount} HP"
+
+        stats = []
+        if item.get_stat_bonus("attack") > 0:
+            stats.append(f"+{item.get_stat_bonus('attack')} ATK")
+        if item.get_stat_bonus("defense") > 0:
+            stats.append(f"+{item.get_stat_bonus('defense')} DEF")
+        if item.get_stat_bonus("hp") > 0:
+            stats.append(f"+{item.get_stat_bonus('hp')} HP")
+
+        return " ".join(stats) if stats else "No stats"
 
 
 class MainWindow(QMainWindow):

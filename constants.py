@@ -47,6 +47,16 @@ COLOR_HP_BAR_BG = QColor(50, 50, 55)
 COLOR_XP_BAR = QColor(138, 43, 226)
 COLOR_XP_BAR_BG = QColor(50, 50, 55)
 
+# Enemy health bar colors
+COLOR_ENEMY_HP_BAR = QColor(220, 80, 80)
+COLOR_ENEMY_HP_BAR_BG = QColor(40, 40, 40, 180)
+COLOR_ENEMY_HP_BAR_BORDER = QColor(20, 20, 20)
+
+# Sidebar section colors
+COLOR_SECTION_BG = QColor(42, 42, 47)
+COLOR_SECTION_BORDER = QColor(60, 60, 65)
+COLOR_DIVIDER = QColor(70, 70, 75)
+
 # Symbols for entities
 SYMBOL_PLAYER = "@"
 SYMBOL_GOBLIN = "g"
