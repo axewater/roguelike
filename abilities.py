@@ -3,6 +3,7 @@ Ability system for Dungeon Delver
 """
 from typing import Tuple, List
 import constants as c
+from audio import get_audio_manager
 
 
 class Ability:
@@ -46,6 +47,10 @@ class Fireball(Ability):
         success, msg = super().use(user, target_pos, game)
         if not success:
             return (success, msg)
+
+        # Play fireball sound
+        audio = get_audio_manager()
+        audio.play_ability_sound('Fireball')
 
         # Deal damage to all enemies in radius
         tx, ty = target_pos
@@ -116,6 +121,10 @@ class Dash(Ability):
             self.current_cooldown = 0  # Refund cooldown
             return (False, f"Too far! Max distance: {self.max_distance}")
 
+        # Play dash sound
+        audio = get_audio_manager()
+        audio.play_ability_sound('Dash')
+
         # Teleport
         old_x, old_y = user.x, user.y
         user.set_pos(tx, ty)
@@ -153,6 +162,10 @@ class HealingTouch(Ability):
         if not success:
             return (success, msg)
 
+        # Play healing sound
+        audio = get_audio_manager()
+        audio.play_ability_sound('Healing Touch')
+
         # Heal player
         old_hp = user.hp
         user.heal(self.heal_amount)
@@ -177,6 +190,10 @@ class FrostNova(Ability):
         success, msg = super().use(user, target_pos, game)
         if not success:
             return (success, msg)
+
+        # Play frost sound
+        audio = get_audio_manager()
+        audio.play_ability_sound('Frost Nova')
 
         # Freeze all nearby enemies
         frozen_count = 0
@@ -215,6 +232,10 @@ class Whirlwind(Ability):
         success, msg = super().use(user, target_pos, game)
         if not success:
             return (success, msg)
+
+        # Play whirlwind sound
+        audio = get_audio_manager()
+        audio.play_ability_sound('Whirlwind')
 
         from PyQt6.QtGui import QColor
 
@@ -289,6 +310,10 @@ class ShadowStep(Ability):
         if not game.dungeon.is_walkable(behind_x, behind_y):
             self.current_cooldown = 0  # Refund
             return (False, "Cannot teleport behind enemy!")
+
+        # Play shadow step sound
+        audio = get_audio_manager()
+        audio.play_ability_sound('Shadow Step')
 
         # Teleport
         old_x, old_y = user.x, user.y

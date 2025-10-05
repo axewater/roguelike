@@ -8,6 +8,7 @@ from entities import Player, Enemy, Item
 from dungeon import Dungeon
 from animations import AnimationManager
 from abilities import CLASS_ABILITIES
+from audio import get_audio_manager
 import combat
 
 
@@ -24,6 +25,7 @@ class Game:
         self.messages: List[Tuple[str, str]] = []  # (message, type)
         self.max_messages = 15
         self.anim_manager = AnimationManager()
+        self.audio_manager = get_audio_manager()
         self.selected_class = c.CLASS_WARRIOR  # Default class
         self.ambient_timer = 0.0  # Timer for spawning ambient particles
         self.camera_x = 0  # Camera position (top-left of viewport in world coords)
@@ -51,6 +53,9 @@ class Game:
         self._generate_level()
         self.add_message("Welcome to Dungeon Delver! Descend the dungeon and defeat enemies.", "event")
         self.add_message("Use WASD or Arrow Keys to move. Bump into enemies to attack.", "event")
+
+        # Start background music
+        self.audio_manager.start_background_music()
 
     def _generate_level(self):
         """Generate a new dungeon level"""
@@ -229,6 +234,10 @@ class Game:
         self.player.set_pos(new_x, new_y)
         self.update_camera()
 
+        # Play footstep sound
+        self.audio_manager.play_footstep(position=(new_x, new_y),
+                                        player_position=(new_x, new_y))
+
         # Check for item pickup
         self._check_item_pickup()
 
@@ -282,6 +291,14 @@ class Game:
         # Check if crit (rogue has crit chance)
         is_crit = hasattr(self.player, 'crit_chance') and random.random() < getattr(self.player, 'crit_chance', 0)
 
+        # Play attack sound
+        attack_strength = 'heavy' if damage > 15 else 'medium' if damage > 8 else 'light'
+        self.audio_manager.play_attack_sound(attack_strength)
+
+        # Play hit sound with positional audio
+        self.audio_manager.play_hit_sound(is_crit, position=(enemy.x, enemy.y),
+                                         player_position=(self.player.x, self.player.y))
+
         # Create animations
         from PyQt6.QtGui import QColor
 
@@ -303,6 +320,10 @@ class Game:
             self.anim_manager.add_death_burst(enemy.x, enemy.y, enemy.enemy_type)
             self.anim_manager.add_screen_shake(4.0, 0.2)
 
+            # Play enemy death sound
+            self.audio_manager.play_enemy_death(enemy.enemy_type, position=(enemy.x, enemy.y),
+                                               player_position=(self.player.x, self.player.y))
+
         self.add_message(message, "damage")
 
         if enemy_died:
@@ -311,6 +332,7 @@ class Game:
             if leveled_up:
                 self.add_message(f"Level up! You are now level {self.player.level}!", "levelup")
                 self.anim_manager.add_heal_sparkles(self.player.x, self.player.y)
+                self.audio_manager.play_levelup()
 
     def _enemy_turn(self):
         """Process enemy turns"""
@@ -331,6 +353,14 @@ class Game:
                 message, player_died = combat.enemy_attack_player(enemy, self.player)
                 damage = combat.calculate_damage(enemy.attack, self.player.defense)
 
+                # Play enemy attack sound
+                attack_strength = 'heavy' if damage > 12 else 'medium' if damage > 6 else 'light'
+                self.audio_manager.play_attack_sound(attack_strength)
+
+                # Play hit sound on player
+                self.audio_manager.play_hit_sound(False, position=(self.player.x, self.player.y),
+                                                 player_position=(self.player.x, self.player.y))
+
                 # Create animations
                 from PyQt6.QtGui import QColor
 
@@ -346,6 +376,7 @@ class Game:
 
                 if player_died:
                     self.anim_manager.add_screen_shake(8.0, 0.3)
+                    self.audio_manager.play_gameover()
 
                 self.add_message(message, "damage")
 
@@ -371,17 +402,28 @@ class Game:
                     msg_type = "heal"
                     from PyQt6.QtGui import QColor
                     self.anim_manager.add_heal_sparkles(self.player.x, self.player.y)
+                    # Play potion sound
+                    self.audio_manager.play_potion()
                 else:
                     msg_type = "item"
                     from PyQt6.QtGui import QColor
                     self.anim_manager.add_particle_burst(self.player.x, self.player.y,
                                                         QColor(255, 215, 0), count=6, particle_type="star")
+                    # Play item pickup sound based on rarity
+                    self.audio_manager.play_item_pickup(item.rarity)
+                    # Play equip sound
+                    self.audio_manager.play_equip()
+
                 self.add_message(f"Picked up {item.get_name()}!", msg_type)
 
     def _descend_stairs(self):
         """Descend to next level"""
         self.current_level += 1
         self.add_message(f"Descending to level {self.current_level}...", "event")
+
+        # Play stairs sound
+        self.audio_manager.play_stairs()
+
         self._generate_level()
 
     def _get_enemy_at(self, x: int, y: int) -> Optional[Enemy]:
@@ -399,6 +441,17 @@ class Game:
             self.ambient_timer = 0.0
             # Spawn 2-4 ambient particles
             self.anim_manager.add_ambient_particles(count=random.randint(2, 4))
+
+        # Update music intensity based on nearby enemies
+        if self.player:
+            # Count enemies within 8 tiles
+            enemies_nearby = sum(1 for enemy in self.enemies
+                               if abs(enemy.x - self.player.x) + abs(enemy.y - self.player.y) <= 8)
+
+            # Check if in recent combat (simple heuristic)
+            in_combat = len(self.messages) > 0 and self.messages[-1][1] == "damage"
+
+            self.audio_manager.update_music_intensity(enemies_nearby, in_combat)
 
     def add_message(self, message: str, msg_type: str = "event"):
         """Add message to message log with type for color coding"""

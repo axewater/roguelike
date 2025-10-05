@@ -7,6 +7,7 @@ from PyQt6.QtGui import QPainter, QColor, QFont, QKeyEvent
 import time
 import constants as c
 from game import Game
+from audio import get_audio_manager
 import graphics as gfx
 
 
@@ -132,12 +133,18 @@ class ClassSelectionScreen(QWidget):
         button.setFont(QFont("Arial", 14, QFont.Weight.Bold))
         button.setFixedHeight(40)
         button.setStyleSheet(f"QPushButton {{ background-color: rgb({color.red()}, {color.green()}, {color.blue()}); color: rgb(20, 20, 20); border: none; border-radius: 5px; padding: 10px; }} QPushButton:hover {{ background-color: rgb({min(color.red() + 30, 255)}, {min(color.green() + 30, 255)}, {min(color.blue() + 30, 255)}); }}")
-        button.clicked.connect(lambda: self.class_selected.emit(class_type))
+        button.clicked.connect(lambda: self._on_class_select(class_type))
         container_layout.addWidget(button)
 
         container.setLayout(container_layout)
         container.setFixedWidth(600)
         layout.addWidget(container, alignment=Qt.AlignmentFlag.AlignCenter)
+
+    def _on_class_select(self, class_type: str):
+        """Handle class selection with sound"""
+        audio = get_audio_manager()
+        audio.play_ui_select()
+        self.class_selected.emit(class_type)
 
 
 class GameWidget(QWidget):
@@ -145,7 +152,7 @@ class GameWidget(QWidget):
     def __init__(self, game: Game):
         super().__init__()
         self.game = game
-        self.setFixedSize(c.GRID_WIDTH * c.TILE_SIZE, c.GRID_HEIGHT * c.TILE_SIZE)
+        self.setFixedSize(c.VIEWPORT_WIDTH * c.TILE_SIZE, c.VIEWPORT_HEIGHT * c.TILE_SIZE)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setStyleSheet(f"background-color: rgb({c.COLOR_FLOOR.red()}, {c.COLOR_FLOOR.green()}, {c.COLOR_FLOOR.blue()});")
 
