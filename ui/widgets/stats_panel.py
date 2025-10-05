@@ -1,7 +1,7 @@
 """
 Stats panel widget displaying player info, equipment, abilities, and combat log
 """
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFrame
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QGridLayout, QLabel, QFrame
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
@@ -21,66 +21,63 @@ class StatsPanel(QWidget):
         # Set background color
         self.setStyleSheet(f"background-color: rgb({c.COLOR_PANEL_BG.red()}, {c.COLOR_PANEL_BG.green()}, {c.COLOR_PANEL_BG.blue()});")
 
-        layout = QVBoxLayout()
-        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        layout.setContentsMargins(12, 12, 12, 12)
-        layout.setSpacing(12)
+        # Main grid layout: 2 columns x 3 rows + combat log at bottom
+        main_grid = QGridLayout()
+        main_grid.setContentsMargins(12, 12, 12, 12)
+        main_grid.setSpacing(12)
 
-        # Title
-        title = QLabel("DUNGEON DELVER")
-        title.setFont(QFont("Arial", 20, QFont.Weight.Bold))
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet(f"color: rgb({c.COLOR_TEXT_LIGHT.red()}, {c.COLOR_TEXT_LIGHT.green()}, {c.COLOR_TEXT_LIGHT.blue()}); padding: 8px;")
-        layout.addWidget(title)
-
-        # Player stats section
-        stats_container, stats_layout = self._create_section_container()
-        layout.addWidget(stats_container)
+        # ROW 0: HP and XP bars (span full width)
+        bars_container, bars_layout = self._create_section_container()
 
         # HP Bar
         hp_label = QLabel("Health")
         hp_label.setFont(QFont("Arial", 10, QFont.Weight.Bold))
         hp_label.setStyleSheet(f"color: rgb({c.COLOR_TEXT_LIGHT.red()}, {c.COLOR_TEXT_LIGHT.green()}, {c.COLOR_TEXT_LIGHT.blue()}); border: none;")
-        stats_layout.addWidget(hp_label)
+        bars_layout.addWidget(hp_label)
 
-        self.hp_bar = ProgressBar(22)
-        stats_layout.addWidget(self.hp_bar)
+        self.hp_bar = ProgressBar(24)
+        bars_layout.addWidget(self.hp_bar)
 
         # XP Bar
         xp_label = QLabel("Experience")
         xp_label.setFont(QFont("Arial", 10, QFont.Weight.Bold))
         xp_label.setStyleSheet(f"color: rgb({c.COLOR_TEXT_LIGHT.red()}, {c.COLOR_TEXT_LIGHT.green()}, {c.COLOR_TEXT_LIGHT.blue()}); border: none;")
-        stats_layout.addWidget(xp_label)
+        bars_layout.addWidget(xp_label)
 
-        self.xp_bar = ProgressBar(18)
-        stats_layout.addWidget(self.xp_bar)
+        self.xp_bar = ProgressBar(20)
+        bars_layout.addWidget(self.xp_bar)
 
-        # Stats labels
+        main_grid.addWidget(bars_container, 0, 0, 1, 2)  # Row 0, span 2 columns
+
+        # ROW 1, COL 0: Player Stats
+        stats_container, stats_layout = self._create_section_container("Player Stats")
+
         self.class_label = QLabel()
         self.level_label = QLabel()
         self.attack_label = QLabel()
         self.defense_label = QLabel()
         self.depth_label = QLabel()
 
-        font = QFont("Courier New", 10)
-        stat_style = f"color: rgb({c.COLOR_TEXT_LIGHT.red()}, {c.COLOR_TEXT_LIGHT.green()}, {c.COLOR_TEXT_LIGHT.blue()}); padding: 2px; border: none;"
+        stat_font = QFont("Courier New", 10)
+        stat_style = f"color: rgb({c.COLOR_TEXT_LIGHT.red()}, {c.COLOR_TEXT_LIGHT.green()}, {c.COLOR_TEXT_LIGHT.blue()}); padding: 4px; border: none;"
 
         for label in [self.class_label, self.level_label, self.attack_label, self.defense_label, self.depth_label]:
-            label.setFont(font)
+            label.setFont(stat_font)
             label.setStyleSheet(stat_style)
             stats_layout.addWidget(label)
 
-        # Equipment section
-        equip_container, equip_layout = self._create_section_container()
-        layout.addWidget(equip_container)
+        main_grid.addWidget(stats_container, 1, 0)  # Row 1, Col 0
+
+        # ROW 1, COL 1: Equipment
+        equip_container, equip_layout = self._create_section_container("Equipment")
 
         self.weapon_label = QLabel()
         self.armor_label = QLabel()
         self.accessory_label = QLabel()
         self.boots_label = QLabel()
 
-        equip_font = QFont("Courier New", 9)
-        equip_style = f"color: rgb(200, 200, 200); padding: 2px; border: none;"
+        equip_font = QFont("Courier New", 10)
+        equip_style = f"color: rgb(200, 200, 200); padding: 4px; border: none;"
 
         for label in [self.weapon_label, self.armor_label, self.accessory_label, self.boots_label]:
             label.setFont(equip_font)
@@ -88,9 +85,10 @@ class StatsPanel(QWidget):
             label.setWordWrap(True)
             equip_layout.addWidget(label)
 
-        # Abilities section
-        abilities_container, abilities_layout = self._create_section_container()
-        layout.addWidget(abilities_container)
+        main_grid.addWidget(equip_container, 1, 1)  # Row 1, Col 1
+
+        # ROW 2, COL 0: Abilities
+        abilities_container, abilities_layout = self._create_section_container("Abilities")
 
         self.ability_buttons = []
         for i in range(3):  # Max 3 abilities
@@ -99,49 +97,40 @@ class StatsPanel(QWidget):
             self.ability_buttons.append(button)
             abilities_layout.addWidget(button)
 
-        # Nearby Items section
+        main_grid.addWidget(abilities_container, 2, 0)  # Row 2, Col 0
+
+        # ROW 2, COL 1: Nearby Items
         items_container, items_layout = self._create_section_container("Nearby Items")
-        layout.addWidget(items_container)
 
         self.nearby_items_label = QLabel()
-        self.nearby_items_label.setFont(QFont("Courier New", 8))
+        self.nearby_items_label.setFont(QFont("Courier New", 10))
         self.nearby_items_label.setWordWrap(True)
         self.nearby_items_label.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.nearby_items_label.setTextFormat(Qt.TextFormat.RichText)
-        self.nearby_items_label.setStyleSheet("color: rgb(200, 200, 200); padding: 2px; border: none;")
-        self.nearby_items_label.setMinimumHeight(60)
+        self.nearby_items_label.setStyleSheet("color: rgb(200, 200, 200); padding: 4px; border: none;")
+        self.nearby_items_label.setMinimumHeight(80)
         items_layout.addWidget(self.nearby_items_label)
 
-        # Combat log section
+        main_grid.addWidget(items_container, 2, 1)  # Row 2, Col 1
+
+        # ROW 3: Combat Log (span full width)
         log_container, log_layout = self._create_section_container("Combat Log")
-        layout.addWidget(log_container)
 
         self.messages_label = QLabel()
-        self.messages_label.setFont(QFont("Courier New", 9))
+        self.messages_label.setFont(QFont("Courier New", 10))
         self.messages_label.setWordWrap(True)
         self.messages_label.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.messages_label.setTextFormat(Qt.TextFormat.RichText)
-        self.messages_label.setStyleSheet("color: rgb(200, 200, 200); padding: 2px; border: none;")
-        self.messages_label.setMinimumHeight(80)
+        self.messages_label.setStyleSheet("color: rgb(200, 200, 200); padding: 4px; border: none;")
+        self.messages_label.setMinimumHeight(100)
         log_layout.addWidget(self.messages_label)
 
-        layout.addStretch()
+        main_grid.addWidget(log_container, 3, 0, 1, 2)  # Row 3, span 2 columns
 
-        # Controls section
-        controls_container, controls_layout = self._create_section_container("Controls")
-        layout.addWidget(controls_container)
+        # Set row stretch to push everything to top
+        main_grid.setRowStretch(4, 1)
 
-        controls = QLabel(
-            "WASD/Arrows - Move\n"
-            "1/2/3 - Abilities\n"
-            "R - Restart\n"
-            "Q - Quit"
-        )
-        controls.setFont(QFont("Courier New", 9))
-        controls.setStyleSheet("color: rgb(180, 180, 185); padding: 2px; border: none;")
-        controls_layout.addWidget(controls)
-
-        self.setLayout(layout)
+        self.setLayout(main_grid)
 
     def _on_ability_clicked(self, ability_index: int):
         """Handle ability button click"""
