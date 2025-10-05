@@ -7,6 +7,7 @@ from PyQt6.QtGui import QPainter, QColor, QFont, QKeyEvent
 import time
 import constants as c
 from game import Game
+import graphics as gfx
 
 
 class ProgressBar(QWidget):
@@ -160,65 +161,32 @@ class GameWidget(QWidget):
         shake_x, shake_y = self.game.anim_manager.get_screen_offset()
         painter.translate(shake_x, shake_y)
 
-        # Draw tiles with background colors
+        # Draw tiles with graphics
         for y in range(c.GRID_HEIGHT):
             for x in range(c.GRID_WIDTH):
                 tile = self.game.dungeon.get_tile(x, y)
-                color = self._get_tile_color(tile)
 
-                painter.fillRect(
-                    x * c.TILE_SIZE,
-                    y * c.TILE_SIZE,
-                    c.TILE_SIZE,
-                    c.TILE_SIZE,
-                    color
-                )
+                if tile == c.TILE_WALL:
+                    gfx.draw_wall_tile(painter, x, y, c.TILE_SIZE)
+                elif tile == c.TILE_FLOOR:
+                    gfx.draw_floor_tile(painter, x, y, c.TILE_SIZE)
+                elif tile == c.TILE_STAIRS:
+                    gfx.draw_floor_tile(painter, x, y, c.TILE_SIZE)  # Draw floor underneath
+                    gfx.draw_stairs_tile(painter, x, y, c.TILE_SIZE)
 
-        # Draw entities with colors and symbols
-        font = QFont("Courier New", int(c.TILE_SIZE * 0.7), QFont.Weight.Bold)
-        painter.setFont(font)
-
+        # Draw entities with graphics
         for y in range(c.GRID_HEIGHT):
             for x in range(c.GRID_WIDTH):
                 entity = self.game.get_entity_at(x, y)
                 if entity:
-                    # Draw background color
                     color = self._get_entity_color(entity)
-                    painter.fillRect(
-                        x * c.TILE_SIZE,
-                        y * c.TILE_SIZE,
-                        c.TILE_SIZE,
-                        c.TILE_SIZE,
-                        color
-                    )
 
-                    # Draw symbol
-                    symbol = self._get_entity_symbol(entity)
-                    text_color = self._get_entity_text_color(entity)
-                    painter.setPen(text_color)
-
-                    # Center the text
-                    painter.drawText(
-                        x * c.TILE_SIZE,
-                        y * c.TILE_SIZE,
-                        c.TILE_SIZE,
-                        c.TILE_SIZE,
-                        Qt.AlignmentFlag.AlignCenter,
-                        symbol
-                    )
-                else:
-                    # Draw floor/wall symbols for empty tiles
-                    tile = self.game.dungeon.get_tile(x, y)
-                    if tile == c.TILE_STAIRS:
-                        painter.setPen(c.COLOR_TEXT_LIGHT)
-                        painter.drawText(
-                            x * c.TILE_SIZE,
-                            y * c.TILE_SIZE,
-                            c.TILE_SIZE,
-                            c.TILE_SIZE,
-                            Qt.AlignmentFlag.AlignCenter,
-                            c.SYMBOL_STAIRS
-                        )
+                    if entity.entity_type == c.ENTITY_PLAYER:
+                        gfx.draw_player(painter, x, y, c.TILE_SIZE, color, entity.class_type)
+                    elif entity.entity_type == c.ENTITY_ENEMY:
+                        gfx.draw_enemy(painter, x, y, c.TILE_SIZE, color, entity.enemy_type)
+                    elif entity.entity_type == c.ENTITY_ITEM:
+                        gfx.draw_item(painter, x, y, c.TILE_SIZE, color, entity.item_type)
 
         # Draw enemy health bars
         self._draw_enemy_health_bars(painter)
