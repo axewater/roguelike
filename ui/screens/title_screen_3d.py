@@ -175,6 +175,12 @@ class TitleScreen3D(QOpenGLWidget):
         # Letter textures (created in initializeGL)
         self.letter_textures = {}
 
+        # Face textures for cube sides (created in initializeGL)
+        self.brick_side_texture = None
+        self.brick_back_texture = None
+        self.stone_top_texture = None
+        self.stone_bottom_texture = None
+
         # Letters will be initialized in initializeGL (after OpenGL context is ready)
 
         # Timer for animation updates
@@ -185,18 +191,137 @@ class TitleScreen3D(QOpenGLWidget):
         # Audio
         self.audio = get_audio_manager()
 
+    def _draw_brick_pattern(self, painter: QPainter, width: int, height: int):
+        """Draw brick pattern with mortar lines"""
+        # Brick colors (varied gray-brown tones)
+        brick_base = QColor(65, 60, 55)
+        mortar = QColor(95, 90, 85)
+
+        # Fill with mortar color first
+        painter.fillRect(0, 0, width, height, mortar)
+
+        # Draw bricks in rows
+        brick_height = height // 4
+        brick_width = width // 3
+        mortar_size = 3
+
+        for row in range(4):
+            y = row * brick_height
+            # Stagger every other row
+            offset = (brick_width // 2) if row % 2 == 1 else 0
+
+            for col in range(-1, 4):  # Extra columns for offset
+                x = col * brick_width + offset
+
+                # Vary brick color slightly
+                variation = random.randint(-8, 8)
+                brick_color = QColor(
+                    brick_base.red() + variation,
+                    brick_base.green() + variation,
+                    brick_base.blue() + variation
+                )
+
+                # Draw brick (leaving mortar gaps)
+                brick_rect = (
+                    x + mortar_size,
+                    y + mortar_size,
+                    brick_width - mortar_size * 2,
+                    brick_height - mortar_size * 2
+                )
+                painter.fillRect(*brick_rect, brick_color)
+
+                # Add some texture/cracks to brick
+                painter.setPen(QColor(brick_base.red() - 15, brick_base.green() - 15, brick_base.blue() - 15))
+                for _ in range(2):
+                    crack_x = x + random.randint(mortar_size, brick_width - mortar_size)
+                    crack_y = y + random.randint(mortar_size, brick_height - mortar_size)
+                    crack_len = random.randint(5, 15)
+                    painter.drawLine(crack_x, crack_y, crack_x + crack_len, crack_y + random.randint(-3, 3))
+
+    def _add_weathering(self, painter: QPainter, width: int, height: int):
+        """Add weathering effects (age marks, stains)"""
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Multiply)
+
+        # Random dark spots and stains
+        for _ in range(15):
+            x = random.randint(0, width)
+            y = random.randint(0, height)
+            size = random.randint(8, 25)
+            opacity = random.randint(30, 80)
+
+            stain_color = QColor(50, 45, 40, opacity)
+            painter.setBrush(stain_color)
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.drawEllipse(x - size // 2, y - size // 2, size, size)
+
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
+
+    def _generate_moss_overlay(self, image: QImage):
+        """Add moss/grass growth to existing texture"""
+        painter = QPainter(image)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        # Moss colors (varied dark greens)
+        moss_colors = [
+            QColor(40, 80, 35),
+            QColor(35, 75, 30),
+            QColor(45, 85, 40),
+            QColor(30, 70, 25),
+        ]
+
+        # Draw irregular moss patches
+        num_patches = random.randint(20, 35)
+        for _ in range(num_patches):
+            x = random.randint(-10, image.width() + 10)
+            y = random.randint(0, image.height() // 3)  # Concentrate on top third
+            size = random.randint(10, 40)
+            opacity = random.randint(100, 200)
+
+            moss = random.choice(moss_colors)
+            moss.setAlpha(opacity)
+            painter.setBrush(moss)
+            painter.setPen(Qt.PenStyle.NoPen)
+
+            # Draw irregular shape
+            painter.drawEllipse(x - size // 2, y - size // 2, size, int(size * random.uniform(0.6, 1.4)))
+
+        painter.end()
+
+    def _generate_stone_texture(self, size: int, darkness: float = 1.0) -> QImage:
+        """Generate procedural stone/brick texture"""
+        image = QImage(size, size, QImage.Format.Format_RGBA8888)
+        image.fill(QColor(95, 90, 85))  # Base mortar color
+
+        painter = QPainter(image)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        # Draw brick pattern
+        self._draw_brick_pattern(painter, size, size)
+
+        # Add weathering
+        self._add_weathering(painter, size, size)
+
+        # Apply darkness multiplier
+        if darkness != 1.0:
+            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Multiply)
+            dark_overlay = QColor(int(255 * darkness), int(255 * darkness), int(255 * darkness))
+            painter.fillRect(0, 0, size, size, dark_overlay)
+
+        painter.end()
+        return image
+
     def _generate_letter_textures(self):
-        """Generate OpenGL textures for each unique letter"""
+        """Generate OpenGL textures for each unique letter with carved stone effect"""
         text = "CLAUDE-LIKE"
         unique_chars = set(text.replace(' ', '').replace('-', ''))
 
         for char in unique_chars:
-            # Create QImage to render text
             size = 256  # Texture size (power of 2)
-            image = QImage(size, size, QImage.Format.Format_RGBA8888)
-            image.fill(QColor(0, 0, 0, 0))  # Transparent background
 
-            # Use QPainter to draw text
+            # Generate stone background
+            image = self._generate_stone_texture(size, darkness=1.0)
+
+            # Now carve the letter into the stone
             painter = QPainter(image)
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
             painter.setRenderHint(QPainter.RenderHint.TextAntialiasing)
@@ -205,9 +330,31 @@ class TitleScreen3D(QOpenGLWidget):
             font = QFont("Arial", 180, QFont.Weight.Bold)
             painter.setFont(font)
 
-            # Draw text in white
-            painter.setPen(QColor(255, 255, 255, 255))
+            # Create carved effect with 3 layers:
+            # 1. Shadow (carved depth) - dark, offset down+right
+            painter.setPen(QColor(15, 15, 20, 255))
+            painter.drawText(image.rect().adjusted(3, 3, 3, 3), Qt.AlignmentFlag.AlignCenter, char)
+
+            # 2. Highlight (carved edge) - light, offset up+left
+            painter.setPen(QColor(100, 95, 90, 180))
+            painter.drawText(image.rect().adjusted(-2, -2, -2, -2), Qt.AlignmentFlag.AlignCenter, char)
+
+            # 3. Main letter (carved surface) - medium stone color
+            painter.setPen(QColor(50, 48, 45, 255))
             painter.drawText(image.rect(), Qt.AlignmentFlag.AlignCenter, char)
+
+            # Add subtle moss around letter edges
+            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Multiply)
+            moss_color = QColor(40, 80, 35, 40)
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(moss_color)
+            # Small moss spots near letter
+            for _ in range(5):
+                mx = random.randint(size // 4, 3 * size // 4)
+                my = random.randint(size // 4, 3 * size // 4)
+                ms = random.randint(8, 20)
+                painter.drawEllipse(mx - ms // 2, my - ms // 2, ms, ms)
+
             painter.end()
 
             # Convert to OpenGL texture
@@ -231,7 +378,62 @@ class TitleScreen3D(QOpenGLWidget):
             # Store texture ID
             self.letter_textures[char] = texture_id
 
-        print(f"✓ Generated {len(self.letter_textures)} letter textures")
+        print(f"✓ Generated {len(self.letter_textures)} carved stone letter textures")
+
+    def _generate_face_textures(self):
+        """Generate textures for different cube faces"""
+        size = 256
+
+        # 1. Brick texture for side faces (normal brightness)
+        side_image = self._generate_stone_texture(size, darkness=1.0)
+        side_image = side_image.mirrored(False, True)
+        self.brick_side_texture = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, self.brick_side_texture)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+        img_data = side_image.constBits().asstring(size * size * 4)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size, size, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data)
+
+        # 2. Darker brick texture for back face
+        back_image = self._generate_stone_texture(size, darkness=0.7)
+        back_image = back_image.mirrored(False, True)
+        self.brick_back_texture = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, self.brick_back_texture)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+        img_data = back_image.constBits().asstring(size * size * 4)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size, size, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data)
+
+        # 3. Stone texture with heavy moss for top face
+        top_image = self._generate_stone_texture(size, darkness=1.0)
+        self._generate_moss_overlay(top_image)  # Add heavy moss growth
+        top_image = top_image.mirrored(False, True)
+        self.stone_top_texture = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, self.stone_top_texture)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+        img_data = top_image.constBits().asstring(size * size * 4)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size, size, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data)
+
+        # 4. Darker stone for bottom face (less light)
+        bottom_image = self._generate_stone_texture(size, darkness=0.6)
+        bottom_image = bottom_image.mirrored(False, True)
+        self.stone_bottom_texture = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, self.stone_bottom_texture)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+        img_data = bottom_image.constBits().asstring(size * size * 4)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size, size, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data)
+
+        print("✓ Generated face textures (sides, top, bottom, back)")
 
     def _init_letters(self):
         """Initialize 3D letters with staggered timing"""
@@ -292,8 +494,9 @@ class TitleScreen3D(QOpenGLWidget):
         # Background color (dark blue-purple)
         glClearColor(0.05, 0.05, 0.15, 1.0)
 
-        # Generate letter textures and initialize letters
+        # Generate letter textures and face textures
         self._generate_letter_textures()
+        self._generate_face_textures()
         self._init_letters()
 
     def resizeGL(self, w: int, h: int):
@@ -386,72 +589,71 @@ class TitleScreen3D(QOpenGLWidget):
         glPopMatrix()
 
     def _draw_3d_char(self, texture_id: int):
-        """Draw a 3D character using quads with texture mapping"""
-
-        # Enable texturing for front face
+        """Draw a 3D character as textured dungeon stone block"""
         glEnable(GL_TEXTURE_2D)
+        glColor4f(1.0, 1.0, 1.0, 1.0)  # White to show textures as-is
+
+        # Front face - Carved letter texture
         glBindTexture(GL_TEXTURE_2D, texture_id)
-
-        # Disable lighting for textured face to show true colors
-        glDisable(GL_LIGHTING)
-
-        # Front face with texture
-        glColor4f(1.0, 1.0, 1.0, 1.0)  # White to show texture as-is
         glBegin(GL_QUADS)
         glNormal3f(0, 0, 1)
-        glTexCoord2f(0, 0)
-        glVertex3f(-0.4, -0.5, 0.2)
-        glTexCoord2f(1, 0)
-        glVertex3f(0.4, -0.5, 0.2)
-        glTexCoord2f(1, 1)
-        glVertex3f(0.4, 0.5, 0.2)
-        glTexCoord2f(0, 1)
-        glVertex3f(-0.4, 0.5, 0.2)
+        glTexCoord2f(0, 0); glVertex3f(-0.4, -0.5, 0.2)
+        glTexCoord2f(1, 0); glVertex3f(0.4, -0.5, 0.2)
+        glTexCoord2f(1, 1); glVertex3f(0.4, 0.5, 0.2)
+        glTexCoord2f(0, 1); glVertex3f(-0.4, 0.5, 0.2)
+        glEnd()
+
+        # Back face - Dark brick texture
+        glBindTexture(GL_TEXTURE_2D, self.brick_back_texture)
+        glBegin(GL_QUADS)
+        glNormal3f(0, 0, -1)
+        glTexCoord2f(0, 0); glVertex3f(-0.4, -0.5, -0.2)
+        glTexCoord2f(1, 0); glVertex3f(0.4, -0.5, -0.2)
+        glTexCoord2f(1, 1); glVertex3f(0.4, 0.5, -0.2)
+        glTexCoord2f(0, 1); glVertex3f(-0.4, 0.5, -0.2)
+        glEnd()
+
+        # Top face - Mossy stone texture
+        glBindTexture(GL_TEXTURE_2D, self.stone_top_texture)
+        glBegin(GL_QUADS)
+        glNormal3f(0, 1, 0)
+        glTexCoord2f(0, 0); glVertex3f(-0.4, 0.5, -0.2)
+        glTexCoord2f(1, 0); glVertex3f(0.4, 0.5, -0.2)
+        glTexCoord2f(1, 1); glVertex3f(0.4, 0.5, 0.2)
+        glTexCoord2f(0, 1); glVertex3f(-0.4, 0.5, 0.2)
+        glEnd()
+
+        # Bottom face - Dark stone texture
+        glBindTexture(GL_TEXTURE_2D, self.stone_bottom_texture)
+        glBegin(GL_QUADS)
+        glNormal3f(0, -1, 0)
+        glTexCoord2f(0, 0); glVertex3f(-0.4, -0.5, -0.2)
+        glTexCoord2f(1, 0); glVertex3f(0.4, -0.5, -0.2)
+        glTexCoord2f(1, 1); glVertex3f(0.4, -0.5, 0.2)
+        glTexCoord2f(0, 1); glVertex3f(-0.4, -0.5, 0.2)
+        glEnd()
+
+        # Left face - Brick texture
+        glBindTexture(GL_TEXTURE_2D, self.brick_side_texture)
+        glBegin(GL_QUADS)
+        glNormal3f(-1, 0, 0)
+        glTexCoord2f(0, 0); glVertex3f(-0.4, -0.5, -0.2)
+        glTexCoord2f(1, 0); glVertex3f(-0.4, -0.5, 0.2)
+        glTexCoord2f(1, 1); glVertex3f(-0.4, 0.5, 0.2)
+        glTexCoord2f(0, 1); glVertex3f(-0.4, 0.5, -0.2)
+        glEnd()
+
+        # Right face - Brick texture
+        glBindTexture(GL_TEXTURE_2D, self.brick_side_texture)
+        glBegin(GL_QUADS)
+        glNormal3f(1, 0, 0)
+        glTexCoord2f(0, 0); glVertex3f(0.4, -0.5, -0.2)
+        glTexCoord2f(1, 0); glVertex3f(0.4, 0.5, -0.2)
+        glTexCoord2f(1, 1); glVertex3f(0.4, 0.5, 0.2)
+        glTexCoord2f(0, 1); glVertex3f(0.4, -0.5, 0.2)
         glEnd()
 
         glDisable(GL_TEXTURE_2D)
-        glEnable(GL_LIGHTING)
-
-        # Draw 3D box sides (no texture)
-        glBegin(GL_QUADS)
-
-        # Back face (darker)
-        glColor3f(0.3, 0.2, 0.5)
-        glNormal3f(0, 0, -1)
-        glVertex3f(-0.4, -0.5, -0.2)
-        glVertex3f(-0.4, 0.5, -0.2)
-        glVertex3f(0.4, 0.5, -0.2)
-        glVertex3f(0.4, -0.5, -0.2)
-
-        # Top face
-        glNormal3f(0, 1, 0)
-        glVertex3f(-0.4, 0.5, -0.2)
-        glVertex3f(-0.4, 0.5, 0.2)
-        glVertex3f(0.4, 0.5, 0.2)
-        glVertex3f(0.4, 0.5, -0.2)
-
-        # Bottom face
-        glNormal3f(0, -1, 0)
-        glVertex3f(-0.4, -0.5, -0.2)
-        glVertex3f(0.4, -0.5, -0.2)
-        glVertex3f(0.4, -0.5, 0.2)
-        glVertex3f(-0.4, -0.5, 0.2)
-
-        # Left face
-        glNormal3f(-1, 0, 0)
-        glVertex3f(-0.4, -0.5, -0.2)
-        glVertex3f(-0.4, -0.5, 0.2)
-        glVertex3f(-0.4, 0.5, 0.2)
-        glVertex3f(-0.4, 0.5, -0.2)
-
-        # Right face
-        glNormal3f(1, 0, 0)
-        glVertex3f(0.4, -0.5, -0.2)
-        glVertex3f(0.4, 0.5, -0.2)
-        glVertex3f(0.4, 0.5, 0.2)
-        glVertex3f(0.4, -0.5, 0.2)
-
-        glEnd()
 
     def _draw_particle(self, particle: Particle3D):
         """Draw a particle"""
