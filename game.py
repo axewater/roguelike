@@ -1,5 +1,5 @@
 """
-Main game logic for Dungeon Delver
+Main game logic for Claude-Like
 """
 import random
 from typing import List, Optional, Tuple
@@ -58,7 +58,7 @@ class Game:
         self.victory = False
         self.messages = []
         self._generate_level()
-        self.add_message("Welcome to Dungeon Delver! Descend the dungeon and defeat enemies.", "event")
+        self.add_message("Welcome to Claude-Like! Descend the dungeon and defeat enemies.", "event")
         self.add_message("Use WASD or Arrow Keys to move. Bump into enemies to attack.", "event")
 
         # Start background music
@@ -115,7 +115,7 @@ class Game:
     def _spawn_enemies(self):
         """Spawn enemies on current level"""
         self.enemies = []
-        level_modifier = 1.0 + (self.current_level - 1) * 0.10
+        level_modifier = 1.0 + (self.current_level - 1) * 0.15
 
         num_enemies = min(20, c.ENEMIES_PER_LEVEL_BASE + self.current_level)
 

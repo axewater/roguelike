@@ -1,5 +1,5 @@
 """
-Ability system for Dungeon Delver
+Ability system for Claude-Like
 """
 from typing import Tuple, List
 import constants as c

@@ -1,5 +1,5 @@
 """
-Graphics rendering package for Dungeon Delver
+Graphics rendering package for Claude-Like
 
 This package contains all rendering functions organized by category.
 Exports all functions for backward compatibility with the original graphics.py module.

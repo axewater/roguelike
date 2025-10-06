@@ -1,5 +1,5 @@
 """
-Game constants and configuration for Dungeon Delver
+Game constants and configuration for Claude-Like
 """
 from PyQt6.QtGui import QColor
 
@@ -234,8 +234,8 @@ ENEMY_STATS = {
 ITEM_EFFECTS = {
     ITEM_HEALTH_POTION: {"heal": 50},
     ITEM_SWORD: {"attack": 5},
-    ITEM_SHIELD: {"defense": 3},
-    ITEM_BOOTS: {"defense": 2},
+    ITEM_SHIELD: {"defense": 2},
+    ITEM_BOOTS: {"defense": 1},
     ITEM_RING: {"attack": 2, "defense": 1},
 }
 

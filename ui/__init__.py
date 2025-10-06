@@ -1,5 +1,5 @@
 """
-UI package for Dungeon Delver
+UI package for Claude-Like
 
 This package contains all UI components organized into screens and widgets.
 Exports all components for backward compatibility with the original ui.py module.

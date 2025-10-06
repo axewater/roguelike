@@ -1,5 +1,5 @@
 """
-Combat system for Dungeon Delver
+Combat system for Claude-Like
 """
 import random
 from typing import Tuple

@@ -1,4 +1,4 @@
-# Dungeon Delver 🎮
+# Claude-Like 🎮
 
 A feature-rich roguelike game built with Python and PyQt6, featuring procedural dungeon generation, class-based combat, and stunning particle effects.
 

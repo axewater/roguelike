@@ -1,5 +1,5 @@
 """
-Dungeon generation for Dungeon Delver
+Dungeon generation for Claude-Like
 """
 import random
 from typing import List, Tuple

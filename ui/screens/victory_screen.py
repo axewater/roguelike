@@ -151,7 +151,7 @@ class VictoryScreen(QWidget):
         # Credits
         painter.setPen(QColor(100, 90, 110))
         painter.setFont(QFont("Arial", 10))
-        painter.drawText(10, self.height() - 20, "Dungeon Delver - A Roguelike Adventure")
+        painter.drawText(10, self.height() - 20, "Claude-Like - A Roguelike Adventure")
 
     def keyPressEvent(self, event):
         """Handle any key press to return to menu"""

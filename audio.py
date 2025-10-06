@@ -1,5 +1,5 @@
 """
-Audio system for Dungeon Delver
+Audio system for Claude-Like
 Handles all sound effects and background music with procedural sound generation
 """
 import pygame
@@ -414,6 +414,22 @@ class AudioManager:
         hover = synth.generate_sine_wave(600, 0.03, 0.15)
         self.sounds['ui_hover'] = synth.array_to_sound(hover)
 
+        # === TITLE SCREEN EFFECTS ===
+
+        # Letter whoosh - fast fly-in sound
+        whoosh = synth.combine_waves(
+            synth.generate_sweep(800, 400, 0.25, 0.4),
+            synth.generate_noise(0.15, 0.2)
+        )
+        self.sounds['letter_whoosh'] = synth.array_to_sound(whoosh)
+
+        # Letter impact - landing thud
+        impact = synth.combine_waves(
+            synth.generate_noise(0.08, 0.35),
+            synth.generate_sine_wave(100, 0.08, 0.3)
+        )
+        self.sounds['letter_impact'] = synth.array_to_sound(impact)
+
         print(f"✓ Generated {len(self.sounds)} procedural sound effects")
 
     def _generate_ambient_music(self):
@@ -640,6 +656,14 @@ class AudioManager:
     def play_ui_hover(self):
         """Play UI hover sound (softer than select)"""
         self.play_sound('ui_hover', volume=0.3)
+
+    def play_letter_whoosh(self):
+        """Play letter flying whoosh sound"""
+        self.play_sound('letter_whoosh', volume=0.4, pitch_variation=0.2)
+
+    def play_letter_impact(self):
+        """Play letter landing impact sound"""
+        self.play_sound('letter_impact', volume=0.6, pitch_variation=0.15)
 
     # === VOICE SYNTHESIS ===
 

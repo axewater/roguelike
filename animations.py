@@ -1,5 +1,5 @@
 """
-Animation and visual effects system for Dungeon Delver
+Animation and visual effects system for Claude-Like
 """
 import random
 import math

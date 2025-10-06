@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Dungeon Delver - A simple roguelike game
+Claude-Like - A simple roguelike game
 Entry point
 """
 import sys

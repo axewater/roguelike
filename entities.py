@@ -1,5 +1,5 @@
 """
-Entity classes for Dungeon Delver
+Entity classes for Claude-Like
 """
 from typing import Tuple, List
 import constants as c
@@ -192,7 +192,7 @@ class Player(Entity):
         self.max_hp += 35
         self.hp = self.max_hp  # Full heal on level up
         self.base_attack += 7
-        self.base_defense += 5
+        self.base_defense += 3
 
     def add_item(self, item: 'Item'):
         """Add item to inventory and apply effects"""

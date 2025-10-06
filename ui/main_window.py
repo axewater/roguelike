@@ -10,7 +10,7 @@ import time
 import constants as c
 from game import Game
 from audio import get_audio_manager
-from ui.screens.title_screen import TitleScreen
+from ui.screens.title_screen_3d import TitleScreen3D
 from ui.screens.main_menu import MainMenuScreen
 from ui.screens.settings_screen import SettingsScreen
 from ui.screens.class_selection import ClassSelectionScreen
@@ -25,14 +25,14 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.game = Game()
 
-        self.setWindowTitle("Dungeon Delver")
+        self.setWindowTitle("Claude-Like")
         self.setFixedSize(c.WINDOW_WIDTH, c.WINDOW_HEIGHT)
 
         # Create stacked widget to switch between screens
         self.stacked_widget = QStackedWidget()
 
-        # Title screen (shown first)
-        self.title_screen = TitleScreen()
+        # Title screen (shown first) - 3D OpenGL version
+        self.title_screen = TitleScreen3D()
         self.title_screen.continue_pressed.connect(self.on_title_continue)
         self.stacked_widget.addWidget(self.title_screen)
 
