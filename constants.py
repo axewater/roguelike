@@ -106,7 +106,7 @@ CLASS_STATS = {
 }
 
 # Class colors
-COLOR_CLASS_WARRIOR = QColor(200, 100, 100)  # Red
+COLOR_CLASS_WARRIOR = QColor(180, 60, 40)  # Deep blood red (Berserker)
 COLOR_CLASS_MAGE = QColor(100, 150, 255)  # Blue
 COLOR_CLASS_ROGUE = QColor(180, 100, 255)  # Purple
 COLOR_CLASS_RANGER = QColor(100, 200, 100)  # Green
