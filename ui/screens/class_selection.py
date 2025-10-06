@@ -156,8 +156,8 @@ class CharacterPreviewPanel(QWidget):
         aura_gradient.setColorAt(1, QColor(class_color.red(), class_color.green(), class_color.blue(), 0))
         painter.fillRect(0, 0, tile_size, tile_size, aura_gradient)
 
-        # Draw the character (scaled up)
-        gfx.draw_player(painter, screen_x, screen_y, tile_size, class_color, self.current_class)
+        # Draw the character (scaled up) with idle animation
+        gfx.draw_player(painter, screen_x, screen_y, tile_size, class_color, self.current_class, (0, 1), self.time_elapsed)
 
         painter.restore()
 

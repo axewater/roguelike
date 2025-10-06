@@ -34,10 +34,44 @@ def draw_player(painter: QPainter, x: float, y: float, tile_size: int, color: QC
     if class_type == c.CLASS_WARRIOR:
         # WARRIOR - Armored tank with shield and sword
 
-        # Idle animations
-        shoulder_roll = math.sin(idle_time * 0.8) * 2  # Slow shoulder roll
-        shield_bob = math.sin(idle_time * 1.2) * 3  # Shield breathing motion
-        armor_shimmer = int(abs(math.sin(idle_time * 1.5)) * 20)  # Helmet glint
+        # Detect if this is selection screen (large tile size)
+        is_selection_screen = tile_size > 128
+
+        if is_selection_screen:
+            # ENHANCED ANIMATIONS for character selection (4x scale)
+            # Dramatic sword swing cycle (4 second cycle)
+            swing_cycle = idle_time * 0.5  # Slow cycle
+            swing_phase = swing_cycle % 2.0  # 0 to 2 seconds
+
+            if swing_phase < 0.5:  # Idle
+                sword_angle = 0
+                sword_offset_y = 0
+            elif swing_phase < 1.0:  # Raise sword
+                progress = (swing_phase - 0.5) / 0.5
+                sword_angle = -30 * progress  # Raise up
+                sword_offset_y = -int(tile_size * 0.1 * progress)
+            elif swing_phase < 1.5:  # Hold
+                sword_angle = -30
+                sword_offset_y = -int(tile_size * 0.1)
+            else:  # Swing down
+                progress = (swing_phase - 1.5) / 0.5
+                sword_angle = -30 + 30 * progress  # Return to idle
+                sword_offset_y = -int(tile_size * 0.1 * (1 - progress))
+
+            # Shield dramatic raise/lower
+            shield_cycle = math.sin(idle_time * 0.6) * tile_size * 0.15
+            shoulder_roll = math.sin(idle_time * 0.4) * 8
+            armor_shimmer = int(abs(math.sin(idle_time * 1.5)) * 40)
+            battle_stance = math.sin(idle_time * 0.5) * 6  # Weight shift
+        else:
+            # NORMAL ANIMATIONS for gameplay
+            shoulder_roll = math.sin(idle_time * 0.8) * 2
+            shield_bob = math.sin(idle_time * 1.2) * 3
+            armor_shimmer = int(abs(math.sin(idle_time * 1.5)) * 20)
+            sword_angle = 0
+            sword_offset_y = 0
+            shield_cycle = shield_bob
+            battle_stance = 0
 
         # Legs (wide stance)
         leg_color = color.darker(130)
@@ -69,13 +103,13 @@ def draw_player(painter: QPainter, x: float, y: float, tile_size: int, color: QC
                         center_x, center_y + tile_size // 8)
 
         # Shield (left side) with idle animation
-        shield_offset = int(shield_bob)
+        shield_offset = int(shield_cycle)
         shield_points = [
-            QPoint(center_x - tile_size // 4 + int(shoulder_roll), center_y - tile_size // 8 + shield_offset),
-            QPoint(center_x - tile_size // 6 + int(shoulder_roll), center_y - tile_size // 5 + shield_offset),
-            QPoint(center_x - tile_size // 8 + int(shoulder_roll), center_y - tile_size // 12 + shield_offset),
-            QPoint(center_x - tile_size // 8 + int(shoulder_roll), center_y + tile_size // 12 + shield_offset),
-            QPoint(center_x - tile_size // 6 + int(shoulder_roll), center_y + tile_size // 6 + shield_offset),
+            QPoint(center_x - tile_size // 4 + int(shoulder_roll) + int(battle_stance), center_y - tile_size // 8 + shield_offset),
+            QPoint(center_x - tile_size // 6 + int(shoulder_roll) + int(battle_stance), center_y - tile_size // 5 + shield_offset),
+            QPoint(center_x - tile_size // 8 + int(shoulder_roll) + int(battle_stance), center_y - tile_size // 12 + shield_offset),
+            QPoint(center_x - tile_size // 8 + int(shoulder_roll) + int(battle_stance), center_y + tile_size // 12 + shield_offset),
+            QPoint(center_x - tile_size // 6 + int(shoulder_roll) + int(battle_stance), center_y + tile_size // 6 + shield_offset),
         ]
         painter.setBrush(color.lighter(110))
         painter.setPen(QPen(color.darker(130), 2))
@@ -86,21 +120,35 @@ def draw_player(painter: QPainter, x: float, y: float, tile_size: int, color: QC
         painter.drawEllipse(center_x - tile_size // 5 + int(shoulder_roll), center_y - tile_size // 20 + shield_offset,
                            tile_size // 12, tile_size // 12)
 
-        # Sword (right side)
+        # Sword (right side) with rotation for selection screen
+        if is_selection_screen and sword_angle != 0:
+            # Save state for rotation
+            painter.save()
+            # Rotate around sword pivot point
+            sword_pivot_x = center_x + tile_size // 5
+            sword_pivot_y = center_y
+            painter.translate(sword_pivot_x, sword_pivot_y + sword_offset_y)
+            painter.rotate(sword_angle)
+            painter.translate(-sword_pivot_x, -sword_pivot_y - sword_offset_y)
+
         painter.setBrush(QColor(220, 220, 230))
         painter.setPen(QPen(QColor(180, 180, 190), 2))
         sword_blade = [
-            QPoint(center_x + tile_size // 5, center_y - tile_size // 6),
-            QPoint(center_x + tile_size // 4, center_y - tile_size // 5),
-            QPoint(center_x + tile_size // 3, center_y + tile_size // 8),
-            QPoint(center_x + tile_size // 4, center_y + tile_size // 8),
+            QPoint(center_x + tile_size // 5, center_y - tile_size // 6 + sword_offset_y),
+            QPoint(center_x + tile_size // 4, center_y - tile_size // 5 + sword_offset_y),
+            QPoint(center_x + tile_size // 3, center_y + tile_size // 8 + sword_offset_y),
+            QPoint(center_x + tile_size // 4, center_y + tile_size // 8 + sword_offset_y),
         ]
         painter.drawPolygon(sword_blade)
 
         # Sword hilt
         painter.setBrush(QColor(139, 90, 43))
-        painter.drawRect(center_x + tile_size // 6, center_y + tile_size // 8,
+        painter.drawRect(center_x + tile_size // 6, center_y + tile_size // 8 + sword_offset_y,
                         tile_size // 8, tile_size // 12)
+
+        if is_selection_screen and sword_angle != 0:
+            # Restore state after rotation
+            painter.restore()
 
         # Helmet
         helmet_gradient = QRadialGradient(center_x, center_y - tile_size // 4, tile_size // 5)
@@ -126,18 +174,48 @@ def draw_player(painter: QPainter, x: float, y: float, tile_size: int, color: QC
     elif class_type == c.CLASS_MAGE:
         # MAGE - Robed spellcaster with floating orbs
 
-        # Idle animations
-        orb_speed_variation = 1.0 + math.sin(idle_time * 0.5) * 0.3  # Orbs speed up/slow down
-        staff_pulse = int(abs(math.sin(idle_time * 2.0)) * 50)  # Staff orb brightness pulse
-        robe_sway = math.sin(idle_time * 0.7) * 3  # Gentle floating sway
-        rune_glow = int(abs(math.sin(idle_time * 1.5)) * 40)  # Rune brightness
+        # Detect if this is selection screen (large tile size)
+        is_selection_screen = tile_size > 128
 
-        # Robe bottom (flowing) with sway
+        if is_selection_screen:
+            # ENHANCED ANIMATIONS for character selection (4x scale)
+            # Staff spinning/twirling
+            staff_rotation = (idle_time * 60) % 360  # Slow 360 rotation
+            staff_float = math.sin(idle_time * 0.8) * tile_size * 0.08
+
+            # Orb constellation - larger spiral pattern
+            orb_spiral_radius = 1.0 + math.sin(idle_time * 0.4) * 0.3  # Pulsing radius
+            orb_speed_variation = 0.7 + math.sin(idle_time * 0.3) * 0.3  # Variable speed
+
+            # Arcane energy in hands
+            hand_glow = int(abs(math.sin(idle_time * 2.5)) * 60)
+
+            # Robe billowing
+            robe_sway = math.sin(idle_time * 0.5) * 12
+            robe_billow = abs(math.sin(idle_time * 0.6)) * 8
+
+            # Staff pulse more dramatic
+            staff_pulse = int(abs(math.sin(idle_time * 1.8)) * 80)
+            rune_glow = int(abs(math.sin(idle_time * 1.2)) * 60)
+        else:
+            # NORMAL ANIMATIONS for gameplay
+            orb_speed_variation = 1.0 + math.sin(idle_time * 0.5) * 0.3
+            staff_pulse = int(abs(math.sin(idle_time * 2.0)) * 50)
+            robe_sway = math.sin(idle_time * 0.7) * 3
+            rune_glow = int(abs(math.sin(idle_time * 1.5)) * 40)
+            staff_rotation = 0
+            staff_float = 0
+            orb_spiral_radius = 1.0
+            hand_glow = 0
+            robe_billow = 0
+
+        # Robe bottom (flowing) with sway and billow
         robe_offset = int(robe_sway)
+        robe_width_offset = int(robe_billow)
         robe_points = [
             QPoint(center_x + robe_offset, center_y + tile_size // 10),
-            QPoint(center_x - tile_size // 3 + robe_offset, center_y + tile_size // 3),
-            QPoint(center_x + tile_size // 3 + robe_offset, center_y + tile_size // 3),
+            QPoint(center_x - tile_size // 3 + robe_offset - robe_width_offset, center_y + tile_size // 3),
+            QPoint(center_x + tile_size // 3 + robe_offset + robe_width_offset, center_y + tile_size // 3),
         ]
         robe_gradient = QLinearGradient(center_x, center_y,
                                         center_x, center_y + tile_size // 3)
@@ -174,11 +252,11 @@ def draw_player(painter: QPainter, x: float, y: float, tile_size: int, color: QC
                            center_y - tile_size // 2 - tile_size // 12,
                            tile_size // 6, tile_size // 6)
 
-        # Floating magical orbs (3 orbiting) with speed variation
+        # Floating magical orbs (3 orbiting) with speed variation and spiral
         for i in range(3):
             angle = (i * 2 * math.pi / 3) + (math.pi / 4) + (idle_time * orb_speed_variation)
-            orb_x = center_x + int(tile_size // 3 * math.cos(angle))
-            orb_y = center_y + int(tile_size // 4 * math.sin(angle))
+            orb_x = center_x + int(tile_size // 3 * orb_spiral_radius * math.cos(angle))
+            orb_y = center_y + int(tile_size // 4 * orb_spiral_radius * math.sin(angle))
 
             # Orb glow
             mini_gradient = QRadialGradient(orb_x, orb_y, tile_size // 12)
@@ -222,12 +300,40 @@ def draw_player(painter: QPainter, x: float, y: float, tile_size: int, color: QC
     elif class_type == c.CLASS_ROGUE:
         # ROGUE - Stealthy assassin with dual daggers
 
-        # Idle animations
-        crouch_shift = math.sin(idle_time * 1.5) * 4  # Subtle crouching motion
-        wisp_drift_speed = 1.2 + math.sin(idle_time * 0.8) * 0.4  # Shadow wisps speed
-        wisp_size_var = 1.0 + math.sin(idle_time * 1.1) * 0.3  # Wisp size variation
-        eye_pulse = int(abs(math.sin(idle_time * 2.5)) * 60)  # Eye glow intensity
-        head_scan = math.sin(idle_time * 0.6) * 2  # Subtle head movement
+        # Detect if this is selection screen (large tile size)
+        is_selection_screen = tile_size > 128
+
+        if is_selection_screen:
+            # ENHANCED ANIMATIONS for character selection (4x scale)
+            # Dagger flip/twirl cycle
+            dagger_spin_cycle = idle_time * 0.8  # Spin cycle
+            left_dagger_angle = (dagger_spin_cycle * 180) % 360  # Left dagger rotation
+            right_dagger_angle = ((dagger_spin_cycle + 0.5) * 180) % 360  # Right dagger offset
+
+            # Stealth pose cycle - deep crouch to standing
+            crouch_cycle = math.sin(idle_time * 0.4) * tile_size * 0.15
+            crouch_shift = crouch_cycle
+
+            # Shadow wisps more dramatic
+            wisp_drift_speed = 0.9 + math.sin(idle_time * 0.5) * 0.5
+            wisp_size_var = 1.0 + math.sin(idle_time * 0.7) * 0.6  # Larger variation
+            wisp_count_mult = 1.5  # More wisps
+
+            # Eye glow more intense
+            eye_pulse = int(abs(math.sin(idle_time * 2.0)) * 100)
+
+            # Head scan more dramatic
+            head_scan = math.sin(idle_time * 0.4) * 8
+        else:
+            # NORMAL ANIMATIONS for gameplay
+            crouch_shift = math.sin(idle_time * 1.5) * 4
+            wisp_drift_speed = 1.2 + math.sin(idle_time * 0.8) * 0.4
+            wisp_size_var = 1.0 + math.sin(idle_time * 1.1) * 0.3
+            eye_pulse = int(abs(math.sin(idle_time * 2.5)) * 60)
+            head_scan = math.sin(idle_time * 0.6) * 2
+            left_dagger_angle = 0
+            right_dagger_angle = 0
+            wisp_count_mult = 1.0
 
         # Legs (agile stance)
         leg_color = QColor(40, 40, 45)
@@ -320,8 +426,9 @@ def draw_player(painter: QPainter, x: float, y: float, tile_size: int, color: QC
         # Shadow wisps effect with drift and size variation
         wisp_color = QColor(color.red(), color.green(), color.blue(), 80)
         painter.setBrush(wisp_color)
-        for i in range(3):
-            angle = (i * 2 * math.pi / 3) + (idle_time * wisp_drift_speed)
+        wisp_count = int(3 * wisp_count_mult)
+        for i in range(wisp_count):
+            angle = (i * 2 * math.pi / wisp_count) + (idle_time * wisp_drift_speed)
             wisp_x = center_x + int(tile_size // 4 * math.cos(angle))
             wisp_y = center_y + int(tile_size // 5 * math.sin(angle))
             wisp_width = int(4 * wisp_size_var)
@@ -331,11 +438,52 @@ def draw_player(painter: QPainter, x: float, y: float, tile_size: int, color: QC
     elif class_type == c.CLASS_RANGER:
         # RANGER - Nature archer with bow and quiver
 
-        # Idle animations
-        bow_adjust = math.sin(idle_time * 1.0) * 2  # Subtle bow position adjustment
-        leaf_orbit_speed = 0.8 + math.sin(idle_time * 0.5) * 0.2  # Leaf drift variation
-        head_turn = math.sin(idle_time * 0.7) * 3  # Scanning motion
-        breathing = math.sin(idle_time * 0.9) * 2  # Natural breathing
+        # Detect if this is selection screen (large tile size)
+        is_selection_screen = tile_size > 128
+
+        if is_selection_screen:
+            # ENHANCED ANIMATIONS for character selection (4x scale)
+            # Bow draw cycle (3 second cycle)
+            draw_cycle = idle_time * 0.6  # Slow cycle
+            draw_phase = draw_cycle % 2.0  # 0 to 2 seconds
+
+            if draw_phase < 0.7:  # Idle/ready
+                bow_draw = 0
+                arrow_pull = 0
+            elif draw_phase < 1.2:  # Drawing bow
+                progress = (draw_phase - 0.7) / 0.5
+                bow_draw = progress
+                arrow_pull = int(tile_size * 0.15 * progress)
+            elif draw_phase < 1.6:  # Holding drawn
+                bow_draw = 1.0
+                arrow_pull = int(tile_size * 0.15)
+            else:  # Release and return
+                progress = (draw_phase - 1.6) / 0.4
+                bow_draw = 1.0 - progress
+                arrow_pull = int(tile_size * 0.15 * (1 - progress))
+
+            # Stance shift - hunter's crouch
+            stance_shift = math.sin(idle_time * 0.4) * tile_size * 0.08
+
+            # Leaves swirl faster and larger
+            leaf_orbit_speed = 1.2 + math.sin(idle_time * 0.3) * 0.4
+            leaf_radius_mult = 1.3 + math.sin(idle_time * 0.5) * 0.3
+
+            # Head scanning
+            head_turn = math.sin(idle_time * 0.5) * 10
+
+            # Breathing
+            breathing = math.sin(idle_time * 0.7) * 6
+        else:
+            # NORMAL ANIMATIONS for gameplay
+            bow_adjust = math.sin(idle_time * 1.0) * 2
+            leaf_orbit_speed = 0.8 + math.sin(idle_time * 0.5) * 0.2
+            head_turn = math.sin(idle_time * 0.7) * 3
+            breathing = math.sin(idle_time * 0.9) * 2
+            bow_draw = 0
+            arrow_pull = 0
+            stance_shift = 0
+            leaf_radius_mult = 1.0
 
         # Legs (balanced stance)
         leg_color = QColor(80, 100, 70)
@@ -386,20 +534,31 @@ def draw_player(painter: QPainter, x: float, y: float, tile_size: int, color: QC
                         tile_size // 3, tile_size // 2)
         painter.drawArc(bow_rect, 20 * 16, 320 * 16)
 
-        # Bowstring
+        # Bowstring - curved when drawn
         painter.setPen(QPen(QColor(200, 190, 180), 2))
-        painter.drawLine(center_x - tile_size // 6, center_y - tile_size // 5,
-                        center_x - tile_size // 6, center_y + tile_size // 6)
+        if is_selection_screen and bow_draw > 0:
+            # Draw curved string when bow is drawn
+            string_pull_x = center_x - tile_size // 6 - int(arrow_pull * 0.8)
+            painter.drawLine(center_x - tile_size // 6, center_y - tile_size // 5,
+                           string_pull_x, center_y)
+            painter.drawLine(string_pull_x, center_y,
+                           center_x - tile_size // 6, center_y + tile_size // 6)
+        else:
+            # Straight string when not drawn
+            painter.drawLine(center_x - tile_size // 6, center_y - tile_size // 5,
+                           center_x - tile_size // 6, center_y + tile_size // 6)
 
-        # Nocked arrow
+        # Nocked arrow with bow draw animation
         painter.setBrush(QColor(139, 90, 43))
         painter.setPen(QPen(QColor(100, 60, 30), 1))
-        # Arrow shaft
-        painter.drawLine(center_x - tile_size // 6, center_y,
-                        center_x - tile_size // 3 - 2, center_y)
+        # Arrow shaft - pulled back when drawing
+        arrow_start_x = center_x - tile_size // 6 - arrow_pull
+        arrow_end_x = center_x - tile_size // 3 - 2
+        painter.drawLine(arrow_start_x, center_y,
+                        arrow_end_x, center_y)
         # Arrowhead
         arrow_head = [
-            QPoint(center_x - tile_size // 3 - 2, center_y),
+            QPoint(arrow_end_x, center_y),
             QPoint(center_x - tile_size // 4, center_y - 2),
             QPoint(center_x - tile_size // 4, center_y + 2),
         ]
@@ -435,10 +594,11 @@ def draw_player(painter: QPainter, x: float, y: float, tile_size: int, color: QC
         leaf_color = QColor(120, 200, 100, 160)
         painter.setBrush(leaf_color)
         painter.setPen(Qt.PenStyle.NoPen)
-        for i in range(2):
-            angle = (i * math.pi + math.pi / 3) + (idle_time * leaf_orbit_speed)
-            leaf_x = center_x + int(tile_size // 3 * math.cos(angle))
-            leaf_y = center_y + int(tile_size // 4 * math.sin(angle)) + int(breathing)
+        leaf_count = 2 if not is_selection_screen else 4  # More leaves in selection
+        for i in range(leaf_count):
+            angle = (i * 2 * math.pi / leaf_count) + (idle_time * leaf_orbit_speed)
+            leaf_x = center_x + int(tile_size // 3 * leaf_radius_mult * math.cos(angle))
+            leaf_y = center_y + int(tile_size // 4 * leaf_radius_mult * math.sin(angle)) + int(breathing)
             # Small leaf shape
             leaf_points = [
                 QPoint(leaf_x, leaf_y - 4),
