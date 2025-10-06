@@ -1127,10 +1127,6 @@ class TitleScreen3D(QOpenGLWidget):
         for letter in self.letters:
             trigger_burst, started_flying = letter.update(dt)
 
-            # Play whoosh sound when letter starts flying
-            if started_flying:
-                self.audio.play_letter_whoosh()
-
             # Play impact sound and create particles when letter lands
             if trigger_burst and not letter.has_burst:
                 letter.has_burst = True
