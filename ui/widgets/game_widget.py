@@ -373,8 +373,14 @@ class GameWidget(QWidget):
         elif entity.entity_type == c.ENTITY_ENEMY:
             if entity.enemy_type == c.ENEMY_GOBLIN:
                 return c.COLOR_ENEMY_GOBLIN
+            elif entity.enemy_type == c.ENEMY_SLIME:
+                return c.COLOR_ENEMY_SLIME
             elif entity.enemy_type == c.ENEMY_SKELETON:
                 return c.COLOR_ENEMY_SKELETON
+            elif entity.enemy_type == c.ENEMY_ORC:
+                return c.COLOR_ENEMY_ORC
+            elif entity.enemy_type == c.ENEMY_DEMON:
+                return c.COLOR_ENEMY_DEMON
             elif entity.enemy_type == c.ENEMY_DRAGON:
                 return c.COLOR_ENEMY_DRAGON
         elif entity.entity_type == c.ENTITY_ITEM:
