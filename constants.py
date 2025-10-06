@@ -232,7 +232,7 @@ ENEMY_STATS = {
 
 # Item effects (base values, modified by rarity)
 ITEM_EFFECTS = {
-    ITEM_HEALTH_POTION: {"heal": 30},
+    ITEM_HEALTH_POTION: {"heal": 50},
     ITEM_SWORD: {"attack": 5},
     ITEM_SHIELD: {"defense": 3},
     ITEM_BOOTS: {"defense": 2},
@@ -244,7 +244,7 @@ MIN_ROOM_SIZE = 4
 MAX_ROOM_SIZE = 10
 MAX_ROOMS = 15
 ENEMIES_PER_LEVEL_BASE = 5
-ITEMS_PER_LEVEL = 3
+ITEMS_PER_LEVEL = 5
 MAX_LEVEL = 25  # Maximum level before victory
 
 # Game mechanics

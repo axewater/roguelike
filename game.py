@@ -115,9 +115,9 @@ class Game:
     def _spawn_enemies(self):
         """Spawn enemies on current level"""
         self.enemies = []
-        level_modifier = 1.0 + (self.current_level - 1) * 0.15
+        level_modifier = 1.0 + (self.current_level - 1) * 0.10
 
-        num_enemies = c.ENEMIES_PER_LEVEL_BASE + self.current_level
+        num_enemies = min(20, c.ENEMIES_PER_LEVEL_BASE + self.current_level)
 
         for _ in range(num_enemies):
             # Choose enemy type based on level (balanced progression with 6 enemy types)
