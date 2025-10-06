@@ -159,9 +159,9 @@ class GameWidget(QWidget):
             color = self._get_entity_color(entity)
 
             if entity.entity_type == c.ENTITY_PLAYER:
-                gfx.draw_player(painter, screen_x, screen_y, c.TILE_SIZE, color, entity.class_type, entity.facing_direction)
+                gfx.draw_player(painter, screen_x, screen_y, c.TILE_SIZE, color, entity.class_type, entity.facing_direction, entity.idle_time)
             elif entity.entity_type == c.ENTITY_ENEMY:
-                gfx.draw_enemy(painter, screen_x, screen_y, c.TILE_SIZE, color, entity.enemy_type, entity.facing_direction)
+                gfx.draw_enemy(painter, screen_x, screen_y, c.TILE_SIZE, color, entity.enemy_type, entity.facing_direction, entity.idle_time)
             elif entity.entity_type == c.ENTITY_ITEM:
                 gfx.draw_item(painter, screen_x, screen_y, c.TILE_SIZE, color, entity.item_type, entity.rarity)
 

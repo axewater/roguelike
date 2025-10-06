@@ -7,8 +7,8 @@ import constants as c
 import math
 
 
-def draw_player(painter: QPainter, x: float, y: float, tile_size: int, color: QColor, class_type: str, facing_direction: tuple = (0, 1)):
-    """Draw player character based on class with directional facing"""
+def draw_player(painter: QPainter, x: float, y: float, tile_size: int, color: QColor, class_type: str, facing_direction: tuple = (0, 1), idle_time: float = 0.0):
+    """Draw player character based on class with directional facing and idle animations"""
     center_x = int(x * tile_size + tile_size // 2)
     center_y = int(y * tile_size + tile_size // 2)
 
@@ -33,6 +33,11 @@ def draw_player(painter: QPainter, x: float, y: float, tile_size: int, color: QC
 
     if class_type == c.CLASS_WARRIOR:
         # WARRIOR - Armored tank with shield and sword
+
+        # Idle animations
+        shoulder_roll = math.sin(idle_time * 0.8) * 2  # Slow shoulder roll
+        shield_bob = math.sin(idle_time * 1.2) * 3  # Shield breathing motion
+        armor_shimmer = int(abs(math.sin(idle_time * 1.5)) * 20)  # Helmet glint
 
         # Legs (wide stance)
         leg_color = color.darker(130)
@@ -63,21 +68,22 @@ def draw_player(painter: QPainter, x: float, y: float, tile_size: int, color: QC
         painter.drawLine(center_x, center_y - tile_size // 6,
                         center_x, center_y + tile_size // 8)
 
-        # Shield (left side)
+        # Shield (left side) with idle animation
+        shield_offset = int(shield_bob)
         shield_points = [
-            QPoint(center_x - tile_size // 4, center_y - tile_size // 8),
-            QPoint(center_x - tile_size // 6, center_y - tile_size // 5),
-            QPoint(center_x - tile_size // 8, center_y - tile_size // 12),
-            QPoint(center_x - tile_size // 8, center_y + tile_size // 12),
-            QPoint(center_x - tile_size // 6, center_y + tile_size // 6),
+            QPoint(center_x - tile_size // 4 + int(shoulder_roll), center_y - tile_size // 8 + shield_offset),
+            QPoint(center_x - tile_size // 6 + int(shoulder_roll), center_y - tile_size // 5 + shield_offset),
+            QPoint(center_x - tile_size // 8 + int(shoulder_roll), center_y - tile_size // 12 + shield_offset),
+            QPoint(center_x - tile_size // 8 + int(shoulder_roll), center_y + tile_size // 12 + shield_offset),
+            QPoint(center_x - tile_size // 6 + int(shoulder_roll), center_y + tile_size // 6 + shield_offset),
         ]
         painter.setBrush(color.lighter(110))
         painter.setPen(QPen(color.darker(130), 2))
         painter.drawPolygon(shield_points)
 
-        # Shield boss (center)
+        # Shield boss (center) with animation
         painter.setBrush(QColor(200, 180, 100))
-        painter.drawEllipse(center_x - tile_size // 5, center_y - tile_size // 20,
+        painter.drawEllipse(center_x - tile_size // 5 + int(shoulder_roll), center_y - tile_size // 20 + shield_offset,
                            tile_size // 12, tile_size // 12)
 
         # Sword (right side)
@@ -111,19 +117,27 @@ def draw_player(painter: QPainter, x: float, y: float, tile_size: int, color: QC
         painter.drawRect(center_x - tile_size // 6, center_y - tile_size // 5,
                         tile_size // 3, tile_size // 20)
 
-        # Helmet highlight
-        painter.setBrush(QColor(255, 255, 255, 120))
+        # Helmet highlight with pulsing glint
+        glint_alpha = 120 + armor_shimmer
+        painter.setBrush(QColor(255, 255, 255, glint_alpha))
         painter.drawEllipse(center_x - tile_size // 12, center_y - tile_size // 4,
                            tile_size // 10, tile_size // 12)
 
     elif class_type == c.CLASS_MAGE:
         # MAGE - Robed spellcaster with floating orbs
 
-        # Robe bottom (flowing)
+        # Idle animations
+        orb_speed_variation = 1.0 + math.sin(idle_time * 0.5) * 0.3  # Orbs speed up/slow down
+        staff_pulse = int(abs(math.sin(idle_time * 2.0)) * 50)  # Staff orb brightness pulse
+        robe_sway = math.sin(idle_time * 0.7) * 3  # Gentle floating sway
+        rune_glow = int(abs(math.sin(idle_time * 1.5)) * 40)  # Rune brightness
+
+        # Robe bottom (flowing) with sway
+        robe_offset = int(robe_sway)
         robe_points = [
-            QPoint(center_x, center_y + tile_size // 10),
-            QPoint(center_x - tile_size // 3, center_y + tile_size // 3),
-            QPoint(center_x + tile_size // 3, center_y + tile_size // 3),
+            QPoint(center_x + robe_offset, center_y + tile_size // 10),
+            QPoint(center_x - tile_size // 3 + robe_offset, center_y + tile_size // 3),
+            QPoint(center_x + tile_size // 3 + robe_offset, center_y + tile_size // 3),
         ]
         robe_gradient = QLinearGradient(center_x, center_y,
                                         center_x, center_y + tile_size // 3)
@@ -148,21 +162,21 @@ def draw_player(painter: QPainter, x: float, y: float, tile_size: int, color: QC
         painter.drawLine(center_x - tile_size // 4, center_y - tile_size // 8,
                         center_x - tile_size // 3, center_y - tile_size // 2)
 
-        # Staff orb (glowing)
+        # Staff orb (glowing) with pulse
         orb_gradient = QRadialGradient(center_x - tile_size // 3, center_y - tile_size // 2,
                                        tile_size // 8)
         orb_gradient.setColorAt(0, QColor(255, 255, 255, 240))
-        orb_gradient.setColorAt(0.4, color.lighter(160))
-        orb_gradient.setColorAt(1, color)
+        orb_gradient.setColorAt(0.4, color.lighter(160 + staff_pulse))
+        orb_gradient.setColorAt(1, color.lighter(100 + staff_pulse // 2))
         painter.setBrush(orb_gradient)
         painter.setPen(Qt.PenStyle.NoPen)
         painter.drawEllipse(center_x - tile_size // 3 - tile_size // 12,
                            center_y - tile_size // 2 - tile_size // 12,
                            tile_size // 6, tile_size // 6)
 
-        # Floating magical orbs (3 orbiting)
+        # Floating magical orbs (3 orbiting) with speed variation
         for i in range(3):
-            angle = (i * 2 * math.pi / 3) + (math.pi / 4)
+            angle = (i * 2 * math.pi / 3) + (math.pi / 4) + (idle_time * orb_speed_variation)
             orb_x = center_x + int(tile_size // 3 * math.cos(angle))
             orb_y = center_y + int(tile_size // 4 * math.sin(angle))
 
@@ -197,15 +211,23 @@ def draw_player(painter: QPainter, x: float, y: float, tile_size: int, color: QC
         painter.drawEllipse(center_x - tile_size // 12, center_y - tile_size // 6, 3, 4)
         painter.drawEllipse(center_x + tile_size // 12 - 3, center_y - tile_size // 6, 3, 4)
 
-        # Mystical rune on robe
-        painter.setPen(QPen(color.lighter(160), 1))
-        painter.drawLine(center_x - tile_size // 16, center_y,
-                        center_x + tile_size // 16, center_y)
-        painter.drawLine(center_x, center_y - tile_size // 16,
-                        center_x, center_y + tile_size // 16)
+        # Mystical rune on robe with pulsing glow
+        rune_brightness = 160 + rune_glow
+        painter.setPen(QPen(color.lighter(rune_brightness), 2))
+        painter.drawLine(center_x - tile_size // 16 + robe_offset, center_y,
+                        center_x + tile_size // 16 + robe_offset, center_y)
+        painter.drawLine(center_x + robe_offset, center_y - tile_size // 16,
+                        center_x + robe_offset, center_y + tile_size // 16)
 
     elif class_type == c.CLASS_ROGUE:
         # ROGUE - Stealthy assassin with dual daggers
+
+        # Idle animations
+        crouch_shift = math.sin(idle_time * 1.5) * 4  # Subtle crouching motion
+        wisp_drift_speed = 1.2 + math.sin(idle_time * 0.8) * 0.4  # Shadow wisps speed
+        wisp_size_var = 1.0 + math.sin(idle_time * 1.1) * 0.3  # Wisp size variation
+        eye_pulse = int(abs(math.sin(idle_time * 2.5)) * 60)  # Eye glow intensity
+        head_scan = math.sin(idle_time * 0.6) * 2  # Subtle head movement
 
         # Legs (agile stance)
         leg_color = QColor(40, 40, 45)
@@ -289,22 +311,31 @@ def draw_player(painter: QPainter, x: float, y: float, tile_size: int, color: QC
         painter.drawEllipse(center_x - tile_size // 8, center_y - tile_size // 6,
                            tile_size // 4, tile_size // 5)
 
-        # Glowing eyes (purple/dangerous)
-        painter.setBrush(QColor(180, 100, 255, 220))
-        painter.drawEllipse(center_x - tile_size // 16, center_y - tile_size // 7, 3, 3)
-        painter.drawEllipse(center_x + tile_size // 16 - 3, center_y - tile_size // 7, 3, 3)
+        # Glowing eyes (purple/dangerous) with pulse
+        eye_alpha = 220 - eye_pulse
+        painter.setBrush(QColor(180, 100, 255, eye_alpha))
+        painter.drawEllipse(center_x - tile_size // 16 + int(head_scan), center_y - tile_size // 7 + int(crouch_shift), 3, 3)
+        painter.drawEllipse(center_x + tile_size // 16 - 3 + int(head_scan), center_y - tile_size // 7 + int(crouch_shift), 3, 3)
 
-        # Shadow wisps effect
+        # Shadow wisps effect with drift and size variation
         wisp_color = QColor(color.red(), color.green(), color.blue(), 80)
         painter.setBrush(wisp_color)
         for i in range(3):
-            angle = i * 2 * math.pi / 3
+            angle = (i * 2 * math.pi / 3) + (idle_time * wisp_drift_speed)
             wisp_x = center_x + int(tile_size // 4 * math.cos(angle))
             wisp_y = center_y + int(tile_size // 5 * math.sin(angle))
-            painter.drawEllipse(wisp_x - 2, wisp_y - 2, 4, 6)
+            wisp_width = int(4 * wisp_size_var)
+            wisp_height = int(6 * wisp_size_var)
+            painter.drawEllipse(wisp_x - wisp_width // 2, wisp_y - wisp_height // 2, wisp_width, wisp_height)
 
     elif class_type == c.CLASS_RANGER:
         # RANGER - Nature archer with bow and quiver
+
+        # Idle animations
+        bow_adjust = math.sin(idle_time * 1.0) * 2  # Subtle bow position adjustment
+        leaf_orbit_speed = 0.8 + math.sin(idle_time * 0.5) * 0.2  # Leaf drift variation
+        head_turn = math.sin(idle_time * 0.7) * 3  # Scanning motion
+        breathing = math.sin(idle_time * 0.9) * 2  # Natural breathing
 
         # Legs (balanced stance)
         leg_color = QColor(80, 100, 70)
@@ -400,14 +431,14 @@ def draw_player(painter: QPainter, x: float, y: float, tile_size: int, color: QC
         painter.drawEllipse(center_x - tile_size // 20, center_y - tile_size // 10, 2, 2)
         painter.drawEllipse(center_x + tile_size // 30, center_y - tile_size // 10, 2, 2)
 
-        # Nature leaves floating nearby
+        # Nature leaves floating nearby with drift
         leaf_color = QColor(120, 200, 100, 160)
         painter.setBrush(leaf_color)
         painter.setPen(Qt.PenStyle.NoPen)
         for i in range(2):
-            angle = i * math.pi + math.pi / 3
+            angle = (i * math.pi + math.pi / 3) + (idle_time * leaf_orbit_speed)
             leaf_x = center_x + int(tile_size // 3 * math.cos(angle))
-            leaf_y = center_y + int(tile_size // 4 * math.sin(angle))
+            leaf_y = center_y + int(tile_size // 4 * math.sin(angle)) + int(breathing)
             # Small leaf shape
             leaf_points = [
                 QPoint(leaf_x, leaf_y - 4),

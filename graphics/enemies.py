@@ -7,8 +7,8 @@ import constants as c
 import math
 
 
-def draw_enemy(painter: QPainter, x: float, y: float, tile_size: int, color: QColor, enemy_type: str, facing_direction: tuple = (0, 1)):
-    """Draw enemy based on type with directional facing"""
+def draw_enemy(painter: QPainter, x: float, y: float, tile_size: int, color: QColor, enemy_type: str, facing_direction: tuple = (0, 1), idle_time: float = 0.0):
+    """Draw enemy based on type with directional facing and idle animations"""
     center_x = int(x * tile_size + tile_size // 2)
     center_y = int(y * tile_size + tile_size // 2)
 
@@ -33,6 +33,13 @@ def draw_enemy(painter: QPainter, x: float, y: float, tile_size: int, color: QCo
 
     if enemy_type == c.ENEMY_GOBLIN:
         # GOBLIN - Wicked Trickster with hunched posture
+
+        # Idle animations - Fast, twitchy, nervous
+        ear_twitch = math.sin(idle_time * 8.0) * 3  # Rapid ear movement
+        head_dart = math.sin(idle_time * 3.5) * 4  # Nervous head darting
+        eye_flicker = int(abs(math.sin(idle_time * 6.0)) * 40)  # Eye intensity flicker
+        posture_shift = math.sin(idle_time * 2.2) * 2  # Jittery body movement
+        teeth_chatter = int(abs(math.sin(idle_time * 10.0)))  # Rapid teeth movement
 
         # Hunched body (smaller, lower)
         body_gradient = QLinearGradient(center_x, center_y,
@@ -76,22 +83,23 @@ def draw_enemy(painter: QPainter, x: float, y: float, tile_size: int, color: QCo
         painter.drawEllipse(center_x + tile_size // 8, center_y - tile_size // 5, 2, 2)
         painter.drawEllipse(center_x - tile_size // 12, center_y - tile_size // 8, 2, 2)
 
-        # Large bat-like ears (signature feature)
+        # Large bat-like ears (signature feature) with twitch
         ear_color = color.darker(110)
         painter.setBrush(ear_color)
         painter.setPen(QPen(color.darker(150), 1))
+        ear_offset = int(ear_twitch)
         # Left ear
         left_ear = [
-            QPoint(center_x - tile_size // 5, center_y - tile_size // 4),
-            QPoint(center_x - tile_size // 3, center_y - tile_size // 3),
-            QPoint(center_x - tile_size // 4, center_y - tile_size // 6),
+            QPoint(center_x - tile_size // 5 + int(head_dart), center_y - tile_size // 4 + int(posture_shift)),
+            QPoint(center_x - tile_size // 3 + int(head_dart) + ear_offset, center_y - tile_size // 3 + int(posture_shift) - ear_offset),
+            QPoint(center_x - tile_size // 4 + int(head_dart), center_y - tile_size // 6 + int(posture_shift)),
         ]
         painter.drawPolygon(left_ear)
         # Right ear
         right_ear = [
-            QPoint(center_x + tile_size // 5, center_y - tile_size // 4),
-            QPoint(center_x + tile_size // 3, center_y - tile_size // 3),
-            QPoint(center_x + tile_size // 4, center_y - tile_size // 6),
+            QPoint(center_x + tile_size // 5 + int(head_dart), center_y - tile_size // 4 + int(posture_shift)),
+            QPoint(center_x + tile_size // 3 + int(head_dart) - ear_offset, center_y - tile_size // 3 + int(posture_shift) - ear_offset),
+            QPoint(center_x + tile_size // 4 + int(head_dart), center_y - tile_size // 6 + int(posture_shift)),
         ]
         painter.drawPolygon(right_ear)
 
@@ -136,30 +144,39 @@ def draw_enemy(painter: QPainter, x: float, y: float, tile_size: int, color: QCo
             painter.drawLine(tooth_x, center_y - tile_size // 20,
                            tooth_x, center_y + tile_size // 30)
 
-        # Glowing yellow menacing eyes
-        painter.setBrush(QColor(255, 230, 0))
+        # Glowing yellow menacing eyes with flicker
+        eye_brightness = 230 - eye_flicker
+        painter.setBrush(QColor(255, eye_brightness, 0))
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.drawEllipse(center_x - tile_size // 10, center_y - tile_size // 8, 5, 6)
-        painter.drawEllipse(center_x + tile_size // 10 - 5, center_y - tile_size // 8, 5, 6)
-        # Eye glow
-        eye_glow = QRadialGradient(center_x - tile_size // 12, center_y - tile_size // 9, 4)
-        eye_glow.setColorAt(0, QColor(255, 255, 150, 180))
-        eye_glow.setColorAt(1, QColor(255, 230, 0, 0))
+        painter.drawEllipse(center_x - tile_size // 10 + int(head_dart), center_y - tile_size // 8 + int(posture_shift), 5, 6)
+        painter.drawEllipse(center_x + tile_size // 10 - 5 + int(head_dart), center_y - tile_size // 8 + int(posture_shift), 5, 6)
+        # Eye glow with flicker
+        glow_alpha = 180 - eye_flicker
+        eye_glow = QRadialGradient(center_x - tile_size // 12 + int(head_dart), center_y - tile_size // 9 + int(posture_shift), 4)
+        eye_glow.setColorAt(0, QColor(255, 255, 150, glow_alpha))
+        eye_glow.setColorAt(1, QColor(255, eye_brightness, 0, 0))
         painter.setBrush(eye_glow)
-        painter.drawEllipse(center_x - tile_size // 10 - 3, center_y - tile_size // 8 - 3, 11, 12)
-        eye_glow.setCenter(center_x + tile_size // 12, center_y - tile_size // 9)
+        painter.drawEllipse(center_x - tile_size // 10 - 3 + int(head_dart), center_y - tile_size // 8 - 3 + int(posture_shift), 11, 12)
+        eye_glow.setCenter(center_x + tile_size // 12 + int(head_dart), center_y - tile_size // 9 + int(posture_shift))
         painter.setBrush(eye_glow)
-        painter.drawEllipse(center_x + tile_size // 10 - 8, center_y - tile_size // 8 - 3, 11, 12)
+        painter.drawEllipse(center_x + tile_size // 10 - 8 + int(head_dart), center_y - tile_size // 8 - 3 + int(posture_shift), 11, 12)
 
     elif enemy_type == c.ENEMY_SKELETON:
         # SKELETON - Risen Undead Warrior with full body
 
-        # Spectral aura/wispy energy around skeleton
+        # Idle animations - Eerie, undead movements
+        wisp_orbit_speed = 1.0 + math.sin(idle_time * 0.6) * 0.3  # Spectral wisps speed
+        soul_fire_flicker = int(abs(math.sin(idle_time * 3.0)) * 50)  # Eyes flicker
+        bone_rattle = math.sin(idle_time * 5.0) * 1  # Subtle shake
+        jaw_movement = abs(math.sin(idle_time * 1.5)) * 3  # Jaw hang open/close
+        sword_sway = math.sin(idle_time * 1.2) * 4  # Sword tip drift
+
+        # Spectral aura/wispy energy around skeleton with orbit speed
         for i in range(6):
-            angle = i * math.pi / 3
+            angle = (i * math.pi / 3) + (idle_time * wisp_orbit_speed)
             wisp_dist = tile_size // 3
-            wisp_x = center_x + int(wisp_dist * math.cos(angle))
-            wisp_y = center_y + int(wisp_dist * math.sin(angle))
+            wisp_x = center_x + int(wisp_dist * math.cos(angle)) + int(bone_rattle)
+            wisp_y = center_y + int(wisp_dist * math.sin(angle)) + int(bone_rattle)
 
             wisp_gradient = QRadialGradient(wisp_x, wisp_y, tile_size // 12)
             wisp_gradient.setColorAt(0, QColor(100, 255, 200, 100))
@@ -276,17 +293,18 @@ def draw_enemy(painter: QPainter, x: float, y: float, tile_size: int, color: QCo
         painter.drawEllipse(center_x + tile_size // 12, center_y - tile_size // 4,
                            tile_size // 10, tile_size // 8)
 
-        # Soul-fire eyes (glowing cyan/green)
+        # Soul-fire eyes (glowing cyan/green) with flicker
+        fire_intensity = 150 + soul_fire_flicker
         soul_fire_gradient = QRadialGradient(center_x - tile_size // 8, center_y - tile_size // 5, 4)
-        soul_fire_gradient.setColorAt(0, QColor(150, 255, 200))
-        soul_fire_gradient.setColorAt(0.5, QColor(100, 255, 180))
+        soul_fire_gradient.setColorAt(0, QColor(fire_intensity, 255, 200))
+        soul_fire_gradient.setColorAt(0.5, QColor(100 + soul_fire_flicker // 2, 255, 180))
         soul_fire_gradient.setColorAt(1, QColor(50, 200, 150, 0))
         painter.setBrush(soul_fire_gradient)
-        painter.drawEllipse(center_x - tile_size // 7, center_y - tile_size // 5, 6, 8)
+        painter.drawEllipse(center_x - tile_size // 7 + int(bone_rattle), center_y - tile_size // 5, 6, 8)
 
         soul_fire_gradient.setCenter(center_x + tile_size // 7, center_y - tile_size // 5)
         painter.setBrush(soul_fire_gradient)
-        painter.drawEllipse(center_x + tile_size // 10, center_y - tile_size // 5, 6, 8)
+        painter.drawEllipse(center_x + tile_size // 10 + int(bone_rattle), center_y - tile_size // 5, 6, 8)
 
         # Nasal cavity (triangular)
         painter.setBrush(QColor(0, 0, 0, 200))
@@ -297,12 +315,13 @@ def draw_enemy(painter: QPainter, x: float, y: float, tile_size: int, color: QCo
         ]
         painter.drawPolygon(nose)
 
-        # Teeth (detailed)
+        # Teeth (detailed) with jaw movement
         painter.setPen(QPen(QColor(0, 0, 0, 200), 1))
+        jaw_offset = int(jaw_movement)
         for i in range(-3, 4):
-            x_pos = center_x + i * tile_size // 16
-            painter.drawLine(x_pos, center_y,
-                           x_pos, center_y + tile_size // 16)
+            x_pos = center_x + i * tile_size // 16 + int(bone_rattle)
+            painter.drawLine(x_pos, center_y + int(bone_rattle),
+                           x_pos, center_y + tile_size // 16 + jaw_offset)
 
         # Ancient helmet/crown remnants
         painter.setBrush(QColor(80, 70, 60, 180))
@@ -320,6 +339,13 @@ def draw_enemy(painter: QPainter, x: float, y: float, tile_size: int, color: QCo
         # DRAGON - Ancient Wyrm (larger, more imposing - 1.3x scale)
         scale_factor = 1.3
 
+        # Idle animations - Slow, majestic, powerful
+        wing_flutter = math.sin(idle_time * 0.8) * 8  # Slow wing movement
+        tail_sway = math.sin(idle_time * 0.6) * 10  # Tail drift
+        breath_pulse = int(abs(math.sin(idle_time * 1.5)) * 60)  # Fire glow pulse
+        smoke_intensity = abs(math.sin(idle_time * 1.0))  # Smoke wisp pulse
+        body_breathing = math.sin(idle_time * 0.5) * 3  # Deep breathing
+
         # Detailed wings with membrane veins (behind body)
         wing_gradient = QLinearGradient(center_x - int(tile_size * 0.5 * scale_factor),
                                         center_y - int(tile_size * 0.3 * scale_factor),
@@ -331,21 +357,22 @@ def draw_enemy(painter: QPainter, x: float, y: float, tile_size: int, color: QCo
         painter.setBrush(wing_gradient)
         painter.setPen(QPen(color.darker(160), 2))
 
-        # Left wing (spread)
+        # Left wing (spread) with flutter
+        wing_offset = int(wing_flutter)
         left_wing = [
-            QPoint(center_x - int(tile_size * 0.15 * scale_factor), center_y),
-            QPoint(center_x - int(tile_size * 0.5 * scale_factor), center_y - int(tile_size * 0.35 * scale_factor)),
-            QPoint(center_x - int(tile_size * 0.45 * scale_factor), center_y - int(tile_size * 0.15 * scale_factor)),
-            QPoint(center_x - int(tile_size * 0.35 * scale_factor), center_y + int(tile_size * 0.1 * scale_factor)),
+            QPoint(center_x - int(tile_size * 0.15 * scale_factor), center_y + int(body_breathing)),
+            QPoint(center_x - int(tile_size * 0.5 * scale_factor) - wing_offset, center_y - int(tile_size * 0.35 * scale_factor) - wing_offset),
+            QPoint(center_x - int(tile_size * 0.45 * scale_factor) - wing_offset // 2, center_y - int(tile_size * 0.15 * scale_factor)),
+            QPoint(center_x - int(tile_size * 0.35 * scale_factor), center_y + int(tile_size * 0.1 * scale_factor) + int(body_breathing)),
         ]
         painter.drawPolygon(left_wing)
 
-        # Right wing (spread)
+        # Right wing (spread) with flutter
         right_wing = [
-            QPoint(center_x + int(tile_size * 0.15 * scale_factor), center_y),
-            QPoint(center_x + int(tile_size * 0.5 * scale_factor), center_y - int(tile_size * 0.35 * scale_factor)),
-            QPoint(center_x + int(tile_size * 0.45 * scale_factor), center_y - int(tile_size * 0.15 * scale_factor)),
-            QPoint(center_x + int(tile_size * 0.35 * scale_factor), center_y + int(tile_size * 0.1 * scale_factor)),
+            QPoint(center_x + int(tile_size * 0.15 * scale_factor), center_y + int(body_breathing)),
+            QPoint(center_x + int(tile_size * 0.5 * scale_factor) + wing_offset, center_y - int(tile_size * 0.35 * scale_factor) - wing_offset),
+            QPoint(center_x + int(tile_size * 0.45 * scale_factor) + wing_offset // 2, center_y - int(tile_size * 0.15 * scale_factor)),
+            QPoint(center_x + int(tile_size * 0.35 * scale_factor), center_y + int(tile_size * 0.1 * scale_factor) + int(body_breathing)),
         ]
         painter.drawPolygon(right_wing)
 
@@ -403,20 +430,22 @@ def draw_enemy(painter: QPainter, x: float, y: float, tile_size: int, color: QCo
                 ]
                 painter.drawPolygon(scale_diamond)
 
-        # Spined tail with barbs
+        # Spined tail with barbs and sway
         painter.setPen(QPen(color.darker(130), 3))
         painter.setBrush(Qt.BrushStyle.NoBrush)
-        # Tail curve
-        tail_end_x = center_x - int(tile_size * 0.4 * scale_factor)
+        # Tail curve with sway
+        tail_sway_offset = int(tail_sway)
+        tail_end_x = center_x - int(tile_size * 0.4 * scale_factor) + tail_sway_offset
         tail_end_y = center_y + int(tile_size * 0.3 * scale_factor)
-        painter.drawLine(center_x - int(tile_size * 0.2 * scale_factor), center_y + int(tile_size * 0.15 * scale_factor),
+        painter.drawLine(center_x - int(tile_size * 0.2 * scale_factor), center_y + int(tile_size * 0.15 * scale_factor) + int(body_breathing),
                         tail_end_x, tail_end_y)
-        # Tail spikes
+        # Tail spikes with sway
         painter.setBrush(color.darker(140))
         painter.setPen(QPen(color.darker(170), 1))
         for i in range(3):
-            spike_x = center_x - int(tile_size * 0.2 * scale_factor) - i * int(7 * scale_factor)
-            spike_y = center_y + int(tile_size * 0.15 * scale_factor) + i * int(5 * scale_factor)
+            spike_sway_amount = tail_sway_offset * (i + 1) // 3  # Progressive sway along tail
+            spike_x = center_x - int(tile_size * 0.2 * scale_factor) - i * int(7 * scale_factor) + spike_sway_amount
+            spike_y = center_y + int(tile_size * 0.15 * scale_factor) + i * int(5 * scale_factor) + int(body_breathing)
             spike = [
                 QPoint(spike_x, spike_y),
                 QPoint(spike_x - int(3 * scale_factor), spike_y - int(6 * scale_factor)),
@@ -499,14 +528,15 @@ def draw_enemy(painter: QPainter, x: float, y: float, tile_size: int, color: QCo
             ]
             painter.drawPolygon(fang)
 
-        # Smoke wisps from nostrils
+        # Smoke wisps from nostrils with pulse
         nostril_x = center_x + int(tile_size * 0.38 * scale_factor)
         nostril_y = center_y - int(tile_size * 0.4 * scale_factor)
         for i in range(3):
+            smoke_alpha = int(150 * smoke_intensity)
             smoke_gradient = QRadialGradient(nostril_x + i * int(3 * scale_factor),
                                             nostril_y - i * int(4 * scale_factor),
                                             int(4 * scale_factor))
-            smoke_gradient.setColorAt(0, QColor(100, 100, 100, 150))
+            smoke_gradient.setColorAt(0, QColor(100, 100, 100, smoke_alpha))
             smoke_gradient.setColorAt(1, QColor(80, 80, 80, 0))
             painter.setBrush(smoke_gradient)
             painter.setPen(Qt.PenStyle.NoPen)
@@ -514,20 +544,21 @@ def draw_enemy(painter: QPainter, x: float, y: float, tile_size: int, color: QCo
                                nostril_y - i * int(4 * scale_factor) - int(4 * scale_factor),
                                int(8 * scale_factor), int(8 * scale_factor))
 
-        # Fire breath glow (enhanced)
+        # Fire breath glow (enhanced) with pulse
         fire_gradient = QRadialGradient(center_x + int(tile_size * 0.45 * scale_factor),
                                         center_y - int(tile_size * 0.35 * scale_factor),
                                         int(tile_size * 0.15 * scale_factor))
         fire_gradient.setColorAt(0, QColor(255, 255, 200, 240))
-        fire_gradient.setColorAt(0.3, QColor(255, 180, 0, 200))
-        fire_gradient.setColorAt(0.6, QColor(255, 100, 0, 120))
+        fire_gradient.setColorAt(0.3, QColor(255, 180 + breath_pulse, 0, 200))
+        fire_gradient.setColorAt(0.6, QColor(255, 100 + breath_pulse, 0, 120 + breath_pulse // 2))
         fire_gradient.setColorAt(1, QColor(255, 60, 0, 0))
         painter.setBrush(fire_gradient)
         painter.setPen(Qt.PenStyle.NoPen)
+        fire_size = int(tile_size * 0.15 * scale_factor * (1.0 + smoke_intensity * 0.2))
         painter.drawEllipse(center_x + int(tile_size * 0.38 * scale_factor),
                            center_y - int(tile_size * 0.4 * scale_factor),
-                           int(tile_size * 0.15 * scale_factor),
-                           int(tile_size * 0.15 * scale_factor))
+                           fire_size,
+                           fire_size)
 
     # Restore painter state (undo any flip)
     painter.restore()
