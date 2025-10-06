@@ -161,6 +161,88 @@ def draw_enemy(painter: QPainter, x: float, y: float, tile_size: int, color: QCo
         painter.setBrush(eye_glow)
         painter.drawEllipse(center_x + tile_size // 10 - 8 + int(head_dart), center_y - tile_size // 8 - 3 + int(posture_shift), 11, 12)
 
+    elif enemy_type == c.ENEMY_SLIME:
+        # SLIME - Gelatinous Blob with translucent body
+
+        # Idle animations - Pulsing, organic movements
+        body_pulse = math.sin(idle_time * 1.2) * 4  # Body size pulsing
+        nucleus_drift_x = math.sin(idle_time * 0.8) * 3  # Nucleus floating
+        nucleus_drift_y = math.cos(idle_time * 0.6) * 2
+        bubble_float = idle_time * 20  # Bubbles rising
+        membrane_ripple = abs(math.sin(idle_time * 2.0)) * 2  # Surface tension
+
+        # Main gelatinous body (translucent)
+        body_size = tile_size // 2 + int(body_pulse)
+        body_gradient = QRadialGradient(center_x, center_y, body_size)
+        body_gradient.setColorAt(0, color.lighter(130))
+        body_gradient.setColorAt(0.5, color)
+        body_gradient.setColorAt(1, color.darker(120))
+        painter.setBrush(body_gradient)
+        painter.setPen(QPen(color.darker(140), 2))
+        painter.drawEllipse(center_x - body_size // 2, center_y - body_size // 2,
+                           body_size, body_size)
+
+        # Inner translucent layer
+        inner_size = int(body_size * 0.7)
+        inner_gradient = QRadialGradient(center_x, center_y, inner_size)
+        inner_gradient.setColorAt(0, QColor(color.red(), color.green(), color.blue(), 100))
+        inner_gradient.setColorAt(1, QColor(color.red(), color.green(), color.blue(), 30))
+        painter.setBrush(inner_gradient)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawEllipse(center_x - inner_size // 2, center_y - inner_size // 2,
+                           inner_size, inner_size)
+
+        # Nucleus core (glowing center)
+        nucleus_x = center_x + int(nucleus_drift_x)
+        nucleus_y = center_y + int(nucleus_drift_y)
+        nucleus_gradient = QRadialGradient(nucleus_x, nucleus_y, tile_size // 6)
+        nucleus_gradient.setColorAt(0, QColor(150, 255, 220, 220))
+        nucleus_gradient.setColorAt(0.6, color.lighter(150))
+        nucleus_gradient.setColorAt(1, color)
+        painter.setBrush(nucleus_gradient)
+        painter.setPen(QPen(QColor(100, 200, 180), 1))
+        painter.drawEllipse(nucleus_x - tile_size // 8, nucleus_y - tile_size // 8,
+                           tile_size // 4, tile_size // 4)
+
+        # Nucleus detail (inner darker spot)
+        painter.setBrush(QColor(60, 150, 130))
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawEllipse(nucleus_x - tile_size // 16, nucleus_y - tile_size // 16,
+                           tile_size // 8, tile_size // 8)
+
+        # Surface bubbles (floating upward)
+        painter.setBrush(QColor(200, 255, 240, 120))
+        painter.setPen(QPen(QColor(150, 220, 200, 180), 1))
+        for i in range(4):
+            bubble_phase = (bubble_float + i * 50) % 100
+            bubble_x = center_x + int(math.sin(i * 1.5 + idle_time) * tile_size // 4)
+            bubble_y = center_y + tile_size // 4 - int(bubble_phase * tile_size // 100)
+            bubble_size = 3 + int(bubble_phase / 25)  # Bubbles grow as they rise
+            if bubble_y > center_y - body_size // 2:  # Only show bubbles inside body
+                painter.drawEllipse(bubble_x - bubble_size // 2, bubble_y - bubble_size // 2,
+                                   bubble_size, bubble_size)
+
+        # Pseudopod tendrils at base (3 reaching down)
+        painter.setBrush(color.darker(110))
+        painter.setPen(QPen(color.darker(140), 2))
+        for i in range(-1, 2):
+            tendril_x_offset = i * tile_size // 6
+            tendril_sway = math.sin(idle_time * 1.5 + i) * 3
+            tendril_points = [
+                QPoint(center_x + tendril_x_offset, center_y + body_size // 3),
+                QPoint(center_x + tendril_x_offset + int(tendril_sway), center_y + body_size // 2),
+                QPoint(center_x + tendril_x_offset + int(tendril_sway * 1.5), center_y + body_size // 2 + 4),
+            ]
+            for j in range(len(tendril_points) - 1):
+                painter.drawLine(tendril_points[j], tendril_points[j + 1])
+
+        # Outer membrane ripple effect
+        ripple_alpha = 80 + int(membrane_ripple * 20)
+        painter.setPen(QPen(QColor(color.red(), color.green(), color.blue(), ripple_alpha), 1))
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.drawEllipse(center_x - body_size // 2 - 2, center_y - body_size // 2 - 2,
+                           body_size + 4, body_size + 4)
+
     elif enemy_type == c.ENEMY_SKELETON:
         # SKELETON - Risen Undead Warrior with full body
 
@@ -334,6 +416,338 @@ def draw_enemy(painter: QPainter, x: float, y: float, tile_size: int, color: QCo
             QPoint(center_x + tile_size // 5, center_y - tile_size // 3),
         ]
         painter.drawPolygon(helmet)
+
+    elif enemy_type == c.ENEMY_ORC:
+        # ORC - Muscular Brute Warrior
+
+        # Idle animations - Heavy, powerful movements
+        breath_expansion = abs(math.sin(idle_time * 0.7)) * 3  # Chest breathing
+        axe_sway = math.sin(idle_time * 1.0) * 5  # Axe weight sway
+        muscle_flex = abs(math.sin(idle_time * 0.5)) * 2  # Muscle tension
+        nostril_flare = int(abs(math.sin(idle_time * 0.8)) * 2)  # Angry breathing
+
+        # Muscular torso (large and imposing)
+        torso_gradient = QLinearGradient(center_x, center_y - tile_size // 12,
+                                         center_x, center_y + tile_size // 4)
+        torso_gradient.setColorAt(0, color.lighter(115))
+        torso_gradient.setColorAt(0.5, color)
+        torso_gradient.setColorAt(1, color.darker(120))
+        painter.setBrush(torso_gradient)
+        painter.setPen(QPen(color.darker(150), 2))
+        torso_width = tile_size // 3 + int(breath_expansion)
+        painter.drawEllipse(center_x - torso_width // 2, center_y - tile_size // 12,
+                           torso_width, tile_size // 3)
+
+        # Armor plates on shoulders
+        armor_color = QColor(60, 50, 40)
+        painter.setBrush(armor_color)
+        painter.setPen(QPen(QColor(40, 30, 20), 2))
+        # Left shoulder plate
+        left_plate = [
+            QPoint(center_x - tile_size // 4, center_y - tile_size // 12),
+            QPoint(center_x - tile_size // 3, center_y - tile_size // 8),
+            QPoint(center_x - tile_size // 4, center_y),
+        ]
+        painter.drawPolygon(left_plate)
+        # Right shoulder plate
+        right_plate = [
+            QPoint(center_x + tile_size // 4, center_y - tile_size // 12),
+            QPoint(center_x + tile_size // 3, center_y - tile_size // 8),
+            QPoint(center_x + tile_size // 4, center_y),
+        ]
+        painter.drawPolygon(right_plate)
+
+        # Spikes on armor
+        painter.setBrush(QColor(80, 70, 60))
+        painter.setPen(Qt.PenStyle.NoPen)
+        for i in range(2):
+            spike_x = center_x - tile_size // 3 + i * tile_size * 2 // 3
+            spike = [
+                QPoint(spike_x, center_y - tile_size // 8),
+                QPoint(spike_x - 3, center_y - tile_size // 5),
+                QPoint(spike_x + 3, center_y - tile_size // 5),
+            ]
+            painter.drawPolygon(spike)
+
+        # Muscular arms
+        painter.setPen(QPen(color.darker(130), 4))
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        # Right arm (holding axe)
+        painter.drawLine(center_x + tile_size // 6, center_y,
+                        center_x + tile_size // 3, center_y - tile_size // 10)
+        # Left arm
+        painter.drawLine(center_x - tile_size // 6, center_y,
+                        center_x - tile_size // 4, center_y + tile_size // 12)
+
+        # Muscle definition lines
+        painter.setPen(QPen(color.darker(160), 1))
+        painter.drawLine(center_x + tile_size // 6, center_y,
+                        center_x + tile_size // 5, center_y - tile_size // 20)
+
+        # Large battle axe
+        axe_x = center_x + tile_size // 3
+        axe_y = center_y - tile_size // 10 + int(axe_sway)
+
+        # Axe handle (wooden)
+        painter.setBrush(QColor(80, 60, 40))
+        painter.setPen(QPen(QColor(60, 40, 20), 2))
+        painter.drawLine(axe_x, axe_y, axe_x - 2, axe_y - tile_size // 6)
+
+        # Axe blade (metal)
+        axe_gradient = QLinearGradient(axe_x, axe_y - tile_size // 6,
+                                       axe_x + tile_size // 8, axe_y - tile_size // 6)
+        axe_gradient.setColorAt(0, QColor(140, 140, 140))
+        axe_gradient.setColorAt(0.5, QColor(180, 180, 180))
+        axe_gradient.setColorAt(1, QColor(120, 120, 120))
+        painter.setBrush(axe_gradient)
+        painter.setPen(QPen(QColor(80, 80, 80), 2))
+        axe_blade = [
+            QPoint(axe_x - 2, axe_y - tile_size // 6),
+            QPoint(axe_x + tile_size // 8, axe_y - tile_size // 5),
+            QPoint(axe_x + tile_size // 7, axe_y - tile_size // 6 + 4),
+            QPoint(axe_x - 2, axe_y - tile_size // 6 + 2),
+        ]
+        painter.drawPolygon(axe_blade)
+
+        # Large orc head
+        head_gradient = QRadialGradient(center_x, center_y - tile_size // 4, tile_size // 4)
+        head_gradient.setColorAt(0, color.lighter(120))
+        head_gradient.setColorAt(0.7, color)
+        head_gradient.setColorAt(1, color.darker(110))
+        painter.setBrush(head_gradient)
+        painter.setPen(QPen(color.darker(140), 2))
+        painter.drawEllipse(center_x - tile_size // 5, center_y - tile_size * 2 // 5,
+                           tile_size * 2 // 5, tile_size // 3)
+
+        # War paint stripes
+        painter.setPen(QPen(QColor(180, 40, 40), 2))
+        for i in range(2):
+            paint_y = center_y - tile_size // 3 + i * tile_size // 12
+            painter.drawLine(center_x - tile_size // 6, paint_y,
+                           center_x + tile_size // 6, paint_y)
+
+        # Prominent tusks
+        painter.setBrush(QColor(220, 220, 200))
+        painter.setPen(QPen(QColor(180, 180, 160), 2))
+        # Left tusk
+        left_tusk = [
+            QPoint(center_x - tile_size // 10, center_y - tile_size // 8),
+            QPoint(center_x - tile_size // 8, center_y - tile_size // 6),
+            QPoint(center_x - tile_size // 12, center_y - tile_size // 12),
+        ]
+        painter.drawPolygon(left_tusk)
+        # Right tusk
+        right_tusk = [
+            QPoint(center_x + tile_size // 10, center_y - tile_size // 8),
+            QPoint(center_x + tile_size // 8, center_y - tile_size // 6),
+            QPoint(center_x + tile_size // 12, center_y - tile_size // 12),
+        ]
+        painter.drawPolygon(right_tusk)
+
+        # Fierce eyes
+        painter.setBrush(QColor(255, 220, 0))
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawEllipse(center_x - tile_size // 10, center_y - tile_size // 4,
+                           6, 7)
+        painter.drawEllipse(center_x + tile_size // 20, center_y - tile_size // 4,
+                           6, 7)
+        # Pupils
+        painter.setBrush(QColor(0, 0, 0))
+        painter.drawEllipse(center_x - tile_size // 10 + 2, center_y - tile_size // 4 + 2,
+                           3, 4)
+        painter.drawEllipse(center_x + tile_size // 20 + 2, center_y - tile_size // 4 + 2,
+                           3, 4)
+
+        # Angry brow ridge
+        painter.setPen(QPen(color.darker(160), 2))
+        painter.drawLine(center_x - tile_size // 8, center_y - tile_size // 3,
+                        center_x - tile_size // 12, center_y - tile_size // 4)
+        painter.drawLine(center_x + tile_size // 8, center_y - tile_size // 3,
+                        center_x + tile_size // 12, center_y - tile_size // 4)
+
+        # Flared nostrils
+        painter.setBrush(QColor(0, 0, 0))
+        painter.setPen(Qt.PenStyle.NoPen)
+        nostril_size = 3 + nostril_flare
+        painter.drawEllipse(center_x - tile_size // 16, center_y - tile_size // 7,
+                           nostril_size, 4)
+        painter.drawEllipse(center_x + tile_size // 32, center_y - tile_size // 7,
+                           nostril_size, 4)
+
+    elif enemy_type == c.ENEMY_DEMON:
+        # DEMON - Horned Fiend with dark aura
+
+        # Idle animations - Menacing, supernatural movements
+        wing_beat = math.sin(idle_time * 1.5) * 6  # Wing flapping
+        tail_lash = math.sin(idle_time * 2.0) * 8  # Aggressive tail movement
+        aura_pulse = abs(math.sin(idle_time * 1.2))  # Dark energy pulse
+        eye_glow = int(abs(math.sin(idle_time * 3.0)) * 80)  # Eye intensity
+        claw_flex = abs(math.sin(idle_time * 1.8)) * 2  # Claw opening/closing
+
+        # Dark aura (behind body)
+        for ring in range(3):
+            ring_radius = tile_size // 3 + ring * 8 + int(aura_pulse * 10)
+            aura_alpha = int(40 * (1.0 - ring / 3) * aura_pulse)
+            aura_gradient = QRadialGradient(center_x, center_y, ring_radius)
+            aura_gradient.setColorAt(0, QColor(color.red(), color.green(), color.blue(), aura_alpha))
+            aura_gradient.setColorAt(1, QColor(color.red(), color.green(), color.blue(), 0))
+            painter.setBrush(aura_gradient)
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.drawEllipse(center_x - ring_radius, center_y - ring_radius,
+                               ring_radius * 2, ring_radius * 2)
+
+        # Bat wings (behind body, spread wide)
+        wing_gradient = QLinearGradient(center_x - tile_size // 3, center_y,
+                                        center_x - tile_size // 6, center_y + tile_size // 6)
+        wing_gradient.setColorAt(0, color.darker(140))
+        wing_gradient.setColorAt(0.5, color.darker(110))
+        wing_gradient.setColorAt(1, color.darker(130))
+        painter.setBrush(wing_gradient)
+        painter.setPen(QPen(color.darker(170), 2))
+
+        # Left wing with beat
+        left_wing_offset = int(wing_beat)
+        left_wing = [
+            QPoint(center_x - tile_size // 8, center_y),
+            QPoint(center_x - tile_size // 3, center_y - tile_size // 6 - left_wing_offset),
+            QPoint(center_x - tile_size // 4, center_y - tile_size // 12),
+            QPoint(center_x - tile_size // 6, center_y + tile_size // 12),
+        ]
+        painter.drawPolygon(left_wing)
+
+        # Right wing with beat
+        right_wing = [
+            QPoint(center_x + tile_size // 8, center_y),
+            QPoint(center_x + tile_size // 3, center_y - tile_size // 6 - left_wing_offset),
+            QPoint(center_x + tile_size // 4, center_y - tile_size // 12),
+            QPoint(center_x + tile_size // 6, center_y + tile_size // 12),
+        ]
+        painter.drawPolygon(right_wing)
+
+        # Wing membranes (veins)
+        painter.setPen(QPen(color.darker(180), 1))
+        painter.drawLine(center_x - tile_size // 8, center_y,
+                        center_x - tile_size // 3, center_y - tile_size // 6)
+        painter.drawLine(center_x + tile_size // 8, center_y,
+                        center_x + tile_size // 3, center_y - tile_size // 6)
+
+        # Muscular torso (leaner than orc)
+        torso_gradient = QRadialGradient(center_x, center_y, tile_size // 4)
+        torso_gradient.setColorAt(0, color.lighter(120))
+        torso_gradient.setColorAt(0.6, color)
+        torso_gradient.setColorAt(1, color.darker(130))
+        painter.setBrush(torso_gradient)
+        painter.setPen(QPen(color.darker(150), 2))
+        painter.drawEllipse(center_x - tile_size // 6, center_y - tile_size // 12,
+                           tile_size // 3, tile_size // 3)
+
+        # Clawed arms (menacing pose)
+        painter.setPen(QPen(color.darker(140), 3))
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        # Left arm raised
+        painter.drawLine(center_x - tile_size // 8, center_y,
+                        center_x - tile_size // 4, center_y - tile_size // 8)
+        # Right arm raised
+        painter.drawLine(center_x + tile_size // 8, center_y,
+                        center_x + tile_size // 4, center_y - tile_size // 8)
+
+        # Sharp claws (both hands)
+        painter.setPen(QPen(QColor(200, 200, 180), 2))
+        for hand_x in [center_x - tile_size // 4, center_x + tile_size // 4]:
+            hand_y = center_y - tile_size // 8
+            for i in range(3):
+                claw_offset = (i - 1) * 3
+                painter.drawLine(hand_x + claw_offset, hand_y,
+                               hand_x + claw_offset + int(claw_flex), hand_y - 5)
+
+        # Barbed tail (behind, curling)
+        tail_x = center_x + int(tail_lash)
+        tail_gradient = QLinearGradient(center_x, center_y + tile_size // 6,
+                                        tail_x, center_y + tile_size // 3)
+        tail_gradient.setColorAt(0, color)
+        tail_gradient.setColorAt(1, color.darker(120))
+        painter.setBrush(tail_gradient)
+        painter.setPen(QPen(color.darker(150), 3))
+        # Tail curve
+        tail_points = [
+            QPoint(center_x, center_y + tile_size // 6),
+            QPoint(center_x + int(tail_lash * 0.5), center_y + tile_size // 4),
+            QPoint(tail_x, center_y + tile_size // 3),
+        ]
+        for i in range(len(tail_points) - 1):
+            painter.drawLine(tail_points[i], tail_points[i + 1])
+
+        # Tail barb (spear tip)
+        painter.setBrush(QColor(180, 60, 80))
+        painter.setPen(QPen(QColor(140, 40, 60), 2))
+        barb = [
+            QPoint(tail_x, center_y + tile_size // 3),
+            QPoint(tail_x - 4, center_y + tile_size // 3 + 6),
+            QPoint(tail_x + 4, center_y + tile_size // 3 + 6),
+        ]
+        painter.drawPolygon(barb)
+
+        # Demonic head (angular and sinister)
+        head_gradient = QRadialGradient(center_x, center_y - tile_size // 4, tile_size // 5)
+        head_gradient.setColorAt(0, color.lighter(125))
+        head_gradient.setColorAt(0.7, color)
+        head_gradient.setColorAt(1, color.darker(110))
+        painter.setBrush(head_gradient)
+        painter.setPen(QPen(color.darker(150), 2))
+        painter.drawEllipse(center_x - tile_size // 6, center_y - tile_size * 2 // 5,
+                           tile_size // 3, tile_size // 3)
+
+        # Curved horns
+        painter.setBrush(QColor(60, 40, 50))
+        painter.setPen(QPen(QColor(40, 20, 30), 2))
+        # Left horn
+        left_horn = [
+            QPoint(center_x - tile_size // 8, center_y - tile_size // 3),
+            QPoint(center_x - tile_size // 5, center_y - tile_size // 2),
+            QPoint(center_x - tile_size // 7, center_y - tile_size * 2 // 5),
+        ]
+        painter.drawPolygon(left_horn)
+        # Right horn
+        right_horn = [
+            QPoint(center_x + tile_size // 8, center_y - tile_size // 3),
+            QPoint(center_x + tile_size // 5, center_y - tile_size // 2),
+            QPoint(center_x + tile_size // 7, center_y - tile_size * 2 // 5),
+        ]
+        painter.drawPolygon(right_horn)
+
+        # Horn ridges
+        painter.setPen(QPen(QColor(80, 60, 70), 1))
+        for i in range(2):
+            painter.drawLine(center_x - tile_size // 8, center_y - tile_size // 3 - i * 4,
+                           center_x - tile_size // 6, center_y - tile_size * 2 // 5 - i * 4)
+            painter.drawLine(center_x + tile_size // 8, center_y - tile_size // 3 - i * 4,
+                           center_x + tile_size // 6, center_y - tile_size * 2 // 5 - i * 4)
+
+        # Glowing red eyes
+        eye_brightness = 200 + eye_glow
+        eye_gradient = QRadialGradient(center_x - tile_size // 12, center_y - tile_size // 4, 6)
+        eye_gradient.setColorAt(0, QColor(255, eye_brightness, 100))
+        eye_gradient.setColorAt(0.5, QColor(255, 100, 0))
+        eye_gradient.setColorAt(1, QColor(200, 50, 0, 0))
+        painter.setBrush(eye_gradient)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawEllipse(center_x - tile_size // 10, center_y - tile_size // 4,
+                           7, 8)
+        painter.drawEllipse(center_x + tile_size // 20, center_y - tile_size // 4,
+                           7, 8)
+
+        # Evil grin with fangs
+        painter.setPen(QPen(QColor(0, 0, 0, 200), 2))
+        painter.setBrush(QColor(40, 10, 20))
+        mouth_rect = QRect(center_x - tile_size // 10, center_y - tile_size // 12,
+                          tile_size // 5, tile_size // 12)
+        painter.drawArc(mouth_rect, 0, -180 * 16)
+        # Fangs
+        painter.setPen(QPen(QColor(240, 240, 220), 1))
+        for i in [0, 3]:
+            fang_x = center_x - tile_size // 12 + i * 6
+            painter.drawLine(fang_x, center_y - tile_size // 12,
+                           fang_x, center_y - tile_size // 20)
 
     elif enemy_type == c.ENEMY_DRAGON:
         # DRAGON - Ancient Wyrm (larger, more imposing - 1.3x scale)

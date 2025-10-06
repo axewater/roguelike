@@ -23,7 +23,10 @@ COLOR_WALL = QColor(30, 30, 35)  # Darker walls
 COLOR_PLAYER = QColor(100, 200, 255)  # Bright blue
 COLOR_PLAYER_BORDER = QColor(50, 100, 200)
 COLOR_ENEMY_GOBLIN = QColor(100, 220, 80)  # Green
+COLOR_ENEMY_SLIME = QColor(80, 200, 180)  # Cyan-teal
 COLOR_ENEMY_SKELETON = QColor(220, 220, 220)  # White
+COLOR_ENEMY_ORC = QColor(100, 140, 70)  # Dark green
+COLOR_ENEMY_DEMON = QColor(140, 50, 120)  # Dark purple
 COLOR_ENEMY_DRAGON = QColor(255, 80, 60)  # Red
 COLOR_ITEM_POTION = QColor(255, 50, 200)  # Magenta
 COLOR_ITEM_WEAPON = QColor(255, 215, 0)  # Gold
@@ -64,7 +67,10 @@ COLOR_DIVIDER = QColor(70, 70, 75)
 # Symbols for entities
 SYMBOL_PLAYER = "@"
 SYMBOL_GOBLIN = "g"
+SYMBOL_SLIME = "~"
 SYMBOL_SKELETON = "s"
+SYMBOL_ORC = "O"
+SYMBOL_DEMON = "&"
 SYMBOL_DRAGON = "D"
 SYMBOL_POTION = "!"
 SYMBOL_SWORD = "/"
@@ -131,7 +137,10 @@ COLOR_ABILITY_HOVER_BORDER = QColor(200, 200, 220)  # Hover border
 
 # Enemy types
 ENEMY_GOBLIN = "goblin"
+ENEMY_SLIME = "slime"
 ENEMY_SKELETON = "skeleton"
+ENEMY_ORC = "orc"
+ENEMY_DEMON = "demon"
 ENEMY_DRAGON = "dragon"
 
 # Item types
@@ -178,7 +187,10 @@ PLAYER_START_DEFENSE = 5
 # Enemy stats [HP, Attack, Defense]
 ENEMY_STATS = {
     ENEMY_GOBLIN: {"hp": 30, "attack": 5, "defense": 2, "xp": 10},
+    ENEMY_SLIME: {"hp": 40, "attack": 6, "defense": 3, "xp": 15},
     ENEMY_SKELETON: {"hp": 50, "attack": 8, "defense": 4, "xp": 20},
+    ENEMY_ORC: {"hp": 80, "attack": 12, "defense": 7, "xp": 40},
+    ENEMY_DEMON: {"hp": 110, "attack": 16, "defense": 9, "xp": 70},
     ENEMY_DRAGON: {"hp": 150, "attack": 20, "defense": 10, "xp": 100},
 }
 

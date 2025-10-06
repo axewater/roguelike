@@ -118,15 +118,22 @@ class Game:
         num_enemies = c.ENEMIES_PER_LEVEL_BASE + self.current_level
 
         for _ in range(num_enemies):
-            # Choose enemy type based on level
+            # Choose enemy type based on level (balanced progression with 6 enemy types)
             if self.current_level == 1:
-                enemy_types = [c.ENEMY_GOBLIN] * 10
+                # Early intro: Goblin 80%, Slime 20%
+                enemy_types = [c.ENEMY_GOBLIN] * 8 + [c.ENEMY_SLIME] * 2
             elif self.current_level <= 3:
-                enemy_types = [c.ENEMY_GOBLIN] * 6 + [c.ENEMY_SKELETON] * 4
+                # Gradual difficulty: Goblin 50%, Slime 30%, Skeleton 20%
+                enemy_types = [c.ENEMY_GOBLIN] * 5 + [c.ENEMY_SLIME] * 3 + [c.ENEMY_SKELETON] * 2
             elif self.current_level <= 5:
-                enemy_types = [c.ENEMY_GOBLIN] * 3 + [c.ENEMY_SKELETON] * 6 + [c.ENEMY_DRAGON] * 1
+                # Mid-game variety: Goblin 20%, Slime 20%, Skeleton 40%, Orc 20%
+                enemy_types = [c.ENEMY_GOBLIN] * 2 + [c.ENEMY_SLIME] * 2 + [c.ENEMY_SKELETON] * 4 + [c.ENEMY_ORC] * 2
+            elif self.current_level <= 8:
+                # Challenging mix: Skeleton 30%, Orc 30%, Demon 30%, Dragon 10%
+                enemy_types = [c.ENEMY_SKELETON] * 3 + [c.ENEMY_ORC] * 3 + [c.ENEMY_DEMON] * 3 + [c.ENEMY_DRAGON] * 1
             else:
-                enemy_types = [c.ENEMY_GOBLIN] * 2 + [c.ENEMY_SKELETON] * 5 + [c.ENEMY_DRAGON] * 3
+                # End-game gauntlet: Orc 20%, Demon 30%, Dragon 50%
+                enemy_types = [c.ENEMY_ORC] * 2 + [c.ENEMY_DEMON] * 3 + [c.ENEMY_DRAGON] * 5
 
             enemy_type = random.choice(enemy_types)
             x, y = self._get_spawn_position()

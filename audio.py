@@ -283,9 +283,31 @@ class AudioManager:
         goblin_death = synth.generate_sweep(800, 400, 0.3, 0.5)
         self.sounds['enemy_death_goblin'] = synth.array_to_sound(goblin_death)
 
+        # Slime death - wet splat
+        slime_death = synth.combine_waves(
+            synth.generate_sweep(300, 100, 0.25, 0.5),
+            synth.generate_noise(0.15, 0.35)
+        )
+        self.sounds['enemy_death_slime'] = synth.array_to_sound(slime_death)
+
         # Skeleton death - bone rattle
         skeleton_death = synth.generate_noise(0.25, 0.4)
         self.sounds['enemy_death_skeleton'] = synth.array_to_sound(skeleton_death)
+
+        # Orc death - deep guttural roar
+        orc_death = synth.combine_waves(
+            synth.generate_sweep(150, 50, 0.4, 0.6),
+            synth.generate_noise(0.3, 0.3)
+        )
+        self.sounds['enemy_death_orc'] = synth.array_to_sound(orc_death)
+
+        # Demon death - demonic screech
+        demon_death = synth.combine_waves(
+            synth.generate_sweep(800, 200, 0.35, 0.5),
+            synth.generate_sweep(200, 100, 0.35, 0.4),
+            synth.generate_noise(0.2, 0.3)
+        )
+        self.sounds['enemy_death_demon'] = synth.array_to_sound(demon_death)
 
         # Dragon death - epic roar
         dragon_death = synth.combine_waves(
