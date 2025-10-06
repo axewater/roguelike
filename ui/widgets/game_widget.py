@@ -163,7 +163,7 @@ class GameWidget(QWidget):
             elif entity.entity_type == c.ENTITY_ENEMY:
                 gfx.draw_enemy(painter, screen_x, screen_y, c.TILE_SIZE, color, entity.enemy_type, entity.facing_direction)
             elif entity.entity_type == c.ENTITY_ITEM:
-                gfx.draw_item(painter, screen_x, screen_y, c.TILE_SIZE, color, entity.item_type)
+                gfx.draw_item(painter, screen_x, screen_y, c.TILE_SIZE, color, entity.item_type, entity.rarity)
 
         # Draw enemy health bars
         self._draw_enemy_health_bars(painter)
