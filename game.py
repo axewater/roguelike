@@ -9,6 +9,8 @@ from dungeon import Dungeon
 from animations import AnimationManager
 from abilities import CLASS_ABILITIES
 from audio import get_audio_manager
+from fov import calculate_fov
+from visibility import VisibilityMap
 import combat
 
 
@@ -33,6 +35,7 @@ class Game:
         self.message_callback = None  # Callback for visual combat log
         self.taunt_timer = 0.0  # Timer for taunt cooldown
         self.taunt_triggered_low_hp = False  # Track if low HP taunt was triggered this level
+        self.visibility_map: Optional[VisibilityMap] = None  # Field of view / fog of war
 
     def update_camera(self):
         """Center camera on player with boundary clamping"""
@@ -76,6 +79,12 @@ class Game:
         else:
             self.player.set_pos(start_x, start_y)
 
+        # Initialize or reset visibility map for new level
+        if self.visibility_map is None:
+            self.visibility_map = VisibilityMap(c.GRID_WIDTH, c.GRID_HEIGHT)
+        else:
+            self.visibility_map.reset()
+
         # Update camera to center on player
         self.update_camera()
 
@@ -84,6 +93,9 @@ class Game:
 
         # Spawn items
         self._spawn_items()
+
+        # Update field of view
+        self.update_fov()
 
         self.add_message(f"Entered dungeon level {self.current_level}.", "event")
 
@@ -247,12 +259,14 @@ class Game:
         if self.dungeon.get_tile(new_x, new_y) == c.TILE_STAIRS:
             self.player.start_move(new_x, new_y)
             self.update_camera()
+            self.update_fov()
             self._descend_stairs()
             return True
 
         # Move player with animation
         self.player.start_move(new_x, new_y)
         self.update_camera()
+        self.update_fov()
 
         # Play footstep sound
         self.audio_manager.play_footstep(position=(new_x, new_y),
@@ -487,6 +501,30 @@ class Game:
             if enemy.x == x and enemy.y == y:
                 return enemy
         return None
+
+    def update_fov(self):
+        """
+        Update field of view based on player position.
+        Should be called after player movement or level generation.
+        """
+        if not self.player or not self.dungeon or not self.visibility_map:
+            return
+
+        # Calculate vision radius (Rogue gets bonus)
+        vision_radius = c.PLAYER_VISION_RADIUS
+        if self.player.class_type == c.CLASS_ROGUE:
+            vision_radius += c.ROGUE_VISION_BONUS
+
+        # Calculate visible tiles from player position
+        visible_tiles = calculate_fov(
+            self.dungeon,
+            self.player.x,
+            self.player.y,
+            vision_radius
+        )
+
+        # Update visibility map
+        self.visibility_map.update_visibility(visible_tiles)
 
     def has_line_of_sight(self, x1: int, y1: int, x2: int, y2: int) -> bool:
         """

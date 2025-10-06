@@ -52,31 +52,60 @@ class GameWidget(QWidget):
                 if not (0 <= world_x < c.GRID_WIDTH and 0 <= world_y < c.GRID_HEIGHT):
                     continue
 
+                # Check visibility state
+                if self.game.visibility_map:
+                    vis_state = self.game.visibility_map.get_state(world_x, world_y)
+                else:
+                    vis_state = c.VISIBILITY_VISIBLE  # Fallback if no visibility map
+
+                # Skip unexplored tiles (pure black / fog of war)
+                if vis_state == c.VISIBILITY_UNEXPLORED:
+                    continue
+
                 tile = self.game.dungeon.get_tile(world_x, world_y)
 
+                # Determine if we should apply fog (explored but not visible)
+                apply_fog = (vis_state == c.VISIBILITY_EXPLORED)
+
                 if tile == c.TILE_WALL:
-                    gfx.draw_wall_tile(painter, screen_x, screen_y, c.TILE_SIZE)
+                    if apply_fog:
+                        self._draw_fogged_wall(painter, screen_x, screen_y)
+                    else:
+                        gfx.draw_wall_tile(painter, screen_x, screen_y, c.TILE_SIZE)
                 elif tile == c.TILE_FLOOR:
-                    gfx.draw_floor_tile(painter, screen_x, screen_y, c.TILE_SIZE)
+                    if apply_fog:
+                        self._draw_fogged_floor(painter, screen_x, screen_y)
+                    else:
+                        gfx.draw_floor_tile(painter, screen_x, screen_y, c.TILE_SIZE)
                 elif tile == c.TILE_STAIRS:
-                    gfx.draw_floor_tile(painter, screen_x, screen_y, c.TILE_SIZE)  # Draw floor underneath
-                    gfx.draw_stairs_tile(painter, screen_x, screen_y, c.TILE_SIZE)
+                    if apply_fog:
+                        self._draw_fogged_floor(painter, screen_x, screen_y)
+                        self._draw_fogged_stairs(painter, screen_x, screen_y)
+                    else:
+                        gfx.draw_floor_tile(painter, screen_x, screen_y, c.TILE_SIZE)  # Draw floor underneath
+                        gfx.draw_stairs_tile(painter, screen_x, screen_y, c.TILE_SIZE)
 
         # Draw entities with graphics using display positions
         # Collect all entities to draw
         entities_to_draw = []
 
-        # Add items (draw first, bottom layer)
+        # Add items (draw first, bottom layer) - only if visible
         for item in self.game.items:
+            # Only show items in visible tiles
+            if self.game.visibility_map and not self.game.visibility_map.is_visible(item.x, item.y):
+                continue
             display_x, display_y = item.get_display_pos()
             entities_to_draw.append((item, display_x, display_y, 0))  # Priority 0 (bottom)
 
-        # Add enemies (middle layer)
+        # Add enemies (middle layer) - only if visible
         for enemy in self.game.enemies:
+            # Only show enemies in visible tiles
+            if self.game.visibility_map and not self.game.visibility_map.is_visible(enemy.x, enemy.y):
+                continue
             display_x, display_y = enemy.get_display_pos()
             entities_to_draw.append((enemy, display_x, display_y, 1))  # Priority 1
 
-        # Add player (top layer)
+        # Add player (top layer) - always visible
         if self.game.player:
             display_x, display_y = self.game.player.get_display_pos()
             entities_to_draw.append((self.game.player, display_x, display_y, 2))  # Priority 2 (top)
@@ -291,6 +320,10 @@ class GameWidget(QWidget):
     def _draw_enemy_health_bars(self, painter: QPainter):
         """Draw health bars below enemies at their display positions"""
         for enemy in self.game.enemies:
+            # Only show health bars for visible enemies
+            if self.game.visibility_map and not self.game.visibility_map.is_visible(enemy.x, enemy.y):
+                continue
+
             # Get display position (includes bob offset)
             display_x, display_y = enemy.get_display_pos()
 
@@ -707,3 +740,48 @@ class GameWidget(QWidget):
         painter.setFont(QFont("Arial", 18, QFont.Weight.Bold))
         painter.drawText(0, restart_y, self.width(), 40,
                         Qt.AlignmentFlag.AlignCenter, "Press R to Restart")
+
+    def _draw_fogged_wall(self, painter, screen_x: int, screen_y: int):
+        """Draw a darkened wall tile for explored but not visible areas"""
+        # Draw a simple darkened version of the wall
+        fog_color = gfx.apply_fog_color(c.COLOR_WALL, c.EXPLORED_TILE_ALPHA)
+        painter.fillRect(
+            screen_x * c.TILE_SIZE,
+            screen_y * c.TILE_SIZE,
+            c.TILE_SIZE,
+            c.TILE_SIZE,
+            fog_color
+        )
+
+    def _draw_fogged_floor(self, painter, screen_x: int, screen_y: int):
+        """Draw a darkened floor tile for explored but not visible areas"""
+        # Draw a simple darkened version of the floor
+        fog_color = gfx.apply_fog_color(c.COLOR_FLOOR, c.EXPLORED_TILE_ALPHA)
+        painter.fillRect(
+            screen_x * c.TILE_SIZE,
+            screen_y * c.TILE_SIZE,
+            c.TILE_SIZE,
+            c.TILE_SIZE,
+            fog_color
+        )
+
+    def _draw_fogged_stairs(self, painter, screen_x: int, screen_y: int):
+        """Draw darkened stairs for explored but not visible areas"""
+        # Draw a simple darkened version of the stairs
+        fog_color = gfx.apply_fog_color(c.COLOR_STAIRS, c.EXPLORED_TILE_ALPHA)
+        # Draw simple stairs indicator (chevron)
+        painter.setPen(fog_color)
+        painter.setBrush(fog_color)
+
+        center_x = screen_x * c.TILE_SIZE + c.TILE_SIZE // 2
+        center_y = screen_y * c.TILE_SIZE + c.TILE_SIZE // 2
+        size = c.TILE_SIZE // 4
+
+        # Simple chevron pointing down
+        from PyQt6.QtGui import QPolygon
+        points = QPolygon([
+            QPoint(center_x - size, center_y - size // 2),
+            QPoint(center_x, center_y + size // 2),
+            QPoint(center_x + size, center_y - size // 2)
+        ])
+        painter.drawPolygon(points)

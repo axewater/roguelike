@@ -7,6 +7,24 @@ from PyQt6.QtCore import Qt, QRect, QPoint, QPointF
 import constants as c
 
 
+def apply_fog_color(color: QColor, alpha: float) -> QColor:
+    """
+    Darken color for fog of war effect on explored but not visible tiles.
+
+    Args:
+        color: Base color to darken
+        alpha: Brightness factor (0.0 = black, 1.0 = original)
+
+    Returns:
+        Darkened QColor
+    """
+    return QColor(
+        int(color.red() * alpha),
+        int(color.green() * alpha),
+        int(color.blue() * alpha)
+    )
+
+
 def draw_wall_tile(painter: QPainter, x: int, y: int, tile_size: int):
     """Draw a stone brick wall with depth"""
     # Base wall color

@@ -201,6 +201,20 @@ ITEMS_PER_LEVEL = 3
 # Game mechanics
 DAMAGE_VARIANCE = 0.2  # +/- 20% damage variance
 
+# Field of View / Visibility
+PLAYER_VISION_RADIUS = 10  # Base vision range (Manhattan distance)
+ROGUE_VISION_BONUS = 5     # Rogue sees +5 tiles further
+ENEMY_VISION_RADIUS = 8    # Enemy detection range
+ENEMY_VISION_VS_ROGUE = 6  # Reduced vision when chasing Rogue
+
+# Visibility states
+VISIBILITY_UNEXPLORED = "unexplored"
+VISIBILITY_EXPLORED = "explored"
+VISIBILITY_VISIBLE = "visible"
+
+# Rendering
+EXPLORED_TILE_ALPHA = 0.3  # Darkness factor for explored tiles (30% brightness)
+
 # Voice taunts
 VOICE_TAUNTS = [
     "You will never get there",
