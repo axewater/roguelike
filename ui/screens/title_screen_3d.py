@@ -300,8 +300,12 @@ class TitleScreen3D(QOpenGLWidget):
 
         painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
 
-    def _draw_organic_moss_patch(self, painter: QPainter, x: float, y: float, size: float, moss_color: QColor):
-        """Draw an organic-looking moss patch with irregular edges and spreading patterns"""
+    def _draw_organic_moss_patch(self, painter: QPainter, x: float, y: float, size: float, moss_color: QColor, draping: bool = False):
+        """Draw an organic-looking moss patch with irregular edges and spreading patterns
+
+        Args:
+            draping: If True, tendrils grow primarily downward for draping effect
+        """
         from PyQt6.QtGui import QPolygonF
         from PyQt6.QtCore import QPointF
 
@@ -367,17 +371,27 @@ class TitleScreen3D(QOpenGLWidget):
             painter.drawPolygon(QPolygonF(sat_points))
 
         # Add thin tendrils/veins (spreading growth)
-        num_tendrils = random.randint(1, 3)
+        if draping:
+            # More tendrils, longer, and biased downward for draping effect
+            num_tendrils = random.randint(3, 6)
+        else:
+            num_tendrils = random.randint(1, 3)
+
         for _ in range(num_tendrils):
-            tendril_angle = random.uniform(0, 2 * math.pi)
-            tendril_length = size * random.uniform(1.2, 2.0)
+            if draping:
+                # Bias tendril angle downward (between 45° and 135° from horizontal, pointing down)
+                tendril_angle = random.uniform(math.pi * 0.25, math.pi * 0.75)
+                tendril_length = size * random.uniform(2.0, 4.0)  # Much longer for draping
+            else:
+                tendril_angle = random.uniform(0, 2 * math.pi)
+                tendril_length = size * random.uniform(1.2, 2.0)
 
             # Draw tendril as a series of small circles getting smaller
             tendril_color = QColor(moss_color)
             tendril_color.setAlpha(int(moss_color.alpha() * 0.5))
             painter.setBrush(tendril_color)
 
-            num_segments = random.randint(3, 6)
+            num_segments = random.randint(4, 8) if draping else random.randint(3, 6)
             for seg in range(num_segments):
                 t = seg / num_segments
                 # Add some curve/wobble to tendril
@@ -400,8 +414,84 @@ class TitleScreen3D(QOpenGLWidget):
             speckle_size = random.uniform(1, 3)
             painter.drawEllipse(QPointF(speckle_x, speckle_y), speckle_size, speckle_size)
 
+    def _draw_dense_moss_base(self, painter: QPainter, width: int, height: int, moss_colors: list):
+        """Draw a dense moss layer covering the entire top of the texture with irregular bottom edge"""
+        from PyQt6.QtCore import QPointF
+        from PyQt6.QtGui import QPolygonF
+
+        # Define the top coverage area (15-25% of height)
+        base_coverage = random.uniform(0.15, 0.25)
+        base_height = int(height * base_coverage)
+
+        # Create irregular wavy bottom edge using multiple points
+        num_edge_points = 20
+        edge_points = []
+
+        # Start from top-left, go across top, then down right side with wavy edge, back to left
+        edge_points.append(QPointF(0, 0))
+        edge_points.append(QPointF(width, 0))
+
+        # Create wavy bottom edge from right to left
+        for i in range(num_edge_points, -1, -1):
+            x = (i / num_edge_points) * width
+            # Wavy variation in the bottom edge (±20-40% of base height)
+            wave_offset = random.uniform(0.7, 1.3)
+            y = base_height * wave_offset + math.sin(i * 0.5) * base_height * 0.2
+            edge_points.append(QPointF(x, y))
+
+        # Close the polygon
+        edge_points.append(QPointF(0, 0))
+
+        base_polygon = QPolygonF(edge_points)
+
+        # Draw multiple layers for depth and texture variation
+        # Layer 1: Darkest base layer (full coverage)
+        dark_moss = random.choice(moss_colors[:3])  # Use darker greens
+        dark_moss.setAlpha(180)
+        painter.setBrush(dark_moss)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawPolygon(base_polygon)
+
+        # Layer 2: Medium layer with slightly smaller coverage for depth
+        medium_points = []
+        medium_points.append(QPointF(0, 0))
+        medium_points.append(QPointF(width, 0))
+        for i in range(num_edge_points, -1, -1):
+            x = (i / num_edge_points) * width
+            wave_offset = random.uniform(0.6, 1.1)
+            y = base_height * wave_offset * 0.85 + math.sin(i * 0.7) * base_height * 0.15
+            medium_points.append(QPointF(x, y))
+        medium_points.append(QPointF(0, 0))
+
+        medium_moss = random.choice(moss_colors[2:5])
+        medium_moss.setAlpha(160)
+        painter.setBrush(medium_moss)
+        painter.drawPolygon(QPolygonF(medium_points))
+
+        # Layer 3: Add texture variation on top with small patches
+        for _ in range(30):
+            x = random.randint(0, width)
+            y = random.randint(0, int(base_height * 1.2))
+            size = random.randint(5, 20)
+
+            texture_moss = random.choice(moss_colors)
+            texture_moss.setAlpha(random.randint(100, 180))
+            painter.setBrush(texture_moss)
+
+            # Small irregular blob
+            num_points = random.randint(6, 10)
+            points = []
+            for i in range(num_points):
+                angle = (2 * math.pi * i) / num_points
+                radius = size * random.uniform(0.6, 1.0)
+                px = x + radius * math.cos(angle)
+                py = y + radius * math.sin(angle)
+                points.append(QPointF(px, py))
+
+            painter.drawPolygon(QPolygonF(points))
+
     def _generate_moss_overlay(self, image: QImage):
-        """Add organic moss growth to existing texture"""
+        """Add organic moss growth to existing texture with dense top coverage and draping growth"""
         from PyQt6.QtGui import QPolygonF
         from PyQt6.QtCore import QPointF
 
@@ -418,24 +508,42 @@ class TitleScreen3D(QOpenGLWidget):
             QColor(45, 75, 25),   # Olive green
         ]
 
-        # Draw main organic moss patches (fewer but more complex)
+        # 1. Draw dense moss base layer covering entire top
+        self._draw_dense_moss_base(painter, image.width(), image.height(), moss_colors)
+
+        # 2. Draw draping organic moss patches extending from top
+        num_draping = random.randint(10, 18)
+        for _ in range(num_draping):
+            # Start near the top
+            x = random.randint(-10, image.width() + 10)
+            y = random.randint(0, int(image.height() * 0.25))  # Start in top quarter
+            size = random.randint(20, 60)
+            opacity = random.randint(140, 220)
+
+            moss = random.choice(moss_colors)
+            moss.setAlpha(opacity)
+
+            # Draw patch with emphasis on vertical draping (modify tendril direction)
+            self._draw_organic_moss_patch(painter, x, y, size, moss, draping=True)
+
+        # 3. Add main organic moss patches (can be anywhere in top half)
         num_patches = random.randint(8, 15)
         for _ in range(num_patches):
             x = random.randint(-10, image.width() + 10)
-            y = random.randint(0, int(image.height() * 0.4))  # Concentrate on top 40%
+            y = random.randint(0, int(image.height() * 0.5))  # Top half
             size = random.randint(15, 50)
-            opacity = random.randint(120, 220)
+            opacity = random.randint(120, 200)
 
             moss = random.choice(moss_colors)
             moss.setAlpha(opacity)
 
             self._draw_organic_moss_patch(painter, x, y, size, moss)
 
-        # Add smaller moss clusters (more numerous, smaller)
-        num_small = random.randint(15, 25)
+        # 4. Add smaller moss clusters along draping paths
+        num_small = random.randint(20, 35)
         for _ in range(num_small):
             x = random.randint(0, image.width())
-            y = random.randint(0, int(image.height() * 0.6))  # Can spread lower
+            y = random.randint(0, int(image.height() * 0.7))  # Can spread further down
             size = random.randint(5, 15)
             opacity = random.randint(80, 160)
 
@@ -492,7 +600,10 @@ class TitleScreen3D(QOpenGLWidget):
             # Generate stone background
             image = self._generate_stone_texture(size, darkness=1.0)
 
-            # Now carve the letter into the stone
+            # Add moss overlay FIRST (before carving letters)
+            self._generate_moss_overlay(image)
+
+            # Now carve the letter through the moss-covered stone
             painter = QPainter(image)
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
             painter.setRenderHint(QPainter.RenderHint.TextAntialiasing)
@@ -515,9 +626,6 @@ class TitleScreen3D(QOpenGLWidget):
             painter.drawText(image.rect(), Qt.AlignmentFlag.AlignCenter, char)
 
             painter.end()
-
-            # Add moss overlay to front face (similar to top face)
-            self._generate_moss_overlay(image)
 
             # Convert to OpenGL texture
             # Flip image vertically for OpenGL coordinate system
