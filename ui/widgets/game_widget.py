@@ -2,8 +2,8 @@
 Main game rendering widget with mouse interaction and A* pathfinding
 """
 from PyQt6.QtWidgets import QWidget
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPainter, QColor, QFont
+from PyQt6.QtCore import Qt, QPoint
+from PyQt6.QtGui import QPainter, QColor, QFont, QPolygon
 import heapq
 
 import constants as c
@@ -40,6 +40,39 @@ class GameWidget(QWidget):
         # Apply screen shake offset
         shake_x, shake_y = self.game.anim_manager.get_screen_offset()
         painter.translate(shake_x, shake_y)
+
+        # Fill entire viewport with black background (for out-of-bounds areas and fog of war)
+        painter.fillRect(0, 0,
+                        c.VIEWPORT_WIDTH * c.TILE_SIZE,
+                        c.VIEWPORT_HEIGHT * c.TILE_SIZE,
+                        QColor(0, 0, 0))
+
+        # Draw fog particles (atmospheric smoke layer in darkness)
+        from PyQt6.QtGui import QRadialGradient
+        for fog in self.game.anim_manager.fog_particles:
+            # Fog particles use screen pixel coordinates (not world coords)
+            # They float across the viewport regardless of camera position
+
+            # Only draw if within viewport (with margin)
+            if not (-fog.size <= fog.x < c.VIEWPORT_WIDTH * c.TILE_SIZE + fog.size and
+                    -fog.size <= fog.y < c.VIEWPORT_HEIGHT * c.TILE_SIZE + fog.size):
+                continue
+
+            # Create soft, blurred fog with radial gradient
+            gradient = QRadialGradient(fog.x, fog.y, fog.size / 2)
+            fog_color_center = QColor(fog.color.red(), fog.color.green(),
+                                     fog.color.blue(), fog.alpha)
+            fog_color_edge = QColor(fog.color.red(), fog.color.green(),
+                                   fog.color.blue(), 0)  # Fade to transparent
+
+            gradient.setColorAt(0, fog_color_center)
+            gradient.setColorAt(1, fog_color_edge)
+
+            painter.setBrush(gradient)
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.drawEllipse(int(fog.x - fog.size / 2),
+                              int(fog.y - fog.size / 2),
+                              int(fog.size), int(fog.size))
 
         # Draw tiles with graphics (only visible viewport)
         for screen_y in range(c.VIEWPORT_HEIGHT):
@@ -778,7 +811,6 @@ class GameWidget(QWidget):
         size = c.TILE_SIZE // 4
 
         # Simple chevron pointing down
-        from PyQt6.QtGui import QPolygon
         points = QPolygon([
             QPoint(center_x - size, center_y - size // 2),
             QPoint(center_x, center_y + size // 2),

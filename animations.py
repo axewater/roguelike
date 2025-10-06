@@ -2,6 +2,7 @@
 Animation and visual effects system for Dungeon Delver
 """
 import random
+import math
 from typing import List, Tuple
 from PyQt6.QtGui import QColor
 import constants as c
@@ -207,6 +208,62 @@ class AmbientParticle:
         return True
 
 
+class FogParticle:
+    """
+    Atmospheric fog/smoke particles for unexplored areas and out-of-bounds.
+    Creates mysterious, drifting atmosphere in the darkness.
+    """
+    def __init__(self, x: float, y: float):
+        self.x = x
+        self.y = y
+
+        # Fog appearance - lighter gray/blue smoke for visibility on black
+        # Add variation for visual interest
+        gray_value = random.randint(70, 110)  # Much lighter than before
+        blue_tint = random.randint(5, 20)  # Slight blue tint
+        self.color = QColor(gray_value, gray_value, gray_value + blue_tint)
+
+        self.size = random.uniform(40, 80)  # Larger, more billowy clouds
+        self.base_alpha = random.randint(40, 80)  # More visible but still translucent
+        self.alpha = self.base_alpha
+
+        # Slow drifting motion
+        self.vx = random.uniform(-8, 8)  # Slightly faster drift
+        self.vy = random.uniform(-5, 5)  # Slight vertical drift
+
+        # Pulsing/breathing effect
+        self.pulse_time = random.uniform(0, 6.28)  # Random start phase
+        self.pulse_speed = random.uniform(0.5, 1.2)  # Faster pulsing
+
+        # Lifetime (fog persists longer than regular particles)
+        self.lifetime = 0.0
+        self.max_lifetime = random.uniform(10.0, 18.0)  # Even longer lifetime
+
+    def update(self, dt: float) -> bool:
+        """Update fog particle. Returns False when dead"""
+        self.lifetime += dt
+
+        if self.lifetime >= self.max_lifetime:
+            return False
+
+        # Drift slowly
+        self.x += self.vx * dt
+        self.y += self.vy * dt
+
+        # Pulsing alpha (breathing effect)
+        self.pulse_time += dt
+        pulse = 0.5 + 0.5 * math.sin(self.pulse_time * self.pulse_speed)
+        self.alpha = int(self.base_alpha * pulse)
+
+        # Fade out in last 20% of lifetime
+        fade_start = self.max_lifetime * 0.8
+        if self.lifetime > fade_start:
+            fade_progress = (self.lifetime - fade_start) / (self.max_lifetime - fade_start)
+            self.alpha = int(self.alpha * (1.0 - fade_progress))
+
+        return True
+
+
 class ScreenShake:
     """Screen shake effect"""
     def __init__(self, intensity: float = 5.0, duration: float = 0.2):
@@ -244,6 +301,7 @@ class AnimationManager:
         self.directional_particles: List[DirectionalParticle] = []
         self.trails: List[TrailEffect] = []
         self.ambient_particles: List[AmbientParticle] = []
+        self.fog_particles: List[FogParticle] = []
         self.screen_shake: ScreenShake = None
         self.last_update_time = 0.0
 
@@ -376,6 +434,17 @@ class AnimationManager:
 
             self.ambient_particles.append(AmbientParticle(x, y, dust_color))
 
+    def add_fog_particles(self, count: int = 1):
+        """
+        Add fog particles for atmospheric effect in darkness.
+        These create mysterious drifting smoke in unexplored/out-of-bounds areas.
+        """
+        for _ in range(count):
+            # Spawn across entire viewport plus some margin for smooth entry
+            x = random.uniform(-c.TILE_SIZE, c.VIEWPORT_WIDTH * c.TILE_SIZE + c.TILE_SIZE)
+            y = random.uniform(-c.TILE_SIZE, c.VIEWPORT_HEIGHT * c.TILE_SIZE + c.TILE_SIZE)
+            self.fog_particles.append(FogParticle(x, y))
+
     def add_death_burst(self, x: int, y: int, enemy_type: str):
         """Create dramatic death particle burst based on enemy type"""
         center_x = x * c.TILE_SIZE + c.TILE_SIZE / 2
@@ -436,6 +505,9 @@ class AnimationManager:
         # Update ambient particles
         self.ambient_particles = [p for p in self.ambient_particles if p.update(dt)]
 
+        # Update fog particles
+        self.fog_particles = [p for p in self.fog_particles if p.update(dt)]
+
         # Update screen shake
         if self.screen_shake:
             if not self.screen_shake.update(dt):
@@ -455,4 +527,5 @@ class AnimationManager:
         self.directional_particles.clear()
         self.trails.clear()
         self.ambient_particles.clear()
+        self.fog_particles.clear()
         self.screen_shake = None

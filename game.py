@@ -36,6 +36,7 @@ class Game:
         self.taunt_timer = 0.0  # Timer for taunt cooldown
         self.taunt_triggered_low_hp = False  # Track if low HP taunt was triggered this level
         self.visibility_map: Optional[VisibilityMap] = None  # Field of view / fog of war
+        self.fog_timer = 0.0  # Timer for spawning fog particles
 
     def update_camera(self):
         """Center camera on player with boundary clamping"""
@@ -587,6 +588,13 @@ class Game:
 
         for item in self.items:
             item.update(dt)
+
+        # Spawn fog particles for atmosphere in dark areas
+        self.fog_timer += dt
+        if self.fog_timer >= 0.2:  # Every 0.2 seconds (faster spawning)
+            self.fog_timer = 0.0
+            # Spawn 2-4 fog particles (more particles)
+            self.anim_manager.add_fog_particles(count=random.randint(2, 4))
 
         # Spawn ambient particles periodically
         self.ambient_timer += dt
