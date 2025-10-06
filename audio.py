@@ -423,10 +423,12 @@ class AudioManager:
         )
         self.sounds['letter_whoosh'] = synth.array_to_sound(whoosh)
 
-        # Letter impact - landing thud
+        # Letter impact - deep stone brick thump
         impact = synth.combine_waves(
-            synth.generate_noise(0.08, 0.35),
-            synth.generate_sine_wave(100, 0.08, 0.3)
+            synth.generate_sine_wave(45, 0.12, 0.45),      # Sub-bass rumble
+            synth.generate_sine_wave(65, 0.12, 0.4),       # Low thump
+            synth.generate_sweep(80, 35, 0.10, 0.35),      # Settling sweep
+            synth.generate_noise(0.08, 0.3)                # Impact texture
         )
         self.sounds['letter_impact'] = synth.array_to_sound(impact)
 
