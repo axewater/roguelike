@@ -794,3 +794,21 @@ class TitleScreen3D(QOpenGLWidget):
                 letter.current_rotation_z = 0
             self.animation_complete = True
             self.audio.play_ui_select()
+
+    def mousePressEvent(self, event):
+        """Handle mouse press to continue"""
+        if self.animation_complete:
+            self.audio.play_ui_select()
+            self.continue_pressed.emit()
+        else:
+            # Skip animation
+            for letter in self.letters:
+                letter.state = "landed"
+                letter.x = letter.final_x
+                letter.y = letter.final_y
+                letter.z = letter.final_z
+                letter.current_rotation_x = 0
+                letter.current_rotation_y = 0
+                letter.current_rotation_z = 0
+            self.animation_complete = True
+            self.audio.play_ui_select()
