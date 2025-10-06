@@ -300,34 +300,161 @@ class TitleScreen3D(QOpenGLWidget):
 
         painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
 
+    def _draw_organic_moss_patch(self, painter: QPainter, x: float, y: float, size: float, moss_color: QColor):
+        """Draw an organic-looking moss patch with irregular edges and spreading patterns"""
+        from PyQt6.QtGui import QPolygonF
+        from PyQt6.QtCore import QPointF
+
+        # Main irregular blob shape (using polygon)
+        num_points = random.randint(8, 16)
+        points = []
+        for i in range(num_points):
+            angle = (2 * math.pi * i) / num_points
+            # Vary the radius randomly for irregular edges
+            radius_var = random.uniform(0.5, 1.0)
+            radius = size * radius_var
+
+            # Add some wobble to the angle
+            angle_wobble = random.uniform(-0.3, 0.3)
+            px = x + radius * math.cos(angle + angle_wobble)
+            py = y + radius * math.sin(angle + angle_wobble)
+            points.append(QPointF(px, py))
+
+        # Draw main patch with multiple opacity layers for depth
+        polygon = QPolygonF(points)
+
+        # Outer layer (lighter, more transparent)
+        outer_color = QColor(moss_color)
+        outer_color.setAlpha(int(moss_color.alpha() * 0.4))
+        painter.setBrush(outer_color)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawPolygon(polygon)
+
+        # Inner layer (darker, more opaque) - slightly smaller
+        inner_points = []
+        for point in points:
+            # Move point toward center
+            dx = point.x() - x
+            dy = point.y() - y
+            inner_points.append(QPointF(x + dx * 0.6, y + dy * 0.6))
+        inner_polygon = QPolygonF(inner_points)
+        inner_color = QColor(moss_color)
+        painter.setBrush(inner_color)
+        painter.drawPolygon(inner_polygon)
+
+        # Add small satellite clusters around main patch (moss spreading)
+        num_satellites = random.randint(2, 5)
+        for _ in range(num_satellites):
+            # Position near main patch
+            sat_angle = random.uniform(0, 2 * math.pi)
+            sat_dist = size * random.uniform(0.8, 1.5)
+            sat_x = x + sat_dist * math.cos(sat_angle)
+            sat_y = y + sat_dist * math.sin(sat_angle)
+            sat_size = size * random.uniform(0.2, 0.4)
+
+            # Draw small irregular cluster
+            sat_points = []
+            for i in range(random.randint(5, 8)):
+                angle = (2 * math.pi * i) / 8
+                radius = sat_size * random.uniform(0.6, 1.0)
+                px = sat_x + radius * math.cos(angle)
+                py = sat_y + radius * math.sin(angle)
+                sat_points.append(QPointF(px, py))
+
+            sat_color = QColor(moss_color)
+            sat_color.setAlpha(int(moss_color.alpha() * 0.6))
+            painter.setBrush(sat_color)
+            painter.drawPolygon(QPolygonF(sat_points))
+
+        # Add thin tendrils/veins (spreading growth)
+        num_tendrils = random.randint(1, 3)
+        for _ in range(num_tendrils):
+            tendril_angle = random.uniform(0, 2 * math.pi)
+            tendril_length = size * random.uniform(1.2, 2.0)
+
+            # Draw tendril as a series of small circles getting smaller
+            tendril_color = QColor(moss_color)
+            tendril_color.setAlpha(int(moss_color.alpha() * 0.5))
+            painter.setBrush(tendril_color)
+
+            num_segments = random.randint(3, 6)
+            for seg in range(num_segments):
+                t = seg / num_segments
+                # Add some curve/wobble to tendril
+                curve = math.sin(t * math.pi) * size * 0.3
+                seg_x = x + (tendril_length * t) * math.cos(tendril_angle) + curve * math.sin(tendril_angle)
+                seg_y = y + (tendril_length * t) * math.sin(tendril_angle) - curve * math.cos(tendril_angle)
+                seg_size = size * 0.15 * (1.0 - t * 0.7)  # Get smaller toward end
+
+                painter.drawEllipse(QPointF(seg_x, seg_y), seg_size, seg_size)
+
+        # Add tiny speckles for organic texture
+        num_speckles = random.randint(5, 15)
+        speckle_color = QColor(moss_color)
+        speckle_color.setAlpha(int(moss_color.alpha() * 0.7))
+        painter.setBrush(speckle_color)
+
+        for _ in range(num_speckles):
+            speckle_x = x + random.uniform(-size * 1.5, size * 1.5)
+            speckle_y = y + random.uniform(-size * 1.5, size * 1.5)
+            speckle_size = random.uniform(1, 3)
+            painter.drawEllipse(QPointF(speckle_x, speckle_y), speckle_size, speckle_size)
+
     def _generate_moss_overlay(self, image: QImage):
-        """Add moss/grass growth to existing texture"""
+        """Add organic moss growth to existing texture"""
+        from PyQt6.QtGui import QPolygonF
+        from PyQt6.QtCore import QPointF
+
         painter = QPainter(image)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        # Moss colors (varied dark greens)
+        # Moss colors (varied dark greens with some yellow-green)
         moss_colors = [
-            QColor(40, 80, 35),
-            QColor(35, 75, 30),
-            QColor(45, 85, 40),
-            QColor(30, 70, 25),
+            QColor(40, 80, 35),   # Dark green
+            QColor(35, 75, 30),   # Darker green
+            QColor(45, 85, 40),   # Medium green
+            QColor(30, 70, 25),   # Deep green
+            QColor(50, 90, 35),   # Lighter green
+            QColor(45, 75, 25),   # Olive green
         ]
 
-        # Draw irregular moss patches
-        num_patches = random.randint(20, 35)
+        # Draw main organic moss patches (fewer but more complex)
+        num_patches = random.randint(8, 15)
         for _ in range(num_patches):
             x = random.randint(-10, image.width() + 10)
-            y = random.randint(0, image.height() // 3)  # Concentrate on top third
-            size = random.randint(10, 40)
-            opacity = random.randint(100, 200)
+            y = random.randint(0, int(image.height() * 0.4))  # Concentrate on top 40%
+            size = random.randint(15, 50)
+            opacity = random.randint(120, 220)
 
             moss = random.choice(moss_colors)
             moss.setAlpha(opacity)
+
+            self._draw_organic_moss_patch(painter, x, y, size, moss)
+
+        # Add smaller moss clusters (more numerous, smaller)
+        num_small = random.randint(15, 25)
+        for _ in range(num_small):
+            x = random.randint(0, image.width())
+            y = random.randint(0, int(image.height() * 0.6))  # Can spread lower
+            size = random.randint(5, 15)
+            opacity = random.randint(80, 160)
+
+            moss = random.choice(moss_colors)
+            moss.setAlpha(opacity)
+
+            # Draw simple irregular blob for small clusters
+            num_points = random.randint(6, 10)
+            points = []
+            for i in range(num_points):
+                angle = (2 * math.pi * i) / num_points
+                radius = size * random.uniform(0.6, 1.0)
+                px = x + radius * math.cos(angle)
+                py = y + radius * math.sin(angle)
+                points.append(QPointF(px, py))
+
             painter.setBrush(moss)
             painter.setPen(Qt.PenStyle.NoPen)
-
-            # Draw irregular shape
-            painter.drawEllipse(x - size // 2, y - size // 2, size, int(size * random.uniform(0.6, 1.4)))
+            painter.drawPolygon(QPolygonF(points))
 
         painter.end()
 
@@ -387,19 +514,10 @@ class TitleScreen3D(QOpenGLWidget):
             painter.setPen(QColor(50, 48, 45, 255))
             painter.drawText(image.rect(), Qt.AlignmentFlag.AlignCenter, char)
 
-            # Add subtle moss around letter edges
-            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Multiply)
-            moss_color = QColor(40, 80, 35, 40)
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(moss_color)
-            # Small moss spots near letter
-            for _ in range(5):
-                mx = random.randint(size // 4, 3 * size // 4)
-                my = random.randint(size // 4, 3 * size // 4)
-                ms = random.randint(8, 20)
-                painter.drawEllipse(mx - ms // 2, my - ms // 2, ms, ms)
-
             painter.end()
+
+            # Add moss overlay to front face (similar to top face)
+            self._generate_moss_overlay(image)
 
             # Convert to OpenGL texture
             # Flip image vertically for OpenGL coordinate system
