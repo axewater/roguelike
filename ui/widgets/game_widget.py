@@ -849,6 +849,8 @@ class GameWidget(QWidget):
 
     def _draw_fogged_stairs(self, painter, screen_x: int, screen_y: int):
         """Draw darkened stairs for explored but not visible areas"""
+        painter.save()  # Save painter state to prevent color leaking to other tiles
+
         # Draw a simple darkened version of the stairs
         fog_color = gfx.apply_fog_color(c.COLOR_STAIRS, c.EXPLORED_TILE_ALPHA)
         # Draw simple stairs indicator (chevron)
@@ -866,6 +868,8 @@ class GameWidget(QWidget):
             QPoint(center_x + size, center_y - size // 2)
         ])
         painter.drawPolygon(points)
+
+        painter.restore()  # Restore painter state
 
     def _draw_enemy_fov_debug(self, painter):
         """Draw enemy FOV ranges for debugging (F2)"""

@@ -17,7 +17,7 @@ from graphics.tiles import (
 
 # Import entity rendering functions
 from graphics.player import draw_player
-from graphics.enemies import draw_enemy
+from graphics.enemies import draw_enemy  # Now imports from enemies/ package
 from graphics.items import draw_item
 
 # Import ability icon rendering functions
