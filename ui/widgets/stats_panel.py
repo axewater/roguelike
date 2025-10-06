@@ -50,8 +50,32 @@ class StatsPanel(QWidget):
 
         main_grid.addWidget(bars_container, 0, 0, 1, 2)  # Row 0, span 2 columns
 
-        # ROW 1, COL 0: Player Stats
-        stats_container, stats_layout = self._create_section_container("Player Stats")
+        # ROW 1, COL 0: Player Stats (2 columns within the container)
+        stats_container = QFrame()
+        stats_container.setStyleSheet(f"""
+            QFrame {{
+                background-color: rgb({c.COLOR_SECTION_BG.red()}, {c.COLOR_SECTION_BG.green()}, {c.COLOR_SECTION_BG.blue()});
+                border: 1px solid rgb({c.COLOR_SECTION_BORDER.red()}, {c.COLOR_SECTION_BORDER.green()}, {c.COLOR_SECTION_BORDER.blue()});
+                border-radius: 6px;
+                padding: 8px;
+            }}
+        """)
+
+        stats_main_layout = QVBoxLayout()
+        stats_main_layout.setContentsMargins(4, 4, 4, 4)
+        stats_main_layout.setSpacing(6)
+
+        # Title
+        title_label = QLabel("Player Stats")
+        title_label.setFont(QFont("Arial", 11, QFont.Weight.Bold))
+        title_label.setStyleSheet(f"color: rgb({c.COLOR_TEXT_LIGHT.red()}, {c.COLOR_TEXT_LIGHT.green()}, {c.COLOR_TEXT_LIGHT.blue()}); border: none; padding: 0px;")
+        stats_main_layout.addWidget(title_label)
+
+        # Create 2-column grid for stats
+        stats_grid = QGridLayout()
+        stats_grid.setHorizontalSpacing(12)
+        stats_grid.setVerticalSpacing(4)
+        stats_grid.setContentsMargins(0, 0, 0, 0)
 
         self.class_label = QLabel()
         self.level_label = QLabel()
@@ -67,7 +91,20 @@ class StatsPanel(QWidget):
         for label in [self.class_label, self.level_label, self.attack_label, self.defense_label, self.depth_label, self.exploration_label, self.stealth_label]:
             label.setFont(stat_font)
             label.setStyleSheet(stat_style)
-            stats_layout.addWidget(label)
+
+        # Column 0 (left): Basic stats
+        stats_grid.addWidget(self.class_label, 0, 0)
+        stats_grid.addWidget(self.level_label, 1, 0)
+        stats_grid.addWidget(self.attack_label, 2, 0)
+        stats_grid.addWidget(self.defense_label, 3, 0)
+        stats_grid.addWidget(self.stealth_label, 4, 0)  # Rogue only, empty for others
+
+        # Column 1 (right): Dungeon info
+        stats_grid.addWidget(self.depth_label, 0, 1)
+        stats_grid.addWidget(self.exploration_label, 1, 1)
+
+        stats_main_layout.addLayout(stats_grid)
+        stats_container.setLayout(stats_main_layout)
 
         main_grid.addWidget(stats_container, 1, 0)  # Row 1, Col 0
 
