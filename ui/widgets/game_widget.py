@@ -397,6 +397,10 @@ class GameWidget(QWidget):
 
     def _draw_enemy_health_bars(self, painter: QPainter):
         """Draw health bars below enemies at their display positions"""
+        # Reset painter state to prevent brush/pen contamination from previous rendering
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.setPen(Qt.PenStyle.NoPen)
+
         for enemy in self.game.enemies:
             # Only show health bars for visible enemies
             if self.game.visibility_map and not self.game.visibility_map.is_visible(enemy.x, enemy.y):
