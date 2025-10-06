@@ -78,16 +78,19 @@ class Letter3D:
             flight_time = self.time - self.delay
             progress = min(flight_time / self.duration, 1.0)
 
-            # Ease-out cubic for smooth deceleration
-            eased = 1 - pow(1 - progress, 3)
+            # Ease-in-out cubic for dramatic effect (slow start, fast middle, gentle landing)
+            if progress < 0.5:
+                eased = 4 * progress ** 3  # Slow acceleration at start
+            else:
+                eased = 1 - pow(-2 * progress + 2, 3) / 2  # Fast then gentle deceleration
 
             # Interpolate position
             self.x = self.start_x + (self.final_x - self.start_x) * eased
             self.y = self.start_y + (self.final_y - self.start_y) * eased
             self.z = self.start_z + (self.final_z - self.start_z) * eased
 
-            # Rotation (spins faster at start, slows down)
-            spin_progress = 1 - pow(1 - progress, 2)
+            # Rotation (dramatic: slow spin at start, then fast)
+            spin_progress = progress ** 2  # Quadratic ease-in for rotation
             self.current_rotation_x = self.rotation_x * spin_progress
             self.current_rotation_y = self.rotation_y * spin_progress
             self.current_rotation_z = self.rotation_z * spin_progress
@@ -111,18 +114,41 @@ class Letter3D:
 
 
 class Particle3D:
-    """3D particle for burst effects"""
-    def __init__(self, x: float, y: float, z: float, vx: float, vy: float, vz: float, color: List[float]):
+    """3D particle for burst effects with enhanced visuals"""
+    def __init__(self, x: float, y: float, z: float, vx: float, vy: float, vz: float,
+                 color: List[float], particle_type: str = 'debris'):
         self.x = x
         self.y = y
         self.z = z
+        self.prev_x = x  # For motion blur trails
+        self.prev_y = y
+        self.prev_z = z
         self.vx = vx
         self.vy = vy
         self.vz = vz
         self.color = color[:]
         self.lifetime = 0.0
-        self.max_lifetime = random.uniform(0.3, 0.8)
-        self.size = random.uniform(0.05, 0.15)
+        self.particle_type = particle_type  # 'debris', 'spark', 'dust', 'glow'
+
+        # Type-specific properties
+        if particle_type == 'spark':
+            self.max_lifetime = random.uniform(0.2, 0.4)
+            self.size = random.uniform(0.08, 0.15)
+            self.rotation_speed = random.uniform(10, 20)
+        elif particle_type == 'dust':
+            self.max_lifetime = random.uniform(0.5, 1.0)
+            self.size = random.uniform(0.02, 0.06)
+            self.rotation_speed = random.uniform(2, 5)
+        elif particle_type == 'glow':
+            self.max_lifetime = random.uniform(0.3, 0.6)
+            self.size = random.uniform(0.12, 0.25)
+            self.rotation_speed = random.uniform(1, 3)
+        else:  # debris
+            self.max_lifetime = random.uniform(0.4, 0.8)
+            self.size = random.uniform(0.05, 0.15)
+            self.rotation_speed = random.uniform(5, 15)
+
+        self.rotation = random.uniform(0, 360)
         self.alpha = 1.0
 
     def update(self, dt: float) -> bool:
@@ -132,17 +158,31 @@ class Particle3D:
         if self.lifetime >= self.max_lifetime:
             return False
 
+        # Store previous position for trail
+        self.prev_x = self.x
+        self.prev_y = self.y
+        self.prev_z = self.z
+
         # Move
         self.x += self.vx * dt
         self.y += self.vy * dt
         self.z += self.vz * dt
 
-        # Apply gravity
-        self.vy -= 5.0 * dt
+        # Apply gravity (less for dust/glow)
+        if self.particle_type == 'dust':
+            self.vy -= 2.0 * dt
+        elif self.particle_type == 'glow':
+            self.vy -= 1.0 * dt
+        else:
+            self.vy -= 5.0 * dt
 
-        # Friction
-        self.vx *= 0.98
-        self.vz *= 0.98
+        # Friction (more for dust)
+        friction = 0.96 if self.particle_type == 'dust' else 0.98
+        self.vx *= friction
+        self.vz *= friction
+
+        # Rotation
+        self.rotation += self.rotation_speed * dt
 
         # Fade out
         self.alpha = 1.0 - (self.lifetime / self.max_lifetime)
@@ -164,6 +204,10 @@ class TitleScreen3D(QOpenGLWidget):
         self.time_elapsed = 0.0
         self.last_time = time.time()
         self.animation_complete = False
+
+        # Star tunnel state - list of (x, y, z, angle, speed, size)
+        self.stars = []
+        self._init_stars()
 
         # Camera
         self.camera_shake = 0.0
@@ -447,10 +491,10 @@ class TitleScreen3D(QOpenGLWidget):
         total_width = (num_letters - 1) * spacing
         start_x = -total_width / 2
 
-        # Create letters with accelerating animation
-        base_duration = 2.0
-        duration_decrease = 0.12
-        delay_offset = 0.15
+        # Create letters with dramatic slow-to-fast animation
+        base_duration = 4.0
+        duration_decrease = 0.05
+        delay_offset = 0.3
 
         letter_index = 0
         for i, char in enumerate(text):
@@ -460,9 +504,9 @@ class TitleScreen3D(QOpenGLWidget):
             x = start_x + letter_index * spacing
             y = 0.0
 
-            # Each letter starts slightly later and moves faster
+            # Each letter starts slightly later and moves slightly faster
             delay = letter_index * delay_offset
-            duration = max(base_duration - (letter_index * duration_decrease), 0.6)
+            duration = max(base_duration - (letter_index * duration_decrease), 2.0)
 
             # Get texture ID for this character
             texture_id = self.letter_textures.get(char, 0)
@@ -470,6 +514,37 @@ class TitleScreen3D(QOpenGLWidget):
             letter = Letter3D(char, x, y, delay, duration, texture_id)
             self.letters.append(letter)
             letter_index += 1
+
+    def _init_stars(self):
+        """Initialize star tunnel with 800-1000 stars in cylindrical distribution"""
+        num_stars = random.randint(800, 1000)
+
+        for _ in range(num_stars):
+            # Cylindrical distribution for tunnel effect
+            angle = random.uniform(0, 2 * math.pi)
+            radius = random.uniform(0, 18)  # Max radius from center
+
+            x = radius * math.cos(angle)
+            y = radius * math.sin(angle)
+            z = random.uniform(-60, -5)  # Depth range
+
+            # Rotation angle for spiral effect
+            rotation_angle = random.uniform(0, 360)
+
+            # Speed varies per star
+            speed = random.uniform(0.8, 1.5)
+
+            # Size varies with distance (closer = bigger)
+            size = 1.0
+
+            self.stars.append({
+                'x': x, 'y': y, 'z': z,
+                'angle': rotation_angle,
+                'speed': speed,
+                'size': size,
+                'base_x': x,  # Remember original radius position
+                'base_y': y
+            })
 
     def initializeGL(self):
         """Initialize OpenGL settings"""
@@ -544,25 +619,53 @@ class TitleScreen3D(QOpenGLWidget):
             self._draw_overlay()
 
     def _draw_starfield(self):
-        """Draw animated starfield background"""
+        """Draw animated rotating star tunnel"""
         glDisable(GL_LIGHTING)
-        glPointSize(2.0)
-        glBegin(GL_POINTS)
+        glEnable(GL_POINT_SMOOTH)  # Anti-aliased points
 
-        for i in range(200):
-            # Pseudo-random star positions
-            x = (math.sin(i * 12.345) * 20) % 40 - 20
-            y = (math.cos(i * 23.456) * 15) % 30 - 15
-            z = (math.sin(i * 34.567) * 30) % 60 - 50
+        for star in self.stars:
+            # Apply rotation around Z-axis for spiral effect
+            angle_rad = math.radians(star['angle'])
+            radius = math.sqrt(star['base_x']**2 + star['base_y']**2)
+            x = radius * math.cos(angle_rad)
+            y = radius * math.sin(angle_rad)
+            z = star['z']
 
-            # Twinkle effect
-            twinkle = 0.5 + 0.5 * math.sin(self.time_elapsed * 2 + i)
-            brightness = 0.3 + twinkle * 0.3
+            # Calculate depth factor (0 = far, 1 = near)
+            depth_factor = (z + 60) / 55
+            depth_factor = max(0, min(1, depth_factor))
 
-            glColor4f(brightness, brightness, brightness + 0.2, 1.0)
+            # Size based on depth (closer = bigger)
+            size = 1.0 + depth_factor * 3.5
+            glPointSize(size)
+
+            # Color: Blue-white gradient based on depth and twinkle
+            # Far stars = more blue, near stars = more white
+            twinkle = 0.5 + 0.5 * math.sin(self.time_elapsed * 3 + star['angle'])
+            base_brightness = 0.3 + depth_factor * 0.5 + twinkle * 0.2
+
+            # Color variation: far = blue, near = white
+            r = base_brightness * (0.7 + depth_factor * 0.3)
+            g = base_brightness * (0.7 + depth_factor * 0.3)
+            b = base_brightness * (0.9 + depth_factor * 0.1)
+
+            glBegin(GL_POINTS)
+            glColor4f(r, g, b, 0.8 + depth_factor * 0.2)
             glVertex3f(x, y, z)
+            glEnd()
 
-        glEnd()
+            # Draw motion blur trail for close, fast stars
+            if depth_factor > 0.6 and star['speed'] > 1.2:
+                trail_length = depth_factor * 2.0
+                trail_alpha = depth_factor * 0.3
+
+                glBegin(GL_LINES)
+                glColor4f(r, g, b, trail_alpha)
+                glVertex3f(x, y, z)
+                glVertex3f(x, y, z - trail_length)
+                glEnd()
+
+        glDisable(GL_POINT_SMOOTH)
         glEnable(GL_LIGHTING)
 
     def _draw_letter(self, letter: Letter3D):
@@ -656,23 +759,104 @@ class TitleScreen3D(QOpenGLWidget):
         glDisable(GL_TEXTURE_2D)
 
     def _draw_particle(self, particle: Particle3D):
-        """Draw a particle"""
+        """Draw a particle with multi-layer glow and effects"""
+        # Enable additive blending for glow
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE)
+
+        # Draw motion blur trail
+        if particle.particle_type in ('spark', 'debris'):
+            trail_alpha = particle.alpha * 0.3
+            glColor4f(particle.color[0], particle.color[1], particle.color[2], trail_alpha)
+            glBegin(GL_LINES)
+            glVertex3f(particle.prev_x, particle.prev_y, particle.prev_z)
+            glVertex3f(particle.x, particle.y, particle.z)
+            glEnd()
+
         glPushMatrix()
         glTranslatef(particle.x, particle.y, particle.z)
+        glRotatef(particle.rotation, 0, 0, 1)
 
-        # Billboard (always face camera)
-        # Simplified: just draw a quad
-        glColor4f(particle.color[0], particle.color[1], particle.color[2], particle.alpha)
-
-        size = particle.size
-        glBegin(GL_QUADS)
-        glVertex3f(-size, -size, 0)
-        glVertex3f(size, -size, 0)
-        glVertex3f(size, size, 0)
-        glVertex3f(-size, size, 0)
-        glEnd()
+        # Type-specific rendering
+        if particle.particle_type == 'spark':
+            # Sparks: Elongated diamond shape with bright core
+            self._draw_spark(particle)
+        elif particle.particle_type == 'glow':
+            # Glow: Large soft circle with fade
+            self._draw_glow(particle)
+        elif particle.particle_type == 'dust':
+            # Dust: Tiny fading dots
+            self._draw_dust(particle)
+        else:  # debris
+            # Debris: Multi-layer circles with glow
+            self._draw_debris(particle)
 
         glPopMatrix()
+
+        # Restore normal blending
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+    def _draw_spark(self, particle: Particle3D):
+        """Draw an elongated spark particle"""
+        size = particle.size
+        # Bright core
+        glColor4f(1.0, 1.0, 1.0, particle.alpha)
+        glBegin(GL_QUADS)
+        glVertex3f(-size * 0.5, -size * 1.5, 0)
+        glVertex3f(size * 0.5, -size * 1.5, 0)
+        glVertex3f(size * 0.5, size * 1.5, 0)
+        glVertex3f(-size * 0.5, size * 1.5, 0)
+        glEnd()
+        # Colored glow
+        glColor4f(particle.color[0], particle.color[1], particle.color[2], particle.alpha * 0.6)
+        glBegin(GL_QUADS)
+        glVertex3f(-size * 0.8, -size * 2.0, 0)
+        glVertex3f(size * 0.8, -size * 2.0, 0)
+        glVertex3f(size * 0.8, size * 2.0, 0)
+        glVertex3f(-size * 0.8, size * 2.0, 0)
+        glEnd()
+
+    def _draw_glow(self, particle: Particle3D):
+        """Draw a soft glowing particle"""
+        size = particle.size
+        # Outer glow (large, faint)
+        glColor4f(particle.color[0], particle.color[1], particle.color[2], particle.alpha * 0.2)
+        self._draw_circle(size * 1.5, 12)
+        # Middle glow
+        glColor4f(particle.color[0], particle.color[1], particle.color[2], particle.alpha * 0.5)
+        self._draw_circle(size * 1.0, 10)
+        # Bright core
+        glColor4f(1.0, 1.0, 1.0, particle.alpha * 0.8)
+        self._draw_circle(size * 0.3, 8)
+
+    def _draw_dust(self, particle: Particle3D):
+        """Draw a tiny dust particle"""
+        size = particle.size
+        glColor4f(particle.color[0], particle.color[1], particle.color[2], particle.alpha * 0.7)
+        self._draw_circle(size, 6)
+
+    def _draw_debris(self, particle: Particle3D):
+        """Draw a debris particle with glow layers"""
+        size = particle.size
+        # Outer glow
+        glColor4f(particle.color[0], particle.color[1], particle.color[2], particle.alpha * 0.3)
+        self._draw_circle(size * 1.8, 12)
+        # Middle layer
+        glColor4f(particle.color[0], particle.color[1], particle.color[2], particle.alpha * 0.7)
+        self._draw_circle(size * 1.2, 10)
+        # Core
+        glColor4f(particle.color[0] * 1.2, particle.color[1] * 1.2, particle.color[2] * 1.2, particle.alpha)
+        self._draw_circle(size, 8)
+
+    def _draw_circle(self, radius: float, segments: int):
+        """Draw a filled circle using triangle fan"""
+        glBegin(GL_TRIANGLE_FAN)
+        glVertex3f(0, 0, 0)  # Center
+        for i in range(segments + 1):
+            angle = 2 * math.pi * i / segments
+            x = radius * math.cos(angle)
+            y = radius * math.sin(angle)
+            glVertex3f(x, y, 0)
+        glEnd()
 
     def _draw_overlay(self):
         """Draw 2D overlay text"""
@@ -738,6 +922,25 @@ class TitleScreen3D(QOpenGLWidget):
         # Update particles
         self.particles = [p for p in self.particles if p.update(dt)]
 
+        # Update star tunnel - move toward camera and rotate
+        for star in self.stars:
+            # Move toward camera
+            star['z'] += dt * star['speed'] * 25
+
+            # Rotate around Z-axis for spiral effect
+            star['angle'] += dt * 30  # Degrees per second
+
+            # Respawn star at back when it reaches camera
+            if star['z'] > -1:
+                star['z'] = -60
+                # Randomize position slightly on respawn
+                angle = random.uniform(0, 2 * math.pi)
+                radius = random.uniform(0, 18)
+                star['base_x'] = radius * math.cos(angle)
+                star['base_y'] = radius * math.sin(angle)
+                star['angle'] = random.uniform(0, 360)
+                star['speed'] = random.uniform(0.8, 1.5)
+
         # Camera effects
         if self.camera_shake > 0:
             self.camera_shake -= dt * 2
@@ -754,27 +957,59 @@ class TitleScreen3D(QOpenGLWidget):
         self.update()
 
     def _create_particle_burst(self, x: float, y: float, z: float, color: List[float]):
-        """Create a burst of particles"""
-        num_particles = 25
+        """Create a burst of particles with variety (30-40 particles)"""
+        num_particles = random.randint(30, 40)
 
-        for _ in range(num_particles):
-            # Random direction
+        # Particle type distribution
+        for i in range(num_particles):
+            # Determine particle type with weighted distribution
+            rand = random.random()
+            if rand < 0.5:  # 50% debris
+                particle_type = 'debris'
+                speed_mult = 1.0
+            elif rand < 0.7:  # 20% sparks (fast and bright)
+                particle_type = 'spark'
+                speed_mult = 1.8
+            elif rand < 0.85:  # 15% glow (slow, large)
+                particle_type = 'glow'
+                speed_mult = 0.6
+            else:  # 15% dust (many tiny particles)
+                particle_type = 'dust'
+                speed_mult = 0.8
+
+            # Random direction with more vertical spread
             angle_h = random.uniform(0, 2 * math.pi)
-            angle_v = random.uniform(-math.pi/4, math.pi/4)
-            speed = random.uniform(3, 8)
+            angle_v = random.uniform(-math.pi/3, math.pi/3)
+            speed = random.uniform(3, 10) * speed_mult
 
             vx = math.cos(angle_h) * math.cos(angle_v) * speed
-            vy = math.sin(angle_v) * speed + random.uniform(2, 5)
+            vy = math.sin(angle_v) * speed + random.uniform(2, 6)
             vz = math.sin(angle_h) * math.cos(angle_v) * speed
 
-            # Color variation
-            particle_color = [
-                color[0] + random.uniform(-0.1, 0.1),
-                color[1] + random.uniform(-0.1, 0.1),
-                color[2]
-            ]
+            # Color variation based on type
+            if particle_type == 'spark':
+                # Sparks are brighter/whiter
+                particle_color = [
+                    min(1.0, color[0] + random.uniform(0.1, 0.3)),
+                    min(1.0, color[1] + random.uniform(0.1, 0.3)),
+                    min(1.0, color[2] + random.uniform(0.0, 0.2))
+                ]
+            elif particle_type == 'dust':
+                # Dust is darker/muted
+                particle_color = [
+                    color[0] * random.uniform(0.5, 0.8),
+                    color[1] * random.uniform(0.5, 0.8),
+                    color[2] * random.uniform(0.7, 0.9)
+                ]
+            else:
+                # Debris and glow: normal color variation
+                particle_color = [
+                    color[0] + random.uniform(-0.1, 0.1),
+                    color[1] + random.uniform(-0.1, 0.1),
+                    color[2]
+                ]
 
-            particle = Particle3D(x, y, z, vx, vy, vz, particle_color)
+            particle = Particle3D(x, y, z, vx, vy, vz, particle_color, particle_type)
             self.particles.append(particle)
 
     def keyPressEvent(self, event):

@@ -416,10 +416,11 @@ class AudioManager:
 
         # === TITLE SCREEN EFFECTS ===
 
-        # Letter whoosh - fast fly-in sound
+        # Letter whoosh - deep stone brick rumble
         whoosh = synth.combine_waves(
-            synth.generate_sweep(800, 400, 0.25, 0.4),
-            synth.generate_noise(0.15, 0.2)
+            synth.generate_sweep(200, 60, 0.35, 0.5),      # Deep air displacement
+            synth.generate_sine_wave(45, 0.35, 0.35),      # Sub-bass weight
+            synth.generate_noise(0.3, 0.25)                # Low rumble texture
         )
         self.sounds['letter_whoosh'] = synth.array_to_sound(whoosh)
 
