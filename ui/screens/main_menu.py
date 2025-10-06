@@ -210,7 +210,6 @@ class MainMenuScreen(QOpenGLWidget):
         title.setStyleSheet("""
             color: rgb(200, 180, 255);
             padding: 40px;
-            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.9);
         """)
         layout.addWidget(title)
 
@@ -262,13 +261,11 @@ class MainMenuScreen(QOpenGLWidget):
                 border: 5px solid rgb(65, 60, 55);
                 border-radius: 8px;
                 padding: 18px;
-                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
             }
             QPushButton:hover {
                 background-color: rgb(60, 58, 55);
                 color: rgb(210, 190, 255);
                 border: 5px solid rgb(120, 100, 180);
-                text-shadow: 0px 0px 8px rgba(150, 100, 255, 0.8);
             }
             QPushButton:pressed {
                 background-color: rgb(45, 43, 40);
