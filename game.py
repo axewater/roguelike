@@ -320,8 +320,20 @@ class Game:
 
     def _player_attack(self, enemy: Enemy):
         """Player attacks enemy"""
-        message, enemy_died, xp = combat.player_attack_enemy(self.player, enemy)
+        # Check if this is a backstab (Rogue attacking enemy that can't see them)
+        is_backstab = False
+        if self.player.class_type == c.CLASS_ROGUE:
+            # Calculate enemy's FOV to see if they can see player
+            enemy_fov = calculate_fov(self.dungeon, enemy.x, enemy.y, enemy.vision_radius)
+            can_enemy_see_player = (self.player.x, self.player.y) in enemy_fov
+            is_backstab = not can_enemy_see_player
+
+        message, enemy_died, xp, was_backstab = combat.player_attack_enemy(self.player, enemy, is_backstab)
         damage = combat.calculate_damage(self.player.attack, enemy.defense)
+
+        # Apply backstab multiplier to displayed damage
+        if was_backstab:
+            damage = int(damage * c.BACKSTAB_DAMAGE_MULTIPLIER)
 
         # Check if crit (rogue has crit chance)
         is_crit = hasattr(self.player, 'crit_chance') and random.random() < getattr(self.player, 'crit_chance', 0)
@@ -338,11 +350,18 @@ class Game:
         from PyQt6.QtGui import QColor
 
         # Directional impact particles (spray away from player)
-        impact_color = QColor(255, 80, 80) if not is_crit else QColor(255, 200, 50)
+        # Backstab uses purple, crit uses gold, normal uses red
+        if was_backstab:
+            impact_color = QColor(180, 100, 255)  # Purple for backstab
+        elif is_crit:
+            impact_color = QColor(255, 200, 50)  # Gold for crit
+        else:
+            impact_color = QColor(255, 80, 80)  # Red for normal
+
         self.anim_manager.add_directional_impact(
             enemy.x, enemy.y,
             self.player.x, self.player.y,
-            impact_color, count=12 if not is_crit else 20, is_crit=is_crit
+            impact_color, count=20 if (was_backstab or is_crit) else 12, is_crit=(is_crit or was_backstab)
         )
 
         self.anim_manager.add_floating_text(enemy.x, enemy.y, str(damage),
@@ -366,6 +385,9 @@ class Game:
         # Use more specific event types for better visual feedback
         if enemy_died:
             self.add_message(message, "kill")
+        elif was_backstab:
+            self.add_message(message, "crit")  # Use crit styling for backstab
+            # TODO: Add backstab audio when available
         elif is_crit:
             self.add_message(message, "crit")
             self.audio_manager.play_voice_critical()
@@ -392,6 +414,12 @@ class Game:
 
             # Get AI action (pass game reference for line of sight checks)
             dx, dy = enemy.get_ai_action(self.player.get_pos(), self.dungeon, self)
+
+            # Check if enemy just spotted player (trigger alert)
+            if enemy.just_spotted_player:
+                self.anim_manager.add_alert_particle(enemy)
+                enemy.just_spotted_player = False  # Reset flag
+
             new_x = enemy.x + dx
             new_y = enemy.y + dy
 

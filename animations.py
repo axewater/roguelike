@@ -292,6 +292,34 @@ class ScreenShake:
         return True
 
 
+class AlertParticle:
+    """
+    Alert indicator shown when enemy spots player.
+    Shows "!" above enemy head with bounce animation.
+    Follows the enemy as they move.
+    """
+    def __init__(self, enemy):
+        self.enemy = enemy  # Reference to enemy to follow
+        self.color = QColor(255, 220, 50)  # Bright yellow
+        self.lifetime = 0.0
+        self.max_lifetime = 0.5  # Display for 0.5 seconds
+        self.bounce_offset = 0.0
+
+    def update(self, dt: float) -> bool:
+        """Update alert. Returns False when complete"""
+        self.lifetime += dt
+
+        if self.lifetime >= self.max_lifetime:
+            return False
+
+        # Bouncing animation using sine wave
+        import math
+        bounce_speed = 8.0  # Fast bounce
+        self.bounce_offset = abs(math.sin(self.lifetime * bounce_speed)) * 0.3
+
+        return True
+
+
 class AnimationManager:
     """Manages all active animations and effects"""
     def __init__(self):
@@ -302,6 +330,7 @@ class AnimationManager:
         self.trails: List[TrailEffect] = []
         self.ambient_particles: List[AmbientParticle] = []
         self.fog_particles: List[FogParticle] = []
+        self.alert_particles: List[AlertParticle] = []
         self.screen_shake: ScreenShake = None
         self.last_update_time = 0.0
 
@@ -445,6 +474,16 @@ class AnimationManager:
             y = random.uniform(-c.TILE_SIZE, c.VIEWPORT_HEIGHT * c.TILE_SIZE + c.TILE_SIZE)
             self.fog_particles.append(FogParticle(x, y))
 
+    def add_alert_particle(self, enemy):
+        """
+        Add alert indicator above enemy when they spot the player.
+        Shows "!" with bounce animation that follows the enemy.
+
+        Args:
+            enemy: Enemy entity reference (alert will follow this enemy)
+        """
+        self.alert_particles.append(AlertParticle(enemy))
+
     def add_death_burst(self, x: int, y: int, enemy_type: str):
         """Create dramatic death particle burst based on enemy type"""
         center_x = x * c.TILE_SIZE + c.TILE_SIZE / 2
@@ -508,6 +547,9 @@ class AnimationManager:
         # Update fog particles
         self.fog_particles = [p for p in self.fog_particles if p.update(dt)]
 
+        # Update alert particles
+        self.alert_particles = [a for a in self.alert_particles if a.update(dt)]
+
         # Update screen shake
         if self.screen_shake:
             if not self.screen_shake.update(dt):
@@ -528,4 +570,5 @@ class AnimationManager:
         self.trails.clear()
         self.ambient_particles.clear()
         self.fog_particles.clear()
+        self.alert_particles.clear()
         self.screen_shake = None

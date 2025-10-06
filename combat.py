@@ -30,20 +30,34 @@ def resolve_combat(attacker, defender) -> Tuple[int, bool]:
     return (damage, not target_alive)
 
 
-def player_attack_enemy(player: Player, enemy: Enemy) -> Tuple[str, bool, int]:
+def player_attack_enemy(player: Player, enemy: Enemy, is_backstab: bool = False) -> Tuple[str, bool, int, bool]:
     """
     Player attacks enemy.
-    Returns: (message, enemy_died, xp_gained)
+    Returns: (message, enemy_died, xp_gained, was_backstab)
     """
-    damage, enemy_died = resolve_combat(player, enemy)
+    damage = calculate_damage(player.attack, enemy.defense)
+
+    # Apply backstab bonus if applicable
+    if is_backstab:
+        damage = int(damage * c.BACKSTAB_DAMAGE_MULTIPLIER)
+
+    # Apply damage
+    target_alive = enemy.take_damage(damage)
+    enemy_died = not target_alive
 
     if enemy_died:
         xp = enemy.xp_reward
-        message = f"You dealt {damage} damage and killed the {enemy.enemy_type}! (+{xp} XP)"
-        return (message, True, xp)
+        if is_backstab:
+            message = f"BACKSTAB! You dealt {damage} damage and killed the {enemy.enemy_type}! (+{xp} XP)"
+        else:
+            message = f"You dealt {damage} damage and killed the {enemy.enemy_type}! (+{xp} XP)"
+        return (message, True, xp, is_backstab)
     else:
-        message = f"You dealt {damage} damage to the {enemy.enemy_type}. ({enemy.hp}/{enemy.max_hp} HP)"
-        return (message, False, 0)
+        if is_backstab:
+            message = f"BACKSTAB! You dealt {damage} damage to the {enemy.enemy_type}. ({enemy.hp}/{enemy.max_hp} HP)"
+        else:
+            message = f"You dealt {damage} damage to the {enemy.enemy_type}. ({enemy.hp}/{enemy.max_hp} HP)"
+        return (message, False, 0, is_backstab)
 
 
 def enemy_attack_player(enemy: Enemy, player: Player) -> Tuple[str, bool]:

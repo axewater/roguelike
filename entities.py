@@ -282,8 +282,15 @@ class Enemy(Entity):
 
         # AI state for patrol/chase behavior
         self.starting_room = starting_room  # Room object where enemy spawned
-        self.ai_state = "patrol"  # "patrol" or "chase"
+        self.ai_state = "patrol"  # "patrol", "chase", or "search"
         self.has_seen_player = False  # Once true, enemy stays aggressive
+
+        # Vision and tracking
+        self.vision_radius = c.ENEMY_VISION_RADIUS  # How far enemy can see
+        self.last_known_player_pos = None  # Last position where player was seen
+        self.turns_since_seen_player = 0  # Counter for losing track
+        self.search_turns_max = 5  # Give up search after this many turns
+        self.just_spotted_player = False  # Flag for triggering alert animation
 
     def take_damage(self, damage: int) -> bool:
         """Take damage, return True if still alive"""
@@ -292,33 +299,64 @@ class Enemy(Entity):
 
     def get_ai_action(self, player_pos: Tuple[int, int], dungeon_map, game=None) -> Tuple[int, int]:
         """
-        Determine next move based on AI type with patrol/chase behavior.
-        Enemies patrol their starting room until they spot the player,
-        then switch to chase mode.
+        Determine next move based on AI with FOV-aware patrol/chase/search behavior.
+
+        States:
+        - patrol: Stay in starting room, haven't seen player
+        - chase: Can see player, move toward them
+        - search: Lost sight, move to last known position
         """
         # Check if frozen
         if self.frozen_turns > 0:
             return (0, 0)  # Can't move when frozen
 
-        # Check line of sight if game reference is provided
-        has_los = False
+        # Calculate if player is in FOV (uses shadowcasting)
+        can_see_player = False
         if game:
-            has_los = game.has_line_of_sight(self.x, self.y, player_pos[0], player_pos[1])
+            # Adjust vision radius for Rogue (harder to detect)
+            if hasattr(game.player, 'class_type') and game.player.class_type == c.CLASS_ROGUE:
+                self.vision_radius = c.ENEMY_VISION_VS_ROGUE
+            else:
+                self.vision_radius = c.ENEMY_VISION_RADIUS
 
-            # If we can see the player and haven't seen them before, switch to chase
-            if has_los and not self.has_seen_player:
-                self.has_seen_player = True
-                self.ai_state = "chase"
+            # Calculate enemy's FOV
+            from fov import calculate_fov
+            enemy_fov = calculate_fov(dungeon_map, self.x, self.y, self.vision_radius)
 
-            # If we've seen the player before, stay in chase mode
-            if self.has_seen_player:
-                self.ai_state = "chase"
+            # Check if player is in FOV
+            can_see_player = (player_pos[0], player_pos[1]) in enemy_fov
 
-        # Execute behavior based on current state
-        if self.ai_state == "chase":
+        # AI state machine based on vision
+        if can_see_player:
+            # STATE: CHASE - We can see the player
+            # Detect if we just spotted them (transition from patrol/search to chase)
+            if self.ai_state != "chase":
+                self.just_spotted_player = True  # Trigger alert!
+
+            self.ai_state = "chase"
+            self.has_seen_player = True
+            self.last_known_player_pos = player_pos
+            self.turns_since_seen_player = 0
             return self._chase_player(player_pos)
+
+        elif self.has_seen_player and self.last_known_player_pos is not None:
+            # STATE: SEARCH - We've seen player before but lost sight
+            self.turns_since_seen_player += 1
+
+            if self.turns_since_seen_player >= self.search_turns_max:
+                # Give up search, return to patrol
+                self.ai_state = "patrol"
+                self.last_known_player_pos = None
+                self.turns_since_seen_player = 0
+                return self._patrol_room()
+            else:
+                # Continue searching
+                self.ai_state = "search"
+                return self._search_last_position()
+
         else:
-            # Patrol mode - stay in starting room
+            # STATE: PATROL - Never seen player or gave up searching
+            self.ai_state = "patrol"
             return self._patrol_room()
 
     def _chase_player(self, player_pos: Tuple[int, int]) -> Tuple[int, int]:
@@ -328,6 +366,31 @@ class Enemy(Entity):
 
         # Prefer horizontal or vertical movement (not diagonal)
         if abs(self.x - player_pos[0]) > abs(self.y - player_pos[1]):
+            return (dx, 0)
+        else:
+            return (0, dy)
+
+    def _search_last_position(self) -> Tuple[int, int]:
+        """
+        Move toward last known player position.
+        Uses same logic as chase but targets last_known_player_pos.
+        """
+        if self.last_known_player_pos is None:
+            return (0, 0)
+
+        target_x, target_y = self.last_known_player_pos
+
+        # If we've reached the last known position, give up
+        if self.x == target_x and self.y == target_y:
+            self.turns_since_seen_player = self.search_turns_max  # Force give up
+            return (0, 0)
+
+        # Move toward last known position
+        dx = 0 if self.x == target_x else (1 if target_x > self.x else -1)
+        dy = 0 if self.y == target_y else (1 if target_y > self.y else -1)
+
+        # Prefer horizontal or vertical movement
+        if abs(self.x - target_x) > abs(self.y - target_y):
             return (dx, 0)
         else:
             return (0, dy)

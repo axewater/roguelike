@@ -306,9 +306,48 @@ class GameWidget(QWidget):
             painter.drawText(int(text_x - 20), int(text_y - 10), 40, 20,
                            Qt.AlignmentFlag.AlignCenter, ftext.text)
 
+        # Draw alert particles (!) above enemies when they spot player
+        alert_font = QFont("Arial", 28, QFont.Weight.Bold)
+        for alert in self.game.anim_manager.alert_particles:
+            # Get enemy's current position (follows enemy as they move)
+            enemy = alert.enemy
+
+            # Only draw if enemy tile is visible
+            if self.game.visibility_map and not self.game.visibility_map.is_visible(enemy.x, enemy.y):
+                continue
+
+            # Convert to screen coords using enemy's current position
+            screen_x = enemy.x - self.game.camera_x
+            screen_y = enemy.y - self.game.camera_y
+
+            # Only draw if visible
+            if not (0 <= screen_x < c.VIEWPORT_WIDTH and 0 <= screen_y < c.VIEWPORT_HEIGHT):
+                continue
+
+            painter.setFont(alert_font)
+            alert_color = QColor(alert.color.red(), alert.color.green(),
+                                alert.color.blue(), 255)
+            painter.setPen(alert_color)
+
+            # Position above enemy with bounce offset
+            text_x = screen_x * c.TILE_SIZE + c.TILE_SIZE // 2
+            text_y = screen_y * c.TILE_SIZE - int(alert.bounce_offset * c.TILE_SIZE)
+
+            # Draw "!" with shadow for visibility
+            painter.setPen(QColor(0, 0, 0, 200))  # Shadow
+            painter.drawText(int(text_x - 12), int(text_y - 12), 24, 30,
+                           Qt.AlignmentFlag.AlignCenter, "!")
+            painter.setPen(alert_color)  # Main color
+            painter.drawText(int(text_x - 10), int(text_y - 10), 20, 30,
+                           Qt.AlignmentFlag.AlignCenter, "!")
+
         # Draw ability range indicator if in targeting mode
         if self.targeting_mode and self.targeting_ability_index is not None:
             self._draw_ability_range(painter)
+
+        # Draw debug enemy FOV overlay (F2)
+        if hasattr(self, 'debug_show_enemy_fov') and self.debug_show_enemy_fov:
+            self._draw_enemy_fov_debug(painter)
 
         # Draw hover highlight (before game over overlay)
         if self.hover_world_x is not None and self.hover_world_y is not None:
@@ -817,3 +856,54 @@ class GameWidget(QWidget):
             QPoint(center_x + size, center_y - size // 2)
         ])
         painter.drawPolygon(points)
+
+    def _draw_enemy_fov_debug(self, painter):
+        """Draw enemy FOV ranges for debugging (F2)"""
+        from fov import calculate_fov
+
+        # Draw FOV for each enemy with semi-transparent red overlay
+        for enemy in self.game.enemies:
+            # Calculate enemy's FOV
+            enemy_fov = calculate_fov(
+                self.game.dungeon,
+                enemy.x,
+                enemy.y,
+                enemy.vision_radius
+            )
+
+            # Draw each visible tile in enemy FOV
+            for tile_x, tile_y in enemy_fov:
+                # Convert to screen coords
+                screen_x = tile_x - self.game.camera_x
+                screen_y = tile_y - self.game.camera_y
+
+                # Only draw if in viewport
+                if not (0 <= screen_x < c.VIEWPORT_WIDTH and 0 <= screen_y < c.VIEWPORT_HEIGHT):
+                    continue
+
+                # Semi-transparent red overlay
+                debug_color = QColor(255, 100, 100, 40)
+                painter.fillRect(
+                    screen_x * c.TILE_SIZE,
+                    screen_y * c.TILE_SIZE,
+                    c.TILE_SIZE,
+                    c.TILE_SIZE,
+                    debug_color
+                )
+
+            # Draw enemy vision radius circle
+            enemy_screen_x = enemy.x - self.game.camera_x
+            enemy_screen_y = enemy.y - self.game.camera_y
+
+            if 0 <= enemy_screen_x < c.VIEWPORT_WIDTH and 0 <= enemy_screen_y < c.VIEWPORT_HEIGHT:
+                painter.setPen(QColor(255, 50, 50, 150))
+                center_pixel_x = int((enemy_screen_x + 0.5) * c.TILE_SIZE)
+                center_pixel_y = int((enemy_screen_y + 0.5) * c.TILE_SIZE)
+                radius_pixels = enemy.vision_radius * c.TILE_SIZE
+
+                painter.drawEllipse(
+                    center_pixel_x - radius_pixels,
+                    center_pixel_y - radius_pixels,
+                    radius_pixels * 2,
+                    radius_pixels * 2
+                )

@@ -200,6 +200,7 @@ ITEMS_PER_LEVEL = 3
 
 # Game mechanics
 DAMAGE_VARIANCE = 0.2  # +/- 20% damage variance
+BACKSTAB_DAMAGE_MULTIPLIER = 1.75  # Rogue backstab bonus (75% extra damage)
 
 # Field of View / Visibility
 PLAYER_VISION_RADIUS = 10  # Base vision range (Manhattan distance)

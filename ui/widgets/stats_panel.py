@@ -58,11 +58,13 @@ class StatsPanel(QWidget):
         self.attack_label = QLabel()
         self.defense_label = QLabel()
         self.depth_label = QLabel()
+        self.exploration_label = QLabel()  # Exploration percentage
+        self.stealth_label = QLabel()  # Stealth status for Rogue
 
         stat_font = QFont("Courier New", 10)
         stat_style = f"color: rgb({c.COLOR_TEXT_LIGHT.red()}, {c.COLOR_TEXT_LIGHT.green()}, {c.COLOR_TEXT_LIGHT.blue()}); padding: 4px; border: none;"
 
-        for label in [self.class_label, self.level_label, self.attack_label, self.defense_label, self.depth_label]:
+        for label in [self.class_label, self.level_label, self.attack_label, self.defense_label, self.depth_label, self.exploration_label, self.stealth_label]:
             label.setFont(stat_font)
             label.setStyleSheet(stat_style)
             stats_layout.addWidget(label)
@@ -161,6 +163,29 @@ class StatsPanel(QWidget):
             # Use ability immediately (no targeting needed)
             self.game.use_ability(ability_index)
 
+    def _count_enemies_detecting_player(self) -> int:
+        """Count how many enemies can currently see the player"""
+        if not self.game.player or not self.game.dungeon:
+            return 0
+
+        count = 0
+        from fov import calculate_fov
+
+        for enemy in self.game.enemies:
+            # Calculate enemy's FOV
+            enemy_fov = calculate_fov(
+                self.game.dungeon,
+                enemy.x,
+                enemy.y,
+                enemy.vision_radius
+            )
+
+            # Check if player is in enemy's FOV
+            if (self.game.player.x, self.game.player.y) in enemy_fov:
+                count += 1
+
+        return count
+
     def _create_section_container(self, title: str = None) -> tuple:
         """Create a styled section container with optional title. Returns (container, content_layout)"""
         container = QFrame()
@@ -213,6 +238,43 @@ class StatsPanel(QWidget):
         self.attack_label.setText(f"Attack: {p.attack}")
         self.defense_label.setText(f"Defense: {p.defense}")
         self.depth_label.setText(f"Dungeon Level: {self.game.current_level}")
+
+        # Update exploration percentage
+        if self.game.visibility_map and self.game.dungeon:
+            explored_count = self.game.visibility_map.count_explored()
+
+            # Count total walkable tiles (floor + stairs)
+            total_floor_tiles = sum(
+                1 for y in range(self.game.dungeon.height)
+                for x in range(self.game.dungeon.width)
+                if self.game.dungeon.is_walkable(x, y) or
+                   self.game.dungeon.get_tile(x, y) == c.TILE_STAIRS
+            )
+
+            if total_floor_tiles > 0:
+                exploration_percent = (explored_count / total_floor_tiles) * 100
+                self.exploration_label.setText(f"Explored: {exploration_percent:.1f}%")
+            else:
+                self.exploration_label.setText("Explored: 0.0%")
+        else:
+            self.exploration_label.setText("Explored: 0.0%")
+
+        # Update stealth status (Rogue only)
+        if p.class_type == c.CLASS_ROGUE:
+            # Count how many enemies can see the player
+            enemies_detecting = self._count_enemies_detecting_player()
+
+            if enemies_detecting == 0:
+                # Hidden - green text
+                self.stealth_label.setText("🗡️ HIDDEN")
+                self.stealth_label.setStyleSheet("color: rgb(80, 220, 120); padding: 4px; border: none; font-weight: bold;")
+            else:
+                # Detected - red text
+                self.stealth_label.setText(f"⚠️ DETECTED ({enemies_detecting})")
+                self.stealth_label.setStyleSheet("color: rgb(255, 80, 80); padding: 4px; border: none; font-weight: bold;")
+        else:
+            # Hide stealth label for non-Rogue classes
+            self.stealth_label.setText("")
 
         # Update equipment labels
         self.weapon_label.setText(f"Weapon: {p.equipment[c.SLOT_WEAPON].get_name() if p.equipment[c.SLOT_WEAPON] else 'None'}")

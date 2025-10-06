@@ -321,6 +321,26 @@ class MainWindow(QMainWindow):
                 self.show_pause_menu()
                 return
 
+        # Debug commands (F1, F2)
+        if key == Qt.Key.Key_F1:
+            # F1: Reveal entire map
+            if self.game.visibility_map:
+                self.game.visibility_map.reveal_all()
+                self.game.add_message("DEBUG: Map fully revealed!", "event")
+                print("🗺️  DEBUG: Full map revealed")
+            self.update_display()
+            return
+        elif key == Qt.Key.Key_F2:
+            # F2: Toggle enemy FOV debug display
+            if not hasattr(self.game_widget, 'debug_show_enemy_fov'):
+                self.game_widget.debug_show_enemy_fov = False
+            self.game_widget.debug_show_enemy_fov = not self.game_widget.debug_show_enemy_fov
+            status = "ON" if self.game_widget.debug_show_enemy_fov else "OFF"
+            self.game.add_message(f"DEBUG: Enemy FOV display {status}", "event")
+            print(f"👁️  DEBUG: Enemy FOV display {status}")
+            self.update_display()
+            return
+
         # Abilities (keys 1, 2, 3)
         if key == Qt.Key.Key_1:
             self.game.use_ability(0)
