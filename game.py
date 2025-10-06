@@ -69,7 +69,9 @@ class Game:
 
     def _generate_level(self):
         """Generate a new dungeon level"""
-        self.dungeon = Dungeon(c.GRID_WIDTH, c.GRID_HEIGHT)
+        # Determine biome based on current level
+        biome = c.get_biome_for_level(self.current_level)
+        self.dungeon = Dungeon(c.GRID_WIDTH, c.GRID_HEIGHT, biome)
         start_x, start_y = self.dungeon.generate()
 
         # Create player or move to new level
@@ -522,12 +524,57 @@ class Game:
 
     def _descend_stairs(self):
         """Descend to next level"""
+        # Check if player has completed the final level
+        if self.current_level >= c.MAX_LEVEL:
+            self.victory = True
+            self.add_message("You have conquered the dungeon! VICTORY!", "event")
+            # Play victory sound (we'll add this to audio manager if it exists)
+            # self.audio_manager.play_victory()
+            return
+
         self.current_level += 1
         self.add_message(f"Descending to level {self.current_level}...", "stairs")
 
         # Play stairs sound
         self.audio_manager.play_stairs()
         self.audio_manager.play_voice_descending()
+
+        # Announce biome change every 5 levels
+        if self.current_level in [6, 11, 16, 21]:
+            biome = c.get_biome_for_level(self.current_level)
+            biome_names = {
+                c.BIOME_CATACOMBS: "the Catacombs",
+                c.BIOME_CAVES: "the Caves",
+                c.BIOME_HELL: "the Infernal Depths",
+                c.BIOME_ABYSS: "the Abyss",
+            }
+            if biome in biome_names:
+                self.add_message(f"You enter {biome_names[biome]}...", "event")
+
+        self._generate_level()
+
+    def debug_skip_level(self):
+        """Debug: Skip to next level"""
+        # Check if already at max level
+        if self.current_level >= c.MAX_LEVEL:
+            self.victory = True
+            self.add_message("DEBUG: Skipped to victory!", "event")
+            return
+
+        self.current_level += 1
+        self.add_message(f"DEBUG: Skipped to level {self.current_level}", "event")
+
+        # Announce biome change every 5 levels
+        if self.current_level in [6, 11, 16, 21]:
+            biome = c.get_biome_for_level(self.current_level)
+            biome_names = {
+                c.BIOME_CATACOMBS: "the Catacombs",
+                c.BIOME_CAVES: "the Caves",
+                c.BIOME_HELL: "the Infernal Depths",
+                c.BIOME_ABYSS: "the Abyss",
+            }
+            if biome in biome_names:
+                self.add_message(f"You enter {biome_names[biome]}...", "event")
 
         self._generate_level()
 

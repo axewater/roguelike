@@ -17,7 +17,14 @@ SIDEBAR_WIDTH = 600
 WINDOW_WIDTH = VIEWPORT_WIDTH * TILE_SIZE + SIDEBAR_WIDTH
 WINDOW_HEIGHT = VIEWPORT_HEIGHT * TILE_SIZE
 
-# Colors - Improved palette
+# Biomes (tilesets that change every 5 levels)
+BIOME_DUNGEON = "dungeon"      # Levels 1-5
+BIOME_CATACOMBS = "catacombs"  # Levels 6-10
+BIOME_CAVES = "caves"          # Levels 11-15
+BIOME_HELL = "hell"            # Levels 16-20
+BIOME_ABYSS = "abyss"          # Levels 21-25
+
+# Colors - Improved palette (default/dungeon biome)
 COLOR_FLOOR = QColor(45, 45, 48)  # Dark floor
 COLOR_WALL = QColor(30, 30, 35)  # Darker walls
 COLOR_PLAYER = QColor(100, 200, 255)  # Bright blue
@@ -32,6 +39,35 @@ COLOR_ITEM_POTION = QColor(255, 50, 200)  # Magenta
 COLOR_ITEM_WEAPON = QColor(255, 215, 0)  # Gold
 COLOR_ITEM_ARMOR = QColor(150, 180, 255)  # Light blue
 COLOR_STAIRS = QColor(150, 100, 255)  # Purple
+
+# Biome color schemes
+BIOME_COLORS = {
+    BIOME_DUNGEON: {
+        "floor": QColor(45, 45, 48),
+        "wall": QColor(30, 30, 35),
+        "stairs": QColor(150, 100, 255),
+    },
+    BIOME_CATACOMBS: {
+        "floor": QColor(60, 55, 50),  # Dusty brown
+        "wall": QColor(90, 85, 80),   # Bone white-ish
+        "stairs": QColor(200, 180, 120),  # Golden
+    },
+    BIOME_CAVES: {
+        "floor": QColor(40, 50, 35),  # Earthy brown-green
+        "wall": QColor(55, 45, 35),   # Dark rock brown
+        "stairs": QColor(100, 180, 100),  # Mossy green
+    },
+    BIOME_HELL: {
+        "floor": QColor(50, 25, 20),  # Dark charred
+        "wall": QColor(80, 30, 25),   # Dark red stone
+        "stairs": QColor(255, 100, 50),  # Lava orange
+    },
+    BIOME_ABYSS: {
+        "floor": QColor(25, 20, 35),  # Dark purple-black
+        "wall": QColor(35, 25, 50),   # Deep void purple
+        "stairs": QColor(180, 120, 255),  # Ethereal purple
+    },
+}
 
 # Text colors
 COLOR_TEXT_LIGHT = QColor(220, 220, 220)
@@ -209,6 +245,7 @@ MAX_ROOM_SIZE = 10
 MAX_ROOMS = 15
 ENEMIES_PER_LEVEL_BASE = 5
 ITEMS_PER_LEVEL = 3
+MAX_LEVEL = 25  # Maximum level before victory
 
 # Game mechanics
 DAMAGE_VARIANCE = 0.2  # +/- 20% damage variance
@@ -247,3 +284,18 @@ TAUNT_COOLDOWN = 5.0  # Minimum seconds between taunts (reduced for testing)
 TAUNT_CHANCE_ON_DAMAGE = 0.80  # 80% chance when player takes damage (increased for testing)
 TAUNT_CHANCE_ON_LEVEL = 0.80  # 80% chance when entering new level (increased for testing)
 TAUNT_LOW_HP_THRESHOLD = 0.30  # Trigger when below 30% health
+
+
+# Helper functions
+def get_biome_for_level(level: int) -> str:
+    """Determine biome based on current level"""
+    if level <= 5:
+        return BIOME_DUNGEON
+    elif level <= 10:
+        return BIOME_CATACOMBS
+    elif level <= 15:
+        return BIOME_CAVES
+    elif level <= 20:
+        return BIOME_HELL
+    else:  # 21-25
+        return BIOME_ABYSS

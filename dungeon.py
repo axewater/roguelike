@@ -35,9 +35,10 @@ class Room:
 
 class Dungeon:
     """Dungeon map"""
-    def __init__(self, width: int, height: int):
+    def __init__(self, width: int, height: int, biome: str = c.BIOME_DUNGEON):
         self.width = width
         self.height = height
+        self.biome = biome
         self.tiles = [[c.TILE_WALL for _ in range(width)] for _ in range(height)]
         self.rooms: List[Room] = []
 

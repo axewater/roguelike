@@ -100,23 +100,26 @@ class GameWidget(QWidget):
                 # Determine if we should apply fog (explored but not visible)
                 apply_fog = (vis_state == c.VISIBILITY_EXPLORED)
 
+                # Get current biome for tile rendering
+                biome = self.game.dungeon.biome if self.game.dungeon else c.BIOME_DUNGEON
+
                 if tile == c.TILE_WALL:
                     if apply_fog:
                         self._draw_fogged_wall(painter, screen_x, screen_y)
                     else:
-                        gfx.draw_wall_tile(painter, screen_x, screen_y, c.TILE_SIZE)
+                        gfx.draw_wall_tile(painter, screen_x, screen_y, c.TILE_SIZE, biome)
                 elif tile == c.TILE_FLOOR:
                     if apply_fog:
                         self._draw_fogged_floor(painter, screen_x, screen_y)
                     else:
-                        gfx.draw_floor_tile(painter, screen_x, screen_y, c.TILE_SIZE)
+                        gfx.draw_floor_tile(painter, screen_x, screen_y, c.TILE_SIZE, biome)
                 elif tile == c.TILE_STAIRS:
                     if apply_fog:
                         self._draw_fogged_floor(painter, screen_x, screen_y)
                         self._draw_fogged_stairs(painter, screen_x, screen_y)
                     else:
-                        gfx.draw_floor_tile(painter, screen_x, screen_y, c.TILE_SIZE)  # Draw floor underneath
-                        gfx.draw_stairs_tile(painter, screen_x, screen_y, c.TILE_SIZE)
+                        gfx.draw_floor_tile(painter, screen_x, screen_y, c.TILE_SIZE, biome)  # Draw floor underneath
+                        gfx.draw_stairs_tile(painter, screen_x, screen_y, c.TILE_SIZE, biome)
 
         # Draw entities with graphics using display positions
         # Collect all entities to draw

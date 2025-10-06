@@ -14,6 +14,7 @@ from ui.screens.title_screen import TitleScreen
 from ui.screens.main_menu import MainMenuScreen
 from ui.screens.settings_screen import SettingsScreen
 from ui.screens.class_selection import ClassSelectionScreen
+from ui.screens.victory_screen import VictoryScreen
 from ui.widgets.game_widget import GameWidget
 from ui.widgets.stats_panel import StatsPanel
 
@@ -69,6 +70,11 @@ class MainWindow(QMainWindow):
 
         self.game_screen.setLayout(game_layout)
         self.stacked_widget.addWidget(self.game_screen)
+
+        # Victory screen
+        self.victory_screen = VictoryScreen()
+        self.victory_screen.return_to_menu.connect(self.on_victory_return_to_menu)
+        self.stacked_widget.addWidget(self.victory_screen)
 
         # Set stacked widget as central widget
         self.setCentralWidget(self.stacked_widget)
@@ -137,7 +143,7 @@ class MainWindow(QMainWindow):
         instructions = """
         <p style='color: rgb(200, 200, 200); font-size: 12pt; line-height: 1.8;'>
         <b>OBJECTIVE:</b><br/>
-        Explore procedurally generated dungeons, defeat enemies, collect loot, and descend deeper!<br/><br/>
+        Conquer all 25 levels of the dungeon! Defeat enemies, collect loot, and descend through 5 unique biomes to achieve victory!<br/><br/>
 
         <b>CONTROLS:</b><br/>
         • <b>WASD / Arrow Keys</b> - Move your character<br/>
@@ -157,8 +163,10 @@ class MainWindow(QMainWindow):
 
         <b>TIPS:</b><br/>
         • Choose your class wisely - each has unique abilities<br/>
+        • The environment changes every 5 levels (Dungeon → Catacombs → Caves → Hell → Abyss)<br/>
         • Higher dungeon levels have better loot but stronger enemies<br/>
         • Equipment rarity affects stat bonuses (Common → Legendary)<br/>
+        • Complete all 25 levels to achieve victory!<br/>
         </p>
         """
 
@@ -286,6 +294,10 @@ class MainWindow(QMainWindow):
         self.stacked_widget.setCurrentWidget(self.game_screen)
         self.game_widget.setFocus()
 
+    def on_victory_return_to_menu(self):
+        """Handle return to menu from victory screen"""
+        self.stacked_widget.setCurrentWidget(self.main_menu)
+
     def update_display(self):
         """Update game display"""
         # Calculate delta time
@@ -298,6 +310,11 @@ class MainWindow(QMainWindow):
 
         # Update animations
         self.game.anim_manager.update(dt)
+
+        # Check for victory condition
+        if self.game.victory and self.stacked_widget.currentWidget() != self.victory_screen:
+            self.stacked_widget.setCurrentWidget(self.victory_screen)
+            return
 
         # Update display
         self.game_widget.update()
@@ -321,7 +338,7 @@ class MainWindow(QMainWindow):
                 self.show_pause_menu()
                 return
 
-        # Debug commands (F1, F2)
+        # Debug commands (F1, F2, F3)
         if key == Qt.Key.Key_F1:
             # F1: Reveal entire map
             if self.game.visibility_map:
@@ -338,6 +355,13 @@ class MainWindow(QMainWindow):
             status = "ON" if self.game_widget.debug_show_enemy_fov else "OFF"
             self.game.add_message(f"DEBUG: Enemy FOV display {status}", "event")
             print(f"👁️  DEBUG: Enemy FOV display {status}")
+            self.update_display()
+            return
+        elif key == Qt.Key.Key_F3:
+            # F3: Skip to next level
+            if not self.game.game_over and not self.game.victory:
+                self.game.debug_skip_level()
+                print(f"⏭️  DEBUG: Skipped to level {self.game.current_level}")
             self.update_display()
             return
 
