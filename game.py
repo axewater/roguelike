@@ -115,7 +115,7 @@ class Game:
     def _spawn_enemies(self):
         """Spawn enemies on current level"""
         self.enemies = []
-        level_modifier = 1.0 + (self.current_level - 1) * 0.3
+        level_modifier = 1.0 + (self.current_level - 1) * 0.15
 
         num_enemies = c.ENEMIES_PER_LEVEL_BASE + self.current_level
 
@@ -130,12 +130,18 @@ class Game:
             elif self.current_level <= 5:
                 # Mid-game variety: Goblin 20%, Slime 20%, Skeleton 40%, Orc 20%
                 enemy_types = [c.ENEMY_GOBLIN] * 2 + [c.ENEMY_SLIME] * 2 + [c.ENEMY_SKELETON] * 4 + [c.ENEMY_ORC] * 2
-            elif self.current_level <= 8:
-                # Challenging mix: Skeleton 30%, Orc 30%, Demon 30%, Dragon 10%
-                enemy_types = [c.ENEMY_SKELETON] * 3 + [c.ENEMY_ORC] * 3 + [c.ENEMY_DEMON] * 3 + [c.ENEMY_DRAGON] * 1
+            elif self.current_level <= 9:
+                # Challenging mix: Skeleton 25%, Orc 35%, Demon 40%
+                enemy_types = [c.ENEMY_SKELETON] * 25 + [c.ENEMY_ORC] * 35 + [c.ENEMY_DEMON] * 40
+            elif self.current_level <= 14:
+                # Dragons introduced: Skeleton 10%, Orc 20%, Demon 60%, Dragon 10%
+                enemy_types = [c.ENEMY_SKELETON] * 1 + [c.ENEMY_ORC] * 2 + [c.ENEMY_DEMON] * 6 + [c.ENEMY_DRAGON] * 1
+            elif self.current_level <= 19:
+                # Dragons common: Orc 10%, Demon 50%, Dragon 40%
+                enemy_types = [c.ENEMY_ORC] * 1 + [c.ENEMY_DEMON] * 5 + [c.ENEMY_DRAGON] * 4
             else:
-                # End-game gauntlet: Orc 20%, Demon 30%, Dragon 50%
-                enemy_types = [c.ENEMY_ORC] * 2 + [c.ENEMY_DEMON] * 3 + [c.ENEMY_DRAGON] * 5
+                # End-game gauntlet (20+): Demon 50%, Dragon 50%
+                enemy_types = [c.ENEMY_DEMON] * 1 + [c.ENEMY_DRAGON] * 1
 
             enemy_type = random.choice(enemy_types)
             x, y = self._get_spawn_position()
@@ -186,8 +192,8 @@ class Game:
             max(60 - level_factor * 40, 20),  # Common: 60% -> 20%
             30 + level_factor * 10,            # Uncommon: 30% -> 40%
             8 + level_factor * 20,             # Rare: 8% -> 28%
-            2 + level_factor * 8,              # Epic: 2% -> 10%
-            level_factor * 2                   # Legendary: 0% -> 2%
+            2 + level_factor * 12,             # Epic: 2% -> 14%
+            level_factor * 5                   # Legendary: 0% -> 5%
         ]
 
         return random.choices(rarities, weights=weights)[0]

@@ -189,10 +189,10 @@ class Player(Entity):
         self.xp_to_next_level = int(self.xp_to_next_level * 1.5)
 
         # Increase stats
-        self.max_hp += 20
+        self.max_hp += 25
         self.hp = self.max_hp  # Full heal on level up
-        self.base_attack += 3
-        self.base_defense += 2
+        self.base_attack += 5
+        self.base_defense += 3
 
     def add_item(self, item: 'Item'):
         """Add item to inventory and apply effects"""
