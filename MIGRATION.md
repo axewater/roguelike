@@ -1,618 +1,431 @@
-# 3D Migration Progress Log
+# 2D → 3D Migration Project Plan
 
-## Project: Claude-Like 2D → 3D Transformation
-
-**Start Date:** 2025-10-12
-**Target Completion:** 12 weeks
-**Technology:** Ursina Engine (Python 3D framework)
+**Project**: Complete 3D mode to feature parity with 2D mode
+**Start Date**: 2025-10-12 (Fresh start after Phase 1-5 completion)
+**Status**: 🚧 70% Complete - Core gameplay works, UI/UX pending
 
 ---
 
-## 📊 Overall Progress: 62.5% Complete
+## 📊 Current Status
 
-```
-[█████████████████████████░░░░░░░░░░░░░░░] 62.5%
+### ✅ What's Working (Completed Phases 1-5)
 
-Phase 1: Documentation ██████████ 100% ✅
-Phase 2: Ursina Setup  ██████████ 100% ✅
-Phase 3: MVP Delivery  ██████████ 100% ✅
-Phase 4: Entity 3D     ██████████ 100% ✅
-Phase 5: Particles 3D  ██████████ 100% ✅
-Phase 6: Gameplay      ░░░░░░░░░░   0%
-Phase 7: Polish        ░░░░░░░░░░   0%
-Phase 8: Optimization  ░░░░░░░░░░   0%
-```
+**Phase 1-2: Foundation** ✅
+- ✅ Ursina Engine integrated
+- ✅ 3D rendering pipeline working
+- ✅ Basic game loop functional
 
----
+**Phase 3: Core Gameplay** ✅
+- ✅ Dungeon rendering (walls, floors, stairs)
+- ✅ Player movement (WASD controls)
+- ✅ Combat system (bump-to-attack)
+- ✅ Camera follow with smooth interpolation
+- ✅ Level progression (stairs descent)
+- ✅ 40-45 FPS performance
 
-## 🎯 Current Phase: Phase 6 - Gameplay Systems Integration
+**Phase 4: Entity Models** ✅
+- ✅ All 4 player class models
+- ✅ All 6 enemy type models
+- ✅ All 5 item type models
+- ✅ Health bars above enemies
+- ✅ Item floating/rotation animations
 
-**Status:** ⏳ 0% Complete
-**Started:** Not started
-**Target End:** TBD
+**Phase 5: Visual Effects** ✅
+- ✅ 3D particle system with physics
+- ✅ Floating damage text (billboard)
+- ✅ Explosions and directional spray
+- ✅ Ability visual effects (fire trails, ice, dash)
+- ✅ Screen shake on impacts
+- ✅ Death burst animations
+- ✅ Ambient atmospheric particles
 
-### Goals
-(See Phase 6 section below)
+### ❌ What's Missing
 
----
+**Critical Path (Blocking playability):**
+1. ❌ UI Overlay System (Phase 6)
+   - Stats panel (HP, XP, Level)
+   - Ability buttons (1/2/3 visual indicators)
+   - Combat log (scrolling messages)
 
-## ✅ Phase 1 - Documentation & Planning (COMPLETED)
+2. ❌ Ability Input System (Phase 6)
+   - Keyboard shortcuts (1/2/3 keys)
+   - Mouse targeting for abilities
+   - Range/area indicators
 
-**Status:** ✅ 100% Complete
-**Started:** 2025-10-12
-**Completed:** 2025-10-12
+3. ❌ Class Selection (Phase 7)
+   - 3D class selection screen
+   - Character preview in 3D
+   - Start game flow
 
-### Goals
-- [x] Update CLAUDE.md with 3D migration information
-- [x] Update README.md with migration tracker
-- [x] Create MIGRATION.md progress log
-- [x] Update requirements.txt with Ursina
-- [x] Create graphics3d/ package structure
-
-### Progress Log
-
-#### 2025-10-12 - Phase 1 Complete
-
-**✅ Completed:**
-- Updated CLAUDE.md with comprehensive 3D documentation
-- Updated README.md with migration tracker
-- Created MIGRATION.md
-- Updated requirements.txt with Ursina and Panda3D
-- Created graphics3d/ package structure with all submodules
-- Updated .gitignore for 3D assets
-
-**📝 Notes:**
-- Chose Ursina Engine for simplicity and Python compatibility
-- Decided on dual rendering approach (2D and 3D can coexist)
-- All game logic remains unchanged
-
----
-
-## ✅ Phase 2 - Ursina Integration & POC (COMPLETED)
-
-**Status:** ✅ 100% Complete
-**Started:** 2025-10-12
-**Completed:** 2025-10-12
-
-### Goals
-- [x] Install Ursina and test setup
-- [x] Create renderer3d.py wrapper
-- [x] Implement basic dungeon rendering
-- [x] Implement player cube
-- [x] Create main_3d.py game loop
-- [x] Implement camera follow system
-- [x] Implement basic lighting
-- [x] Test all imports
-
-### Progress Log
-
-#### 2025-10-12 - Phase 2 Complete
-
-**✅ Completed:**
-- Installed Ursina 8.2.0 + Panda3D 1.10.15 in venv_linux/
-- Created test_ursina.py for testing basic functionality
-- Added 3D constants to constants.py (camera, wall height, etc.)
-- Implemented graphics3d/utils.py helper functions:
-  - world_to_3d_position() - coordinate conversion
-  - rgb_to_ursina_color() - color conversion
-  - qcolor_to_ursina_color() - PyQt6 color conversion
-  - Material helper functions (for Phase 3+)
-
-- Implemented graphics3d/tiles.py:
-  - create_floor_mesh() - 3D floor tiles
-  - create_wall_mesh() - 3D wall cubes with collision
-  - create_stairs_mesh() - 3D stairs with glow effect
-
-- Created renderer3d.py (250 lines):
-  - Renderer3D class managing all 3D rendering
-  - setup_camera() - third-person camera configuration
-  - setup_lighting() - ambient, directional, and point lights
-  - render_dungeon() - converts 2D tile grid to 3D meshes
-  - render_player() - renders player cube
-  - update_camera() - smooth camera follow with lerp
-  - cleanup() - resource management
-
-- Modified main.py:
-  - Added argparse for --mode 2d/3d selection
-  - Separate main_2d() and main_3d() functions
-  - Backwards compatible (defaults to 2D)
-
-- Created main_3d.py (140 lines):
-  - Full 3D game loop with Ursina
-  - WASD movement with cooldown
-  - Combat integration (attack on bump)
-  - Stairs descent with dungeon re-rendering
-  - Enemy turns
-  - Debug output
-  - Game over detection
-
-- Implemented graphics3d/players/__init__.py:
-  - draw_player_3d() - class-colored cubes
-  - Color coding: Warrior=Blue, Mage=Purple, Rogue=Gray, Ranger=Green
-
-- Testing:
-  - All imports successful
-  - No syntax errors
-  - Module structure validated
-
-**📝 Notes:**
-- Using separate venv_linux/ for Linux development
-- Audio errors on headless server are expected
-- Game logic (game.py) completely unchanged - only rendering layer modified
-- Camera uses smooth lerp interpolation for cinematic feel
-- Lighting includes torch effect following player
-
-**🎯 Success Criteria Met:**
-- ✅ Can launch with `python main.py --mode 3d`
-- ✅ Dungeon renders in 3D (walls, floors, stairs)
-- ✅ Player cube visible and positioned correctly
-- ✅ WASD controls integrated
-- ✅ Camera follows player smoothly
-- ✅ Basic lighting works (ambient + directional + point)
-- ✅ All imports successful
-
-**⚠️ Known Limitations (Expected for Phase 2):**
-- No enemies rendered yet (Phase 4)
-- No items rendered yet (Phase 4)
-- No particle effects (Phase 5)
-- No UI overlay (Phase 6)
-- Player is just a cube (Phase 4 for real models)
-- No FOV/fog of war (Phase 6)
-- Cannot test GUI rendering on headless Linux server (needs Windows testing)
+**Nice to Have (Polish):**
+4. ❌ FOV/Fog of War in 3D (Phase 8)
+5. ❌ 3D Positional Audio (Phase 8)
+6. ❌ Title/Menu Screens (Phase 7)
+7. ❌ Victory/Game Over UI (Phase 7)
 
 ---
 
-## ✅ Phase 3 - Working 3D MVP (COMPLETED)
+## 🎯 Migration Phases
 
-**Status:** ✅ 100% Complete
-**Started:** 2025-10-12
-**Completed:** 2025-10-12
+### Phase 6: UI Overlay & Input System (Current)
+**Duration**: 1-2 weeks
+**Priority**: CRITICAL - Blocks full playability
 
-### Goals
-- [x] Fix grey screen rendering issue
-- [x] Implement working update loop
-- [x] Fix camera positioning
-- [x] Enable player movement in 3D
-- [x] Test combat system
-- [x] Verify dungeon visibility
-- [x] Achieve playable MVP
+#### Tasks
 
-### Progress Log
+**1. UI Overlay in 3D Window**
+- [ ] Research Ursina UI system (Text, Button, Panel entities)
+- [ ] Create `UI3DManager` class in new file `ui3d_manager.py`
+- [ ] Design overlay layout (corner panels, translucent backgrounds)
+- [ ] Implement stats panel:
+  - [ ] HP bar (current/max with visual bar)
+  - [ ] XP bar with level indicator
+  - [ ] Class name and icon
+  - [ ] Current level/floor number
+- [ ] Implement combat log:
+  - [ ] Scrolling message queue (last 5 messages)
+  - [ ] Color-coded messages (damage, heal, info)
+  - [ ] Auto-fade old messages
+- [ ] Implement ability bar:
+  - [ ] 3 ability slots with icons
+  - [ ] Cooldown overlay (grayed out when on cooldown)
+  - [ ] Hotkey indicators (1, 2, 3)
 
-#### 2025-10-12 - Phase 3 Complete
+**2. Ability Input System**
+- [ ] Hook keyboard events (1/2/3 keys) in `main_3d.py`
+- [ ] Implement mouse position tracking in 3D world
+- [ ] Create targeting system:
+  - [ ] Raycast from camera to world position
+  - [ ] Show target cursor/indicator
+  - [ ] Validate target range/line-of-sight
+- [ ] Integrate ability activation:
+  - [ ] Key press → ability selection
+  - [ ] Mouse click → target confirmation
+  - [ ] Execute ability via `game.py` API
+- [ ] Visual feedback:
+  - [ ] Range circle around player
+  - [ ] Target tile highlight
+  - [ ] "Out of range" indicator
 
-**✅ Completed:**
-
-**Problem Diagnosis:**
-- Identified grey screen was due to no rendering occurring
-- Discovered update loop wasn't running
-- Found that `app.update = update` pattern doesn't work in Ursina 8.2.0
-
-**Solutions Implemented:**
-1. **Background Color** - Set window.color to dark blue
-2. **Resolution Fix** - Set to 1920x1080 for better performance
-3. **Lighting Boost** - Increased ambient light from 0.3 → 0.8 for visibility
-4. **Floor/Wall Brightness** - Tripled floor brightness, doubled wall brightness
-5. **Camera Fix** - Immediate jump to player position on first frame (no smooth delay)
-6. **Update Loop Refactor** - Changed from function assignment to Entity-based controller:
-   ```python
-   class GameController(Entity):
-       def update(self):
-           # Ursina auto-calls this every frame
-   ```
-7. **Method Name Fixes** - Used correct private method names (_enemy_turn, _player_attack)
-8. **Debug System** - Added comprehensive logging:
-   - Frame heartbeat every 60 frames
-   - Input detection logging
-   - Movement confirmation logging
-   - FPS counter
-
-**Technical Details:**
-- Update loop now runs at ~40-45 FPS on Windows
-- Input cooldown: 0.15s between moves
-- Camera smooth factor: 0.3 (30% interpolation)
-- Coordinate conversion: 2D (x, y) → 3D (x, height, z)
-
-**📝 Notes:**
-- Ursina 8.2.0 requires Entity-based update pattern
-- Function assignment (`app.update = update`) doesn't work reliably in modern Ursina
-- All game logic works correctly - this was purely a rendering/loop issue
-- Performance is good at 1920x1080 resolution
-
-**🎯 Success Criteria Met:**
-- ✅ Player can move with WASD in 3D space
-- ✅ Camera follows player smoothly
-- ✅ Dungeon fully visible and navigable
-- ✅ Combat system works (bump-to-attack)
-- ✅ Stairs descent works with level regeneration
-- ✅ Enemy AI executes turns
-- ✅ Game is fully playable in 3D mode
-- ✅ Update loop runs at stable FPS
-- ✅ No critical bugs
-
-**Game is now fully playable in 3D!** 🎮🎉
-
----
-
-## ✅ Phase 5 - Particle System 3D (COMPLETED)
-
-**Status:** ✅ 100% Complete
-**Started:** 2025-10-12
-**Completed:** 2025-10-12
-
-### Goals
-- [x] Create animations3d.py module
-- [x] Implement Particle3D class
-- [x] Implement DirectionalParticle3D class
-- [x] Implement FloatingText3D class
-- [x] Implement FlashEffect3D class
-- [x] Implement TrailEffect3D class
-- [x] Implement AmbientParticle3D class
-- [x] Implement ScreenShake3D class
-- [x] Implement AlertParticle3D class
-- [x] Create AnimationManager3D
-- [x] Integrate into renderer3d.py
-- [x] Implement camera shake
-- [x] Port all ability visual effects
-- [x] Create QColor conversion proxy
-
-### Progress Log
-
-#### 2025-10-12 - Phase 5 Complete
-
-**✅ Completed:**
-
-**Core Particle System (animations3d.py - 670 lines):**
-- Created Particle3D base class with physics (velocity, gravity, alpha fade)
-- Created DirectionalParticle3D for spray effects with friction
-- Created FloatingText3D for damage numbers (billboard text)
-- Created FlashEffect3D for entity hit flashes
-- Created TrailEffect3D for ability trails
-- Created AmbientParticle3D for atmospheric dust
-- Created ScreenShake3D for camera shake
-- Created AlertParticle3D for enemy alerts ("!")
-- Created AnimationManager3D to manage all effects
-
-**Renderer Integration:**
-- Added animation_manager to Renderer3D __init__
-- Modified update_camera() to apply screen shake offset
-- Added animation_manager.update(dt) to render loop
-- Added cleanup in cleanup() method
-
-**Game Logic Integration (main_3d.py):**
-- Created AnimationManager3DProxy class
-- Converts PyQt6 QColor to RGB tuples automatically
-- Routes all animation calls to 3D system
-- Handles enemy entity lookup for alerts
-- Replaced game.anim_manager with proxy
-
-**Particle Effects Implemented:**
-- Floating damage text (rises, fades, larger for crits)
-- Directional impacts (spray away from attacker)
-- Death bursts (enemy-specific colors/counts)
-- Flash effects (entity overlay glow)
-- Ability trails (Fireball fire, Ice crystals, Dash speed lines)
-- Screen shake (camera wobble on impacts)
-- Alert particles ("!" above enemies)
-- Ambient particles (floating dust)
-- Heal sparkles (green stars)
-
-**📝 Notes:**
-- All particle effects working in 3D mode
-- Zero changes needed to game.py or abilities.py
-- Proxy pattern bridges 2D and 3D systems cleanly
-- Billboard sprites always face camera
-- Physics simulation feels realistic (gravity, friction)
-- Screen shake integrates with camera system perfectly
-
-**🎯 Success Criteria Met:**
-- ✅ All combat has visual feedback (particles, flashes, text)
-- ✅ Abilities have unique 3D visual effects
-- ✅ Death animations are satisfying
-- ✅ Screen shake works (camera wobble)
-- ✅ Floating text displays correctly
-- ✅ Alert particles appear above enemies
-- ✅ Atmospheric particles drift smoothly
-- ✅ No performance degradation
-- ✅ API compatible with 2D version
-
-**Game now has polished visual feedback!** 🎮✨
-
----
-
-## 📅 Phase Schedule
-
-### Phase 1: Documentation & Planning ✅ 80%
-**Duration:** 1 week
-**Dates:** Oct 12 - Oct 12
-**Status:** In Progress
-
-**Tasks:**
-- [x] Update CLAUDE.md
-- [x] Update README.md
-- [x] Create MIGRATION.md
-- [ ] Update requirements.txt
-- [ ] Create graphics3d/ structure
-
----
-
-### Phase 2: Ursina Integration & POC ⏳
-**Duration:** 1 week
-**Dates:** Oct 13 - Oct 19
-**Status:** Not Started
-
-**Tasks:**
-- [ ] Install Ursina engine
-- [ ] Create renderer3d.py wrapper
-- [ ] Create basic 3D window
-- [ ] Render simple 3D room
-- [ ] Test player cube movement
-- [ ] Verify camera controls
+**3. Integration & Testing**
+- [ ] Test all 6 abilities in 3D mode
+- [ ] Verify cooldown display updates
+- [ ] Test UI scaling on different resolutions
+- [ ] Ensure UI doesn't block gameplay view
 
 **Success Criteria:**
-- Can launch 3D window
-- Can see 3D dungeon room
-- Player cube moves with WASD
-- Camera follows player
+- ✅ Can see HP/XP bars during gameplay
+- ✅ Can use abilities with 1/2/3 keys + mouse
+- ✅ Combat log shows messages clearly
+- ✅ Ability cooldowns visible on UI
 
 ---
 
-### Phase 3: Working 3D MVP ✅ 100%
-**Duration:** 1 day
-**Dates:** Oct 12 - Oct 12
-**Status:** COMPLETE
+### Phase 7: Screens & Menus
+**Duration**: 1 week
+**Priority**: HIGH - Improves UX
 
-**Tasks:**
-- [x] Fix grey screen rendering issue
-- [x] Set window background color
-- [x] Fix resolution (1920x1080)
-- [x] Increase lighting for visibility
-- [x] Fix camera positioning
-- [x] Implement Entity-based update loop
-- [x] Fix method name calls
-- [x] Add debug logging system
-- [x] Test player movement
-- [x] Verify combat system
-- [x] Test stairs descent
+#### Tasks
+
+**1. Class Selection Screen (3D)**
+- [ ] Create `ClassSelection3D` in `ui/screens/class_selection_3d.py`
+- [ ] Display 4 class models in 3D preview:
+  - [ ] Arrange in circular formation
+  - [ ] Highlight selected class
+  - [ ] Rotate models on hover
+- [ ] Show class stats overlay (HP, Attack, Defense)
+- [ ] Show ability descriptions
+- [ ] "Start Game" button → transitions to 3D gameplay
+
+**2. Title Screen (3D)**
+- [ ] Update `ui/screens/title_screen_3d.py`
+- [ ] 3D logo/title animation
+- [ ] Menu options:
+  - [ ] New Game → Class Selection 3D
+  - [ ] Settings (if implemented)
+  - [ ] Quit
+- [ ] Background: Animated 3D dungeon fly-through
+
+**3. Victory/Game Over Screens**
+- [ ] Create `GameOverScreen3D` in `ui/screens/`
+- [ ] Victory condition:
+  - [ ] Show "Victory!" text
+  - [ ] Display final stats (level, XP, kills)
+  - [ ] "Play Again" / "Quit" buttons
+- [ ] Game Over condition:
+  - [ ] Show "Game Over" text
+  - [ ] Show death reason
+  - [ ] "Retry" / "Quit" buttons
+- [ ] Integrate with `main_3d.py` game loop
+
+**4. Menu Navigation System**
+- [ ] Create screen manager for 3D mode
+- [ ] Implement screen transitions (fade in/out)
+- [ ] ESC key pauses game (pause menu)
+- [ ] Resume/Restart/Quit options
 
 **Success Criteria:**
-- ✅ Player can move with WASD in 3D
-- ✅ Camera follows player smoothly
-- ✅ Dungeon fully visible
-- ✅ Game fully playable
-- ✅ Stable FPS (~40-45)
+- ✅ Can select class in 3D before starting
+- ✅ Title screen shows on launch
+- ✅ Victory/Game Over screens display properly
+- ✅ Can restart game from end screens
 
 ---
 
-### Phase 4: Entity 3D Models ⏳
-**Duration:** 2 weeks
-**Dates:** Nov 3 - Nov 16
-**Status:** Not Started
+### Phase 8: FOV & Audio (Polish)
+**Duration**: 1 week
+**Priority**: MEDIUM - Enhances immersion
 
-**Tasks:**
-- [ ] Create graphics3d/players/ package
-- [ ] Build Warrior 3D model (procedural)
-- [ ] Build Mage 3D model
-- [ ] Build Rogue 3D model
-- [ ] Build Ranger 3D model
-- [ ] Create graphics3d/enemies/ package
-- [ ] Build Goblin, Slime, Skeleton models
-- [ ] Build Orc, Demon, Dragon models
-- [ ] Create graphics3d/items/ package
-- [ ] Build weapon models (sword, bow, staff)
-- [ ] Build armor/accessory models
-- [ ] Build potion models
-- [ ] Add idle animation (breathing)
-- [ ] Add walk animation (bob)
-- [ ] Add attack animation (lunge)
+#### Tasks
+
+**1. 3D FOV/Fog of War**
+- [ ] Research 3D visibility algorithms
+- [ ] Port FOV system from 2D to 3D:
+  - [ ] Raycast-based visibility in 3D
+  - [ ] Track explored tiles in 3D space
+- [ ] Visual implementation:
+  - [ ] Darken/hide unexplored tiles
+  - [ ] Dim tiles outside current vision
+  - [ ] Brighten visible tiles
+- [ ] Option: Use 3D fog/mist effect for atmosphere
+- [ ] Performance: Optimize raycasting (spatial partitioning)
+
+**2. 3D Positional Audio**
+- [ ] Integrate Panda3D audio system (Ursina's backend)
+- [ ] Update `audio.py` to support 3D positions:
+  - [ ] `play_sound_3d(sound, position=(x, y, z))`
+  - [ ] Distance-based volume attenuation
+  - [ ] Stereo panning based on position
+- [ ] Apply to all sound effects:
+  - [ ] Combat sounds (attacks, hits)
+  - [ ] Enemy death sounds
+  - [ ] Item pickup sounds
+  - [ ] Ability sounds
+- [ ] Add 3D reverb in large rooms (optional)
+
+**3. Additional Polish**
+- [ ] Minimap in corner (top-down view)
+- [ ] Death camera animation (fall/fade)
+- [ ] Level transition effect (stairs descent animation)
+- [ ] Particle pooling for performance
 
 **Success Criteria:**
-- All 4 classes render in 3D
-- All 6 enemy types render in 3D
-- All item types render in 3D
-- Animations look smooth
+- ✅ Can't see through walls (FOV working)
+- ✅ Explored areas remain visible but dimmed
+- ✅ Sounds come from correct direction in 3D
+- ✅ Audio volume scales with distance
 
 ---
 
-### Phase 5: Particle System 3D ⏳
-**Duration:** 1 week
-**Dates:** Nov 17 - Nov 23
-**Status:** Not Started
+### Phase 9: Optimization & Testing
+**Duration**: 1 week
+**Priority**: MEDIUM - Ensures quality
 
-**Tasks:**
-- [ ] Create animations3d.py
-- [ ] Implement Particle3D class
-- [ ] Convert standard particles to 3D billboards
-- [ ] Convert directional impacts to 3D spray
-- [ ] Convert trails to 3D ribbons
-- [ ] Convert ambient particles
-- [ ] Port Fireball visual effect
-- [ ] Port Frost Nova effect
-- [ ] Port Dash effect
-- [ ] Port all other ability effects
-- [ ] Implement death burst in 3D
-- [ ] Add floating damage text (billboard)
+#### Tasks
+
+**1. Performance Optimization**
+- [ ] Profile 3D rendering (identify bottlenecks)
+- [ ] Implement occlusion culling (don't render hidden walls)
+- [ ] Batch similar entities (reduce draw calls)
+- [ ] Optimize particle system (object pooling)
+- [ ] Reduce polygon count on distant objects (LOD)
+- [ ] Target: 60 FPS with 100+ entities
+
+**2. Cross-Platform Testing**
+- [ ] Test on Windows 10/11
+- [ ] Test on Linux (Ubuntu, Fedora)
+- [ ] Test on macOS (if available)
+- [ ] Document platform-specific issues
+
+**3. Bug Fixes & Edge Cases**
+- [ ] Test all 4 classes in 3D
+- [ ] Test all 6 abilities
+- [ ] Test all enemy types
+- [ ] Test item interactions
+- [ ] Test stairs/level progression
+- [ ] Test game over/victory conditions
+- [ ] Fix any visual glitches
+
+**4. Documentation Updates**
+- [ ] Update `README.md` with 3D status
+- [ ] Update `CLAUDE.md` with 3D completion
+- [ ] Create video walkthrough/demo
+- [ ] Screenshot gallery for GitHub
 
 **Success Criteria:**
-- All particle types work in 3D
-- Abilities have 3D visual effects
-- Death animations work
-- Floating text visible
+- ✅ No game-breaking bugs
+- ✅ 60 FPS on target hardware
+- ✅ All features work in both 2D and 3D
+- ✅ Documentation complete
 
 ---
 
-### Phase 6: Gameplay Systems Integration ⏳
-**Duration:** 2 weeks
-**Dates:** Nov 24 - Dec 7
-**Status:** Not Started
+### Phase 10: Feature Parity Complete 🎉
+**Duration**: Final review
+**Priority**: HIGH - Project completion
 
-**Tasks:**
-- [ ] Update FOV system for 3D raycasting
-- [ ] Implement visibility map in 3D
-- [ ] Create 3D ability targeting (mouse raycast)
-- [ ] Add target position indicator
-- [ ] Port combat animations to 3D
-- [ ] Implement 3D positional audio
-- [ ] Add distance attenuation for sounds
-- [ ] Add stereo panning based on position
-- [ ] Create PyQt6 UI overlay for 3D viewport
-- [ ] Integrate stats panel with 3D view
-- [ ] Integrate ability buttons
-- [ ] Integrate combat log
+#### Final Checklist
 
-**Success Criteria:**
-- Can target abilities with mouse
-- FOV works correctly in 3D
-- Audio sounds positioned correctly
-- UI overlay functional
-- Game fully playable in 3D
+**Core Gameplay:**
+- [ ] Movement, combat, items work identically in 2D and 3D
+- [ ] All 4 classes playable in 3D
+- [ ] All abilities functional in 3D
+- [ ] Level progression works (1-25)
 
----
+**UI/UX:**
+- [ ] Full UI overlay in 3D
+- [ ] Class selection screen
+- [ ] Title/menu screens
+- [ ] Victory/Game Over screens
 
-### Phase 7: Polish & Advanced Features ⏳
-**Duration:** 1 week
-**Dates:** Dec 8 - Dec 14
-**Status:** Not Started
+**Visuals:**
+- [ ] All entities have 3D models
+- [ ] Particle effects working
+- [ ] FOV/Fog of War (optional, nice-to-have)
 
-**Tasks:**
-- [ ] Add height variation to dungeons
-- [ ] Create raised platforms
-- [ ] Create pits/chasms
-- [ ] Add multi-level room support
-- [ ] Implement dynamic lighting
-- [ ] Add flickering torches on walls
-- [ ] Add ability light emission
-- [ ] Add shadows (if performant)
-- [ ] Add bloom post-processing
-- [ ] Add fog of war as 3D fog
-- [ ] Implement isometric camera mode
-- [ ] Implement first-person mode (experimental)
-- [ ] Add cinematic camera for transitions
+**Audio:**
+- [ ] 3D positional audio (optional, nice-to-have)
 
-**Success Criteria:**
-- Dungeons have vertical variation
-- Lighting looks atmospheric
-- Multiple camera modes work
-- Visual quality significantly improved
+**Performance:**
+- [ ] 60 FPS target met
+- [ ] No memory leaks
+
+**Decision Point:**
+- [ ] Make 3D the default mode?
+- [ ] Keep 2D as legacy/accessibility option?
+- [ ] Update `main.py` default mode
 
 ---
 
-### Phase 8: Optimization & Testing ⏳
-**Duration:** 2 weeks
-**Dates:** Dec 15 - Dec 28
-**Status:** Not Started
+## 📅 Timeline Estimate
 
-**Tasks:**
-- [ ] Profile rendering performance
-- [ ] Optimize mesh generation
-- [ ] Implement occlusion culling
-- [ ] Batch similar entities
-- [ ] Test on Windows
-- [ ] Test on Linux
-- [ ] Test on macOS
-- [ ] Make 3D default renderer
-- [ ] Update all documentation
-- [ ] Create video showcase
-- [ ] Screenshot gallery
-- [ ] Final bug fixes
-- [ ] Code cleanup
+| Phase | Duration | Dependencies | Priority |
+|-------|----------|--------------|----------|
+| Phase 6: UI & Input | 1-2 weeks | None | CRITICAL |
+| Phase 7: Screens | 1 week | Phase 6 | HIGH |
+| Phase 8: FOV & Audio | 1 week | Phase 6 | MEDIUM |
+| Phase 9: Optimization | 1 week | Phase 6-8 | MEDIUM |
+| Phase 10: Final Review | 3 days | All | HIGH |
 
-**Success Criteria:**
-- 60 FPS on target hardware
-- Works on all platforms
-- Documentation complete
-- No critical bugs
+**Total Estimated Time**: 4-6 weeks
+
+**Critical Path**: Phase 6 → Phase 7 → Phase 10
+**Optional**: Phase 8 can be deferred if time-constrained
 
 ---
 
 ## 🎯 Success Metrics
 
-### Performance Targets
-- **FPS:** Maintain 60 FPS with <100 entities
-- **Load Time:** <2 seconds for level generation
-- **Memory:** <500MB RAM usage
+### Functional Parity
+- [ ] All 2D features work in 3D
+- [ ] All classes, abilities, enemies, items
+- [ ] Complete game loop (start → play → end)
 
-### Feature Completeness
-- [ ] All 2D features working in 3D
-- [ ] All 4 player classes
-- [ ] All 6 enemy types
-- [ ] All abilities with effects
-- [ ] All 5 biomes
-- [ ] Particle system
-- [ ] Audio system
-- [ ] UI overlay
+### Performance
+- [ ] 60 FPS with <100 entities (3D)
+- [ ] <500MB RAM usage
+- [ ] <2 second load time per level
 
 ### Code Quality
-- [ ] No breaking changes to game logic
-- [ ] Backwards compatible (2D still works)
-- [ ] Clean separation: graphics vs logic
+- [ ] No breaking changes to `game.py` logic
+- [ ] Clean separation: rendering vs logic
+- [ ] 2D mode still works (backwards compatible)
 - [ ] Well-documented 3D code
 
----
-
-## 🚧 Known Issues & Blockers
-
-### Current Blockers
-*None yet - Phase 1*
-
-### Technical Debt
-- Need to decide on 3D model detail level (performance vs quality)
-- Camera collision detection with walls
-- 3D audio library compatibility with Ursina
-
-### Questions to Resolve
-- Q: Should we support both 2D and 3D long-term or deprecate 2D?
-  - A: TBD - Keep both during migration, decide at Phase 8
-
-- Q: What's the minimum hardware spec for 3D version?
-  - A: TBD - Test during Phase 8
+### User Experience
+- [ ] Intuitive controls in 3D
+- [ ] Clear UI feedback
+- [ ] Smooth transitions between screens
+- [ ] No visual glitches
 
 ---
 
-## 📚 Resources & References
+## 📝 Notes & Decisions
+
+### Architecture Decisions
+
+**UI System Choice:**
+- **Option A**: Ursina's built-in UI (Text, Button, Panel entities)
+  - Pros: Native integration, 3D-aware
+  - Cons: Limited styling, less flexible
+- **Option B**: PyQt6 overlay on Ursina window
+  - Pros: Reuse existing UI code, powerful widgets
+  - Cons: Requires window composition, may have rendering conflicts
+- **Decision**: Start with Option A (Ursina UI) for simplicity, fallback to B if needed
+
+**FOV Implementation:**
+- 3D raycasting may be expensive, consider:
+  - Spatial partitioning (octree/grid)
+  - Simplified visibility (just distance-based)
+  - Optional feature (player can toggle)
+
+**Audio Migration:**
+- Panda3D (Ursina's backend) has 3D audio support
+- May need to refactor `audio.py` to support both 2D and 3D
+- Consider making 3D audio optional for performance
+
+---
+
+## 🚀 Getting Started (For Developers)
+
+### Current State
+```bash
+# Play current 3D version (core gameplay only)
+python main.py --mode 3d
+
+# Play full 2D version (complete)
+python main.py --mode 2d
+```
+
+### Next Steps
+1. Start with **Phase 6: UI Overlay** (highest priority)
+2. Create `ui3d_manager.py` module
+3. Reference 2D UI in `ui/widgets/stats_panel.py` for layout
+4. Test frequently in 3D mode
+
+### Key Files to Modify
+- `main_3d.py` - Add UI initialization and input handling
+- `renderer3d.py` - May need to expose camera/viewport info
+- New: `ui3d_manager.py` - UI overlay manager
+
+---
+
+## 📚 Resources
 
 ### Ursina Documentation
-- Official Docs: https://www.ursinaengine.org/documentation.html
-- GitHub: https://github.com/pokepetter/ursina
-- Examples: https://github.com/pokepetter/ursina/tree/master/samples
+- UI System: https://www.ursinaengine.org/documentation.html#ui
+- Input Handling: https://www.ursinaengine.org/documentation.html#input
+- Text/Button/Panel: Built-in entity types
 
-### Tutorials Used
-- Ursina Basics: https://www.ursinaengine.org/getting_started.html
-- 3D Camera Control: TBD
-- Procedural Mesh Generation: TBD
-
-### Community
-- Ursina Discord: https://discord.gg/ydXfhyb
-- Reddit: r/ursina
+### Reference Implementation
+- 2D UI: `ui/widgets/stats_panel.py`
+- 2D Input: `ui/widgets/game_widget.py` (mouse/keyboard events)
+- 2D Abilities: `ui/widgets/ability_button.py`
 
 ---
 
-## 🎉 Milestones
+## ✅ Definition of Done
 
-- [ ] **Milestone 1:** First 3D Room Renders (Phase 2)
-- [ ] **Milestone 2:** Full Dungeon in 3D (Phase 3)
-- [ ] **Milestone 3:** All Entities in 3D (Phase 4)
-- [ ] **Milestone 4:** Fully Playable in 3D (Phase 6)
-- [ ] **Milestone 5:** 3D is Default (Phase 8)
+**3D Mode is "Complete" when:**
+1. ✅ Can start game from 3D title screen
+2. ✅ Can select class in 3D
+3. ✅ Can play full game with UI visible
+4. ✅ Can use all abilities with mouse targeting
+5. ✅ Can see stats, messages, cooldowns during play
+6. ✅ Can reach victory/game over screens
+7. ✅ Performance is acceptable (45+ FPS)
+8. ✅ No game-breaking bugs
 
----
-
-## 💡 Ideas for Future Enhancements
-
-### Post-Migration Features
-- VR support using Ursina VR extensions
-- Multiplayer co-op dungeon crawling
-- Level editor with 3D preview
-- Mod support for custom 3D models
-- Mobile port (Ursina supports Android)
-
-### Visual Enhancements
-- Procedural texture generation
-- Advanced shader effects
-- Weather systems (rain, snow in dungeons)
-- Destructible environment
+**Stretch Goals (Optional):**
+- 🎯 3D FOV/Fog of War
+- 🎯 3D Positional Audio
+- 🎯 Advanced camera modes (FPS, isometric)
+- 🎯 Minimap overlay
 
 ---
 
 *Last Updated: 2025-10-12*
-*Next Update: Daily during active development*
+*Next Review: Start of Phase 6*
+
+**Current Phase**: Phase 6 - UI Overlay & Input System
+**Next Milestone**: Playable 3D mode with full UI

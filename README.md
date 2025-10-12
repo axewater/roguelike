@@ -1,100 +1,6 @@
-# Claude-Like - A 2D→3D Roguelike Journey 🎮
+# Claude-Like Roguelike - Complete Feature Guide 🎮
 
-A feature-rich roguelike game built with Python and PyQt6, **currently migrating from 2D to 3D** using Ursina Engine. This guide helps developers understand the codebase structure and track the migration progress.
-
-## 🚀 Migration Status: 2D → 3D
-
-**Target:** Transform the complete 2D roguelike into a full 3D experience while preserving all gameplay mechanics.
-
-### Current State
-
-**🎮 Game is now FULLY PLAYABLE in 3D mode!** Run with `python main.py --mode 3d`
-
-| System | 2D (Legacy) | 3D (New) | Status |
-|--------|-------------|----------|--------|
-| **Dungeon Rendering** | ✅ Complete | ✅ **Fully Visible** | **Phase 3** ✅ |
-| **Player Models** | ✅ Complete | ✅ **Playable Cube** | **Phase 3** ✅ |
-| **Player Movement** | ✅ Complete | ✅ **WASD Controls** | **Phase 3** ✅ |
-| **Combat System** | ✅ Complete | ✅ **Bump-to-Attack** | **Phase 3** ✅ |
-| **Level Progression** | ✅ Complete | ✅ **Stairs & Descent** | **Phase 3** ✅ |
-| **Game Loop** | ✅ Complete | ✅ **40-45 FPS** | **Phase 3** ✅ |
-| **Enemy Models** | ✅ Complete | ⏳ Not Started | Phase 4 |
-| **Item Models** | ✅ Complete | ⏳ Not Started | Phase 4 |
-| **Particle System** | ✅ Complete | ⏳ Not Started | Phase 5 |
-| **Ability Effects** | ✅ Complete | ⏳ Not Started | Phase 5 |
-| **Camera System** | ✅ 2D Camera | ✅ **Smooth Follow** | **Phase 3** ✅ |
-| **Lighting** | ✅ 2D Colors | ✅ **3-Layer System** | **Phase 3** ✅ |
-| **Audio** | ✅ 2D Positional | ⏳ Not Started | Phase 6 |
-| **Documentation** | ✅ Updated | ✅ **Complete** | **Phase 1-3** ✅ |
-
-### Phase Checklist
-
-- [x] **Phase 1: Documentation & Planning** ✅ **COMPLETE**
-  - [x] Update CLAUDE.md with 3D architecture
-  - [x] Update README.md with migration tracker
-  - [x] Create MIGRATION.md progress log
-  - [x] Add Ursina to requirements
-  - [x] Create graphics3d/ package structure
-
-- [x] **Phase 2: Ursina Integration** ✅ **COMPLETE**
-  - [x] Install and configure Ursina engine
-  - [x] Create renderer3d.py wrapper
-  - [x] Render first 3D dungeon room
-  - [x] Test player movement in 3D
-  - [x] Implement camera follow system
-  - [x] Implement basic 3D lighting
-  - [x] Create main_3d.py game loop
-  - [x] Test all imports
-
-- [x] **Phase 3: Working 3D MVP** ✅ **COMPLETE** *(1 day - Oct 12, 2025)*
-  - [x] Fix grey screen rendering issue
-  - [x] Set window resolution to 1920×1080
-  - [x] Implement Entity-based update loop (modern Ursina pattern)
-  - [x] Fix camera positioning (immediate initialization)
-  - [x] Boost lighting for visibility (ambient 0.3 → 0.8)
-  - [x] Brighten floor/wall tiles (×3 and ×2 respectively)
-  - [x] Add comprehensive debug logging system
-  - [x] Enable WASD player movement
-  - [x] Verify combat system (bump-to-attack)
-  - [x] Test stairs descent & level progression
-  - [x] Achieve stable 40-45 FPS
-  - [x] **Game fully playable in 3D!** 🎉
-
-- [ ] **Phase 4: Entity 3D Models** *(3 weeks)*
-  - [ ] Create 3D player class models
-  - [ ] Create 3D enemy models
-  - [ ] Create 3D item models
-  - [ ] Implement basic animations
-
-- [ ] **Phase 5: Particle System 3D** *(2 weeks)*
-  - [ ] Port particle effects to 3D
-  - [ ] Convert ability visuals to 3D
-  - [ ] Add 3D death bursts
-  - [ ] Implement floating damage text
-
-- [ ] **Phase 6: Gameplay Integration** *(2 weeks)*
-  - [ ] 3D FOV/visibility system
-  - [ ] 3D ability targeting
-  - [ ] Combat animations in 3D
-  - [ ] 3D positional audio
-
-- [ ] **Phase 7: Polish** *(2 weeks)*
-  - [ ] Height variation in dungeons
-  - [ ] Advanced lighting & shadows
-  - [ ] Post-processing effects
-  - [ ] Multiple camera modes
-
-- [ ] **Phase 8: Optimization** *(2 weeks)*
-  - [ ] Performance profiling
-  - [ ] Optimize rendering pipeline
-  - [ ] Cross-platform testing
-  - [ ] Final documentation
-
-**Progress:** 35% Complete (3 of 8 phases done)
-**Estimated Completion:** 8-9 weeks remaining
-**Time Saved:** 19 days ahead of schedule! (Phases 1-3 completed in 1 day instead of 3 weeks)
-
-See `MIGRATION.md` for detailed daily progress logs.
+A feature-rich, turn-based roguelike with procedural dungeons, class-based combat, and no external assets - everything is procedurally generated!
 
 ## 🚀 Quick Start
 
@@ -102,452 +8,416 @@ See `MIGRATION.md` for detailed daily progress logs.
 # Install dependencies
 pip install -r requirements.txt
 
-# Run the game in 3D mode (NEW! Fully playable)
-python main.py --mode 3d
-
-# Or run in classic 2D mode
+# Play in 2D (complete version)
 python main.py --mode 2d
-python main.py  # defaults to 2D
+
+# Play in 3D (development version)
+python main.py --mode 3d
 ```
 
-**Requirements:** Python 3.8+, PyQt6 >= 6.4.0, pygame >= 2.5.0, numpy >= 1.24.0, ursina >= 6.0.0 (for 3D)
+**Requirements**: Python 3.8+, PyQt6, pygame, numpy, ursina
 
-**3D Controls:**
-- **WASD / Arrow Keys** - Move and attack (bump into enemies)
-- **ESC** - Quit game
+## 🎮 Game Features
 
-## 📁 Project Structure
+### Core Gameplay (Working in Both Modes)
 
-```
-roguelike/
-├── main.py                 # Application entry point
-├── game.py                 # Core game state & logic
-├── entities.py             # Entity classes (Player, Enemy, Item)
-├── constants.py            # Game configuration & constants
-├── dungeon.py              # Procedural dungeon generation
-├── abilities.py            # Ability system & implementations
-├── combat.py               # Combat calculation & resolution
-├── animations.py           # Particle system & visual effects
-├── audio.py                # Procedural audio synthesis
-├── fov.py                  # Field of view calculations
-├── visibility.py           # Fog of war & visibility map
-├── graphics/               # ⭐ Rendering code (organized by type)
-│   ├── __init__.py         # Exports all rendering functions
-│   ├── utils.py            # Rendering utilities (fog, gems, runes, etc.)
-│   ├── tiles.py            # Tile rendering (wall, floor, stairs)
-│   ├── ability_icons.py    # Ability icon rendering
-│   ├── enemies/            # Enemy rendering (one file per enemy)
-│   │   ├── __init__.py     # Enemy rendering dispatcher
-│   │   ├── base.py         # Shared enemy utilities (shadow, transform)
-│   │   ├── goblin.py       # Goblin renderer
-│   │   ├── slime.py        # Slime renderer
-│   │   ├── skeleton.py     # Skeleton renderer
-│   │   ├── orc.py          # Orc renderer
-│   │   ├── demon.py        # Demon renderer
-│   │   └── dragon.py       # Dragon renderer
-│   ├── items/              # Item rendering (one file per item)
-│   │   ├── __init__.py     # Item rendering dispatcher
-│   │   ├── base.py         # Shared item utilities (shadow, glow)
-│   │   ├── health_potion.py
-│   │   ├── sword.py
-│   │   ├── shield.py
-│   │   ├── boots.py
-│   │   └── ring.py
-│   └── players/            # Player class rendering (one file per class)
-│       ├── __init__.py     # Player rendering dispatcher
-│       ├── base.py         # Shared player utilities (shadow, transform)
-│       ├── warrior.py      # Warrior renderer
-│       ├── mage.py         # Mage renderer
-│       ├── rogue.py        # Rogue renderer
-│       └── ranger.py       # Ranger renderer
-└── ui/                     # ⭐ User interface (screens & widgets)
-    ├── __init__.py         # Exports all UI components
-    ├── main_window.py      # Main application window & screen manager
-    ├── screens/            # Full-screen UI views
-    │   ├── __init__.py
-    │   ├── title_screen.py      # Animated title/splash screen
-    │   ├── main_menu.py         # Main menu
-    │   ├── settings_screen.py   # Settings & controls
-    │   ├── class_selection.py   # Character class selection (with preview)
-    │   └── victory_screen.py    # Victory/game over screen
-    └── widgets/            # Reusable UI components
-        ├── __init__.py
-        ├── game_widget.py       # Main game rendering widget
-        ├── stats_panel.py       # Player stats display
-        ├── ability_button.py    # Ability button widget
-        ├── ability_icon.py      # Ability icon widget
-        ├── progress_bar.py      # Progress bar widget
-        └── combat_log.py        # Scrolling combat log
-```
+#### Character Classes
+- **Warrior** - High HP and defense, balanced attacker
+- **Mage** - Glass cannon with powerful magic
+- **Rogue** - Critical hit specialist with evasion
+- **Ranger** - Ranged attacks and mobility
 
-## 🎯 Where to Find What
+Each class has 3 unique abilities with cooldown management.
 
-### Core Game Systems
+#### Abilities System
+- **Fireball** (Mage) - Ranged damage with fire trail effect
+- **Frost Nova** (Mage) - Area freeze with ice crystals
+- **Heal** (Mage) - Self-healing with sparkle effect
+- **Dash** (Rogue) - Teleport with speed lines
+- **Shadow Step** (Rogue) - Invisible movement
+- **Whirlwind** (Warrior) - Area attack with spin effect
 
-| What You Need | Where to Look |
-|---------------|---------------|
-| **Game loop & state** | `game.py` - Main `Game` class with turn logic |
-| **Player stats & inventory** | `entities.py` - `Player` class (lines 1-200) |
-| **Enemy AI & behavior** | `entities.py` - `Enemy` class (lines 200-400) |
-| **Items & equipment** | `entities.py` - `Item` class (lines 400+) |
-| **Damage calculations** | `combat.py` - All combat formulas |
-| **Ability definitions** | `abilities.py` - Each ability has its own class |
-| **Dungeon generation** | `dungeon.py` - BSP room placement algorithm |
-| **FOV & fog of war** | `fov.py`, `visibility.py` |
+See `abilities.py` for implementation details.
 
-### Graphics & Rendering
+#### Combat System
+- Turn-based bump-to-attack mechanics
+- Damage calculation with variance (±20%)
+- Critical hits with visual feedback
+- Elemental effects and status conditions
+- XP and leveling system
 
-| What You Need | Where to Look |
-|---------------|---------------|
-| **Add new enemy type** | `graphics/enemies/` - Create new file, add to `__init__.py` |
-| **Add new player class** | `graphics/players/` - Create new file, add to `__init__.py` |
-| **Add new item type** | `graphics/items/` - Create new file, add to `__init__.py` |
-| **Modify tile appearance** | `graphics/tiles.py` |
-| **Particle effects** | `animations.py` - `AnimationManager` and `Particle` classes |
-| **Rendering utilities** | `graphics/utils.py` - Gems, runes, fog, gradients |
-| **Ability icons** | `graphics/ability_icons.py` - Icon renderers for UI |
+Combat formulas in `combat.py`.
 
-### User Interface
+#### Dungeon Generation
+- Procedural BSP (Binary Space Partitioning) algorithm
+- Random room placement with corridor connections
+- 5 biomes changing every 5 levels:
+  - Dungeon (1-5)
+  - Catacombs (6-10)
+  - Caves (11-15)
+  - Hell (16-20)
+  - Abyss (21-25)
 
-| What You Need | Where to Look |
-|---------------|---------------|
-| **Main game rendering** | `ui/widgets/game_widget.py` - Handles all in-game drawing |
-| **HUD & stats display** | `ui/widgets/stats_panel.py` |
-| **Combat log** | `ui/widgets/combat_log.py` |
-| **Ability buttons** | `ui/widgets/ability_button.py` |
-| **Class selection screen** | `ui/screens/class_selection.py` - Character preview + stats |
-| **Menus & navigation** | `ui/screens/main_menu.py`, `title_screen.py` |
-| **Settings UI** | `ui/screens/settings_screen.py` |
-| **Screen management** | `ui/main_window.py` - Manages screen transitions |
+See `dungeon.py` for generation logic.
 
-### Audio & Effects
+#### Equipment & Items
+- **5 Rarity Tiers**: Common → Uncommon → Rare → Epic → Legendary
+- **Item Types**: Swords, Shields, Rings, Boots, Health Potions
+- **Auto-equipping** on pickup with stat comparison
+- **Dynamic stats** via `@property` decorators
 
-| What You Need | Where to Look |
-|---------------|---------------|
-| **Sound synthesis** | `audio.py` - `SoundSynthesizer` class (wave generation) |
-| **Sound playback** | `audio.py` - `AudioManager` class (singleton pattern) |
-| **Background music** | `audio.py` - Lines 400+ (procedural music generation) |
-| **Add new sound** | `audio.py` - Add to `_generate_sounds()` method |
+Item definitions in `entities.py`, visual rendering in `graphics/items/` and `graphics3d/items/`.
 
-### Configuration
+#### Enemies
+- **6 Enemy Types**: Goblin, Slime, Skeleton, Orc, Demon, Dragon
+- **Smart AI** with pathfinding and alert system
+- **Level scaling** - Stats increase with dungeon level
+- **Unique visuals** - Each enemy has distinct 2D and 3D models
 
-| What You Need | Where to Look |
-|---------------|---------------|
-| **Game constants** | `constants.py` - Grid size, tile size, viewport |
-| **Biome definitions** | `constants.py` - `BIOME_COLORS` dictionary |
-| **Enemy stats** | `constants.py` - `ENEMY_STATS` dictionary |
-| **Class stats** | `constants.py` - `CLASS_STATS` dictionary |
-| **Item rarities** | `constants.py` - Rarity constants and colors |
-| **Color palette** | `constants.py` - All `COLOR_*` constants |
+Enemy logic in `entities.py`, rendering in `graphics/enemies/` and `graphics3d/enemies/`.
 
-## 🛠️ Common Development Tasks
+### Audio System (2D Mode) 🔊
 
-### Adding a New Enemy Type
+**100% Procedurally Generated** - No audio files required!
 
-1. **Define constants** in `constants.py`:
-   ```python
-   ENEMY_VAMPIRE = "vampire"
-   ENEMY_STATS[ENEMY_VAMPIRE] = {"hp": 80, "attack": 12, "defense": 6, "xp": 50}
-   COLOR_ENEMY_VAMPIRE = QColor(150, 0, 0)
-   ```
+#### Sound Synthesis
+- **Wave types**: Sine, Square, Sweep, Noise
+- **22 unique sounds**: Combat, abilities, movement, UI
+- **Positional audio**: Volume based on distance
+- **Pitch variation**: Prevents repetition
+- **Adaptive music**: Changes with combat intensity
 
-2. **Create renderer** in `graphics/enemies/vampire.py`:
-   ```python
-   def draw_vampire(painter: QPainter, center_x: int, center_y: int,
-                    tile_size: int, color: QColor, idle_time: float):
-       """Draw vampire with cloak and fangs"""
-       # Your rendering code here
-   ```
+Implementation in `audio.py`:
+- `SoundSynthesizer` - Wave generation
+- `AudioManager` - Playback and mixing (singleton pattern)
 
-3. **Register in dispatcher** in `graphics/enemies/__init__.py`:
-   ```python
-   from .vampire import draw_vampire
-
-   def draw_enemy(...):
-       # Add to dispatch logic
-       elif enemy_type == c.ENEMY_VAMPIRE:
-           draw_vampire(painter, center_x, center_y, tile_size, color, idle_time)
-   ```
-
-4. **Add to spawn logic** in `game.py` - Update `_spawn_enemies()` method
-
-### Adding a New Player Class
-
-1. **Define in `constants.py`**:
-   ```python
-   CLASS_NECROMANCER = "necromancer"
-   CLASS_STATS[CLASS_NECROMANCER] = {
-       "hp": 80, "attack": 14, "defense": 4,
-       "description": "Summons undead minions"
-   }
-   COLOR_CLASS_NECROMANCER = QColor(100, 50, 100)
-   ```
-
-2. **Create abilities** in `abilities.py`:
-   ```python
-   CLASS_ABILITIES[CLASS_NECROMANCER] = [SummonUndead(), DrainLife(), DarkPact()]
-   ```
-
-3. **Create renderer** in `graphics/players/necromancer.py`:
-   ```python
-   def draw_necromancer(painter: QPainter, center_x: int, center_y: int,
-                        tile_size: int, color: QColor, idle_time: float):
-       """Draw necromancer with staff and robes"""
-       # Your rendering code here
-   ```
-
-4. **Register in dispatcher** in `graphics/players/__init__.py`
-
-5. **Add to class selection** in `ui/screens/class_selection.py`
-
-### Adding a New Ability
-
-Create a new class in `abilities.py`:
-
+Example usage:
 ```python
-class Teleport(Ability):
-    def __init__(self):
-        super().__init__("Teleport", "Instantly move to target location",
-                         cooldown=8, ability_type="utility")
+from audio import get_audio_manager
+audio = get_audio_manager()
+audio.play_attack_sound('heavy')
+audio.play_hit_sound(is_crit=True, position=(x, y), player_position=(px, py))
+```
 
-    def use(self, user, target_pos: Tuple[int, int], game) -> Tuple[bool, str]:
+### Visual Effects
+
+#### 2D Particle System (`animations.py`)
+- **Particle Types**: Standard, Directional, Trail, Ambient
+- **Effects**:
+  - Floating damage text
+  - Death bursts (enemy-specific)
+  - Ability trails (fire, ice, dash)
+  - Screen shake
+  - Flash effects
+  - Ambient atmosphere
+
+#### 3D Particle System (`animations3d.py`)
+- **3D Physics**: Gravity, velocity, friction
+- **Billboard sprites**: Always face camera
+- **Particle Effects**:
+  - Explosions with directional spray
+  - Floating 3D text
+  - Trail ribbons
+  - Screen shake (camera wobble)
+  - Alert particles ("!" above enemies)
+
+### Field of View & Visibility
+
+- **Ray-casting FOV** algorithm in `fov.py`
+- **Fog of War** system in `visibility.py`
+- **Explored tiles** remain dimly visible
+- **Dynamic lighting** reveals tiles as you move
+
+*(Note: 3D FOV implementation pending)*
+
+## 📁 File Reference
+
+### Core Game Logic (Renderer-Agnostic)
+
+| File | Purpose | Key Classes/Functions |
+|------|---------|----------------------|
+| `game.py` | Main game state and turn manager | `Game`, `start_new_game()`, `_player_attack()`, `_enemy_turn()` |
+| `entities.py` | Player, Enemy, Item classes | `Player`, `Enemy`, `Item`, inventory management |
+| `dungeon.py` | Procedural dungeon generation | `Dungeon`, `generate()`, BSP algorithm |
+| `combat.py` | Damage calculations | `calculate_damage()`, `apply_damage()` |
+| `abilities.py` | Ability system | `Ability` base class, 6 ability implementations |
+| `constants.py` | All game configuration | All constants, stats, colors |
+
+### 2D Rendering (PyQt6)
+
+| File/Directory | Purpose |
+|----------------|---------|
+| `ui/main_window.py` | Main PyQt6 window and screen manager |
+| `ui/screens/title_screen.py` | Animated title screen |
+| `ui/screens/class_selection.py` | Character class picker with preview |
+| `ui/screens/main_menu.py` | Main menu navigation |
+| `ui/screens/victory_screen.py` | Game over / victory display |
+| `ui/widgets/game_widget.py` | Main game rendering widget |
+| `ui/widgets/stats_panel.py` | Player stats HUD |
+| `ui/widgets/combat_log.py` | Scrolling message log |
+| `ui/widgets/ability_button.py` | Ability UI buttons |
+| `graphics/tiles.py` | Tile rendering (floor, wall, stairs) |
+| `graphics/players/*.py` | Player class visuals (4 classes) |
+| `graphics/enemies/*.py` | Enemy visuals (6 types) |
+| `graphics/items/*.py` | Item visuals (5 types) |
+| `graphics/utils.py` | Rendering utilities (gems, runes, gradients) |
+| `animations.py` | 2D particle effects manager |
+
+### 3D Rendering (Ursina)
+
+| File/Directory | Purpose |
+|----------------|---------|
+| `main_3d.py` | 3D mode entry point, game loop |
+| `renderer3d.py` | Ursina 3D rendering manager |
+| `graphics3d/tiles.py` | 3D dungeon meshes (walls, floors, stairs) |
+| `graphics3d/players/*.py` | 3D player models (4 classes) |
+| `graphics3d/enemies/*.py` | 3D enemy models (6 types) |
+| `graphics3d/items/*.py` | 3D item models (5 types) |
+| `graphics3d/utils.py` | 3D utilities (coordinate conversion, colors) |
+| `animations3d.py` | 3D particle effects with physics |
+| `ui/screens/title_screen_3d.py` | 3D title screen (development) |
+
+### Support Systems
+
+| File | Purpose |
+|------|---------|
+| `audio.py` | Procedural sound synthesis and playback |
+| `fov.py` | Field of view ray-casting |
+| `visibility.py` | Fog of war and exploration tracking |
+
+## 🛠️ Adding New Content
+
+### Add a New Enemy
+
+**1. Define in `constants.py`:**
+```python
+ENEMY_VAMPIRE = "vampire"
+ENEMY_STATS[ENEMY_VAMPIRE] = {
+    "hp": 80, "attack": 12, "defense": 6, "xp": 50
+}
+COLOR_ENEMY_VAMPIRE = QColor(150, 0, 0)
+```
+
+**2. Create 2D renderer in `graphics/enemies/vampire.py`:**
+```python
+def draw_vampire(painter: QPainter, center_x: int, center_y: int,
+                 tile_size: int, color: QColor, idle_time: float):
+    """Draw vampire with cloak and fangs"""
+    # Your 2D rendering code here
+```
+
+**3. Create 3D model in `graphics3d/enemies/vampire.py`:**
+```python
+def create_vampire_model(x, y):
+    """Create 3D vampire model"""
+    from ursina import Entity
+    model = Entity(model='cube', scale=(0.4, 0.6, 0.3))
+    # Add details (fangs, cloak)
+    return model
+```
+
+**4. Register in dispatchers:**
+- `graphics/enemies/__init__.py` - Add to `draw_enemy()`
+- `graphics3d/enemies/__init__.py` - Add to `create_enemy_model_3d()`
+
+**5. Update spawn logic in `game.py`:**
+```python
+# In _spawn_enemies() method
+enemy_types = [c.ENEMY_GOBLIN, c.ENEMY_VAMPIRE, ...]
+```
+
+### Add a New Ability
+
+Create in `abilities.py`:
+```python
+class NewAbility(Ability):
+    def __init__(self):
+        super().__init__(
+            name="Teleport",
+            description="Instantly move to target",
+            cooldown=8,
+            ability_type="utility"
+        )
+
+    def use(self, user, target_pos, game):
         success, msg = super().use(user, target_pos, game)
         if not success:
             return (success, msg)
 
-        # Validate target
         tx, ty = target_pos
         if not game.dungeon.is_walkable(tx, ty):
-            self.current_cooldown = 0  # Refund cooldown
+            self.current_cooldown = 0  # Refund
             return (False, "Can't teleport there!")
 
-        # Teleport player
         user.start_move(tx, ty)
+        game.anim_manager.add_ability_trail(tx, ty, color.purple, "dash")
 
-        # Visual effects
-        game.anim_manager.add_ability_trail(tx, ty, QColor(150, 50, 255), "dash")
-
-        # Audio
-        audio = get_audio_manager()
-        audio.play_ability_sound('Teleport')
-
-        return (True, f"Teleported to ({tx}, {ty})!")
+        return (True, f"Teleported!")
 ```
 
-Then add to a class's ability list in `CLASS_ABILITIES` dictionary.
+Add to class in `CLASS_ABILITIES` dictionary.
 
-### Adding a New UI Screen
+### Add a New Item Type
 
-1. **Create screen file** in `ui/screens/your_screen.py`:
-   ```python
-   from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel
+**1. Constants in `constants.py`:**
+```python
+ITEM_HELMET = "helmet"
+SYMBOL_HELMET = "^"
+EQUIPMENT_TYPES[ITEM_HELMET] = SLOT_HEAD
+ITEM_EFFECTS[ITEM_HELMET] = {"defense": 4}
+```
 
-   class YourScreen(QWidget):
-       def __init__(self):
-           super().__init__()
-           layout = QVBoxLayout()
-           # Build your UI
-           self.setLayout(layout)
-   ```
+**2. Create renderers:**
+- `graphics/items/helmet.py` - 2D shape
+- `graphics3d/items/helmet.py` - 3D model
 
-2. **Export in `ui/screens/__init__.py`**:
-   ```python
-   from ui.screens.your_screen import YourScreen
-   __all__ = [..., 'YourScreen']
-   ```
+**3. Register in both `graphics/items/__init__.py` and `graphics3d/items/__init__.py`**
 
-3. **Add to main window** in `ui/main_window.py`:
-   ```python
-   self.your_screen = YourScreen()
-   self.stacked_widget.addWidget(self.your_screen)
-   ```
+**4. Add to spawn pool in `game.py` - `_spawn_items()` method**
 
-4. **Create navigation method**:
-   ```python
-   def show_your_screen(self):
-       self.stacked_widget.setCurrentWidget(self.your_screen)
-   ```
-
-### Adding a New Sound Effect
+### Add a Procedural Sound
 
 In `audio.py`, add to `AudioManager._generate_sounds()`:
-
 ```python
-# Create the sound using wave synthesis
-my_sound = synth.combine_waves(
-    synth.generate_sweep(800, 400, 0.2, 0.5),  # Whoosh
-    synth.generate_noise(0.1, 0.3)              # Impact
+synth = SoundSynthesizer()
+
+# Create sound using wave synthesis
+teleport_sound = synth.combine_waves(
+    synth.generate_sweep(800, 1200, 0.15, 0.4),  # Ascending whoosh
+    synth.generate_sine_wave(1200, 0.1, 0.3)     # High ping
 )
-self.sounds['my_sound'] = synth.array_to_sound(my_sound)
+self.sounds['teleport'] = synth.array_to_sound(teleport_sound)
+
+# Add helper method
+def play_teleport_sound(self):
+    self.play_sound('teleport', volume=0.7, pitch_variation=0.1)
 ```
 
-Add a helper method:
+## 🎨 Visual Design
 
+### 2D Graphics - Geometric Shapes
+All visuals drawn with PyQt6 `QPainter`:
+- **Techniques**: Gradients, polygons, layering
+- **No sprites** - Everything procedural
+- **Rarity effects**: Gems, glows, sparkles for rare items
+
+See `graphics/utils.py` for shared rendering functions:
+- `draw_gem()` - Faceted gems
+- `draw_rune()` - Glowing symbols
+- `draw_metallic_gradient()` - Metal shading
+
+### 3D Graphics - Procedural Models
+All 3D models built with Ursina primitives:
+- **Cube, Sphere, Cylinder** base shapes
+- **Scaling and parenting** for complex models
+- **No external files** - Pure Python generation
+
+Example - Warrior model (`graphics3d/players/warrior.py`):
 ```python
-def play_my_sound(self):
-    """Play my custom sound"""
-    self.play_sound('my_sound', volume=0.8, pitch_variation=0.1)
-```
-
-Use in game code:
-
-```python
-audio = get_audio_manager()
-audio.play_my_sound()
+body = Entity(model='cube', scale=(0.4, 0.6, 0.3))
+head = Entity(model='sphere', scale=0.25, parent=body, y=0.4)
+sword = Entity(model='cube', scale=(0.1, 0.6, 0.05), parent=body, x=0.3)
 ```
 
 ## 🏗️ Architecture Patterns
 
-### Module Organization
-
-- **Package-based refactoring**: Large modules (`graphics.py`, `ui.py`) have been split into packages with submodules
-- **Dispatcher pattern**: `graphics/enemies/__init__.py`, `graphics/players/__init__.py`, `graphics/items/__init__.py` dispatch to specific renderers
-- **Backward compatibility**: All packages export symbols to maintain imports from original single-file structure
-- **Separation of concerns**: Rendering (graphics/), logic (game.py), data (entities.py), config (constants.py)
+### Dual Rendering Architecture
+```
+        ┌─────────────┐
+        │   game.py   │  (Renderer-agnostic game logic)
+        └──────┬──────┘
+               │
+        ┌──────▼──────┐
+        │   main.py   │  (Mode selector: --mode 2d/3d)
+        └──────┬──────┘
+               │
+       ┌───────┴────────┐
+       │                │
+   ┌───▼───┐      ┌────▼────┐
+   │  2D   │      │   3D    │
+   │ PyQt6 │      │ Ursina  │
+   └───────┘      └─────────┘
+```
 
 ### Key Design Patterns
 
-- **Singleton**: `AudioManager` uses singleton pattern via `get_audio_manager()`
-- **Entity Component**: Base `Entity` class with `Player`, `Enemy`, `Item` subclasses
-- **Observer**: PyQt signals for UI events (`ability_clicked`, etc.)
-- **State Machine**: `MainWindow` manages screen transitions with `QStackedWidget`
-- **Strategy**: Ability system with polymorphic `use()` method
+1. **Singleton Pattern** - `AudioManager` via `get_audio_manager()`
+2. **Proxy Pattern** - `AnimationManager3DProxy` bridges 2D/3D particles
+3. **Dispatcher Pattern** - `graphics/enemies/__init__.py` routes to specific renderers
+4. **Entity-Component** - Base `Entity` class, specialized subclasses
+5. **Observer Pattern** - PyQt signals for UI events
 
-### Animation System
+### Animation & Movement System
 
-All entities inherit from `Entity` class in `entities.py`:
+All entities inherit smooth movement from `Entity` base class:
+- **Grid position** - Logical position (int)
+- **Display position** - Visual position (float, interpolated)
+- **Idle animation** - Driven by `idle_time` parameter
+- **Facing direction** - Tracked for sprite orientation
 
-- **Smooth movement**: Interpolated display position separate from grid position
-- **Idle animations**: `idle_time` parameter drives breathing/bobbing
-- **Facing direction**: `facing_direction` tuple for character orientation
-- **Bob offset**: Vertical offset for walk cycles
+Managed by:
+- **2D**: `AnimationManager` in `animations.py`
+- **3D**: `AnimationManager3D` in `animations3d.py`
 
-Managed by `AnimationManager` in `animations.py`:
+## ⚙️ Configuration & Balancing
 
-- **Particle types**: Standard, Directional, Trail, Ambient
-- **Effect helpers**: `add_death_burst()`, `add_ability_trail()`, `add_directional_impact()`
-- **Auto-cleanup**: Dead particles automatically removed
+### Key Constants (`constants.py`)
 
-### Rendering Pipeline
-
-From `ui/widgets/game_widget.py` - `paintEvent()`:
-
-1. Draw tiles (floor/wall/stairs)
-2. Draw entities (players, enemies, items) with geometric shapes
-3. Draw health bars
-4. Draw flash effects (damage overlay)
-5. Draw ambient particles (background layer)
-6. Draw trail particles
-7. Draw standard particles
-8. Draw directional impact particles
-9. Draw floating damage text
-10. Draw game over overlay
-
-## 🎨 Graphics System
-
-### Geometric Rendering
-
-All graphics are **procedurally drawn** using PyQt6's `QPainter` - no image files needed!
-
-**Techniques used:**
-- `QLinearGradient`, `QRadialGradient` for lighting/shading
-- `drawPolygon()` for complex shapes
-- `drawEllipse()`, `drawRect()` for basic primitives
-- Layered rendering for depth
-- Color variations for detail (warts, scars, armor plates)
-
-**Shared utilities** in `graphics/utils.py`:
-- `draw_gem()` - Faceted gems with different cuts
-- `draw_rune()` - Glowing magical symbols
-- `draw_metallic_gradient()` - Realistic metal shading
-- `draw_sparkle()` - Star sparkle effects
-- `apply_fog_color()` - Fog of war tinting
-
-### Rarity System (Items)
-
-Items support 5 rarity tiers, each with visual enhancements:
-
-- **Common** (60% drop): Basic appearance
-- **Uncommon** (30%): Better materials, brass accents
-- **Rare** (8%): Silver/chrome, small gems
-- **Epic** (2%): Gold trim, glowing runes, large gems
-- **Legendary** (<1%): Particle effects, sparkles, star-cut gems
-
-See `graphics/items/sword.py` for complete example.
-
-### Biome System
-
-The game features 5 biomes that change every 5 levels:
-
-- **Dungeon** (1-5): Classic stone corridors
-- **Catacombs** (6-10): Dusty bone crypts
-- **Caves** (11-15): Earthy natural caverns
-- **Hell** (16-20): Charred lava landscapes
-- **Abyss** (21-25): Void-touched dimensions
-
-Biome data in `constants.py` - `BIOME_COLORS` dictionary. Rendering in `graphics/tiles.py`.
-
-## 🔊 Audio System
-
-**100% procedural** - no audio files needed! Uses numpy for wave synthesis.
-
-### Wave Types
-
-In `audio.py` - `SoundSynthesizer` class:
-
-- `generate_sine_wave()` - Pure tone (musical notes)
-- `generate_square_wave()` - Retro/harsh sounds
-- `generate_sweep()` - Frequency slides (whooshes)
-- `generate_noise()` - White noise (impact, texture)
-- `combine_waves()` - Mix multiple waveforms
-
-### Sound Categories
-
-All sounds generated in `AudioManager._generate_sounds()`:
-
-- **Combat**: Attack swings, hits, crits, enemy deaths
-- **Abilities**: 6 unique ability sounds
-- **Movement**: Footsteps with pitch variation
-- **Items**: Pickup, drink, equip sounds
-- **UI**: Menu clicks, selections
-- **Events**: Level up, stairs, game over
-- **Voice**: TTS-based procedural voice lines
-
-### Background Music
-
-Adaptive layered music system:
-
-- **Intensity levels**: Calm (exploration) → Tense (combat)
-- **Music ducking**: SFX louder during combat
-- **Smooth transitions**: Interpolated intensity changes
-- **Looping**: Seamless 10-second loops
-
-## 🧪 Testing & Debugging
-
-### Useful Debug Tricks
-
-**Print entity positions:**
 ```python
-print(f"Player: {game.player.x}, {game.player.y}")
-print(f"Enemies: {[(e.x, e.y) for e in game.enemies]}")
+# Dungeon
+GRID_WIDTH = 80
+GRID_HEIGHT = 50
+MAX_ROOMS = 15
+
+# Combat
+DAMAGE_VARIANCE = 0.2  # ±20%
+CRIT_DAMAGE_MULTIPLIER = 2.0
+
+# Spawning
+ENEMIES_PER_LEVEL_BASE = 5
+ITEMS_PER_LEVEL = 3
+
+# Rarity (drop rates scale with level)
+RARITY_COMMON = 60% → 20%
+RARITY_LEGENDARY = 0% → 2%
 ```
 
-**Test abilities without cooldown:**
+### Class Stats
 ```python
-player.abilities[0].current_cooldown = 0  # Force ready
+CLASS_STATS = {
+    CLASS_WARRIOR: {"hp": 120, "attack": 12, "defense": 8},
+    CLASS_MAGE: {"hp": 70, "attack": 15, "defense": 3},
+    CLASS_ROGUE: {"hp": 85, "attack": 13, "defense": 4, "crit_chance": 0.25},
+    CLASS_RANGER: {"hp": 90, "attack": 11, "defense": 5}
+}
 ```
 
-**Spawn specific enemy:**
+### Enemy Stats (Base, before level scaling)
 ```python
-from entities import Enemy
-import constants as c
-game.enemies.append(Enemy(10, 10, c.ENEMY_DRAGON, c.ENEMY_STATS[c.ENEMY_DRAGON]))
+ENEMY_STATS = {
+    ENEMY_GOBLIN: {"hp": 20, "attack": 5, "defense": 2, "xp": 10},
+    ENEMY_DRAGON: {"hp": 100, "attack": 20, "defense": 12, "xp": 100}
+}
+# Scaling formula: stat * (1.0 + (level - 1) * 0.3)
 ```
 
-**Toggle fog of war:**
+## 🐛 Debugging & Development
+
+### Debug Mode
+
+**Enable debug output in 3D:**
 ```python
-game.visibility_map.reveal_all()  # See entire dungeon
+# main_3d.py
+app = Ursina(development_mode=True)  # Shows FPS, entity count
 ```
+
+**Console logging is built-in:**
+- Movement: `[MOVE] Player moved: (x, y)`
+- Combat: `[COMBAT] Attacking enemy`
+- Events: `[EVENT] Player on stairs`
+- Heartbeat: `[HEARTBEAT] Frame 60 | FPS=45.2`
+
+### Testing Helpers
 
 **God mode:**
 ```python
@@ -555,71 +425,79 @@ game.player.hp = 999999
 game.player.max_hp = 999999
 ```
 
-### Performance Monitoring
+**Reveal entire map:**
+```python
+game.visibility_map.reveal_all()
+```
 
-The game targets **60 FPS**. Performance bottlenecks:
+**Spawn specific enemy:**
+```python
+from entities import Enemy
+import constants as c
+enemy = Enemy(10, 10, c.ENEMY_DRAGON, c.ENEMY_STATS[c.ENEMY_DRAGON])
+game.enemies.append(enemy)
+```
 
-- Animation update: O(n) particles
-- Enemy AI: O(n) enemies
-- Rendering: O(grid_size) + O(animations)
-- FOV calculation: O(visible_tiles)
+**Skip ability cooldowns:**
+```python
+for ability in game.player.abilities:
+    ability.current_cooldown = 0
+```
 
-Typical performance with <100 entities: 60 FPS stable.
+### Performance Profiling
 
-## 📚 Code Style & Conventions
+- **Target**: 60 FPS in 2D, 45+ FPS in 3D
+- **Bottlenecks**: Particle count, entity count, FOV calculation
+- **Optimization**: Particle pooling, occlusion culling (planned for 3D)
 
-- **Type hints** on all function parameters and returns
+Typical performance:
+- 2D: 60 FPS with 100+ entities
+- 3D: 40-45 FPS with 50+ entities
+
+## 🚧 Known Limitations
+
+### 3D Mode (In Development)
+- ❌ No UI overlay (stats, abilities, combat log)
+- ❌ No FOV/Fog of War
+- ❌ Can't use abilities (1/2/3 keys not implemented)
+- ❌ No class selection screen (hardcoded to Warrior)
+- ❌ No title/menu screens
+- ❌ No 3D positional audio
+- ❌ No victory/game over UI (console only)
+
+### Both Modes
+- Audio only works in 2D mode
+- Saving/loading not implemented
+- No multiplayer
+
+See `MIGRATION.md` for roadmap to complete 3D mode.
+
+## 📚 Additional Documentation
+
+- **`CLAUDE.md`** - Quick developer onboarding
+- **`MIGRATION.md`** - 3D migration project plan
+- **`docs_archive_2025-10-12/`** - Archived phase summaries
+
+## 🎯 Design Philosophy
+
+1. **No External Assets** - Everything procedurally generated
+2. **Clean Separation** - Game logic independent of rendering
+3. **Dual Rendering** - Support both 2D and 3D
+4. **Modular Design** - Easy to add content (enemies, abilities, items)
+5. **Type Safety** - Type hints on all functions
+6. **Self-Documenting** - Clear naming, comprehensive docstrings
+
+## 📝 Code Style
+
+- **Type hints** on all function signatures
 - **Docstrings** for all classes and public methods
-- **Constants** in `UPPER_CASE` (defined in `constants.py`)
+- **Constants** in `UPPER_CASE`
 - **Private methods** prefixed with `_`
-- **Colors** use `QColor` objects from PyQt6
-- **Messages** use tuple format: `(message_text, message_type)` for color coding
-- **File organization**: One class/system per file where possible
+- **Color objects** use PyQt6 `QColor` (2D) or RGB tuples (3D)
 
-## 🐛 Troubleshooting
+---
 
-### Import Errors
-
-If you get import errors after refactoring:
-- Check `__init__.py` files export the right symbols
-- Verify `__all__` lists are complete
-- Ensure backward compatibility imports are present
-
-### Graphics Not Showing
-
-- Check `paintEvent()` is called (add print statement)
-- Verify entity positions are within viewport bounds
-- Ensure colors have sufficient contrast with background
-
-### Audio Issues
-
-- Verify pygame mixer initialized: `pygame.mixer.get_init()`
-- Check volume settings: `audio.set_sfx_volume(0.7)`
-- Reduce buffer size if experiencing lag: `pygame.mixer.pre_init(22050, -16, 2, 512)`
-
-### Animation Glitches
-
-- Ensure `dt` (delta time) is being passed correctly
-- Check `update()` is called every frame
-- Verify `move_duration` is reasonable (0.1-0.3s)
-
-## 🎯 Next Steps
-
-Want to extend the game? Check out `CLAUDE.md` for:
-- Detailed gameplay mechanics
-- Balance constants and formulas
-- Adding new content (enemies, abilities, items)
-- Future feature ideas
-- Audio synthesis guide
-
-## 🤝 Contributing
-
-This codebase is designed to be modular and extensible. When adding features:
-
-1. Follow existing patterns (dispatcher, base classes)
-2. Add constants to `constants.py` first
-3. Create rendering code in appropriate `graphics/` submodule
-4. Update `__init__.py` exports for new modules
-5. Test with different biomes and difficulty levels
+**For quick start:** See `CLAUDE.md`
+**For development roadmap:** See `MIGRATION.md`
 
 Happy coding! 🎮

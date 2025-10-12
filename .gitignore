@@ -7,6 +7,9 @@ __pycache__/
 .DS_Store
 .claude/
 
+# Documentation archives
+docs_archive_*/
+
 # 3D assets and cache (if any are added later)
 *.bam
 *.egg
