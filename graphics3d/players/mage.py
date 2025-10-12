@@ -66,6 +66,15 @@ def create_mage_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         position=(0, 0.9, 0)
     )
 
+    # Wizard hat ornament (star)
+    hat_star = Entity(
+        parent=mage,
+        model='sphere',
+        color=color.rgb(255/255, 215/255, 0/255),  # Gold
+        scale=(0.08, 0.08, 0.08),
+        position=(0, 1.15, 0)
+    )
+
     # Left arm (holding staff)
     left_arm = Entity(
         parent=mage,
@@ -73,6 +82,15 @@ def create_mage_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         color=color.rgb(100/255, 150/255, 255/255),
         scale=(0.12, 0.45, 0.12),
         position=(-0.3, -0.1, 0)
+    )
+
+    # Left hand (gripping staff)
+    left_hand = Entity(
+        parent=mage,
+        model='cube',
+        color=color.rgb(200/255, 160/255, 130/255),  # Skin tone
+        scale=(0.1, 0.12, 0.1),
+        position=(-0.3, -0.4, 0)
     )
 
     # Right arm (casting)
@@ -85,6 +103,16 @@ def create_mage_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         rotation=(0, 0, 45)  # Extended for casting
     )
 
+    # Right hand (casting gesture)
+    right_hand = Entity(
+        parent=mage,
+        model='cube',
+        color=color.rgb(200/255, 160/255, 130/255),  # Skin tone
+        scale=(0.1, 0.12, 0.1),
+        position=(0.42, 0.25, 0.15),
+        rotation=(0, 0, 45)
+    )
+
     # Magical staff (long wooden pole)
     staff_shaft = Entity(
         parent=mage,
@@ -92,6 +120,23 @@ def create_mage_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         color=color.rgb(120/255, 80/255, 40/255),  # Brown wood
         scale=(0.06, 1.2, 0.06),
         position=(-0.35, 0, 0)
+    )
+
+    # Staff wrapping (leather grip)
+    staff_wrap_1 = Entity(
+        parent=mage,
+        model='cube',
+        color=color.rgb(80/255, 60/255, 40/255),  # Dark leather
+        scale=(0.07, 0.08, 0.07),
+        position=(-0.35, -0.3, 0)
+    )
+
+    staff_wrap_2 = Entity(
+        parent=mage,
+        model='cube',
+        color=color.rgb(80/255, 60/255, 40/255),  # Dark leather
+        scale=(0.07, 0.08, 0.07),
+        position=(-0.35, 0.2, 0)
     )
 
     # Staff orb (glowing at top)
@@ -102,6 +147,21 @@ def create_mage_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         scale=(0.15, 0.15, 0.15),
         position=(-0.35, 0.6, 0)
     )
+
+    # Crystal settings (4 small crystals around orb)
+    for i in range(4):
+        angle = i * 90
+        import math
+        x_offset = math.cos(math.radians(angle)) * 0.18
+        z_offset = math.sin(math.radians(angle)) * 0.18
+        crystal = Entity(
+            parent=mage,
+            model='cube',
+            color=color.rgb(180/255, 120/255, 255/255),  # Purple crystal
+            scale=(0.05, 0.08, 0.05),
+            position=(-0.35 + x_offset, 0.6, z_offset),
+            rotation=(0, angle, 0)
+        )
 
     # Staff orb inner glow
     orb_glow = Entity(
@@ -139,6 +199,24 @@ def create_mage_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         color=color.rgb(120/255, 100/255, 50/255),  # Gold/brown
         scale=(0.42, 0.08, 0.32),
         position=(0, -0.3, 0)
+    )
+
+    # Spell component pouch (left hip)
+    spell_pouch = Entity(
+        parent=mage,
+        model='cube',
+        color=color.rgb(80/255, 60/255, 100/255),  # Purple pouch
+        scale=(0.12, 0.15, 0.12),
+        position=(-0.2, -0.4, 0)
+    )
+
+    # Scroll case (right hip)
+    scroll_case = Entity(
+        parent=mage,
+        model='cube',
+        color=color.rgb(140/255, 120/255, 80/255),  # Leather tube
+        scale=(0.08, 0.25, 0.08),
+        position=(0.2, -0.4, 0)
     )
 
     return mage
