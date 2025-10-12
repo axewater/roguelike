@@ -151,7 +151,7 @@ class HelmetHUD3D:
             parent=self.parent,
             model='quad',
             color=color.rgba(0.02, 0.02, 0.15, 0.90),  # More opaque
-            position=(pos_x, pos_y, -10),  # Far back z-level
+            position=(pos_x, pos_y, 10),  # Far back z-level (behind text)
             scale=(panel_width, panel_height),
             origin=(-0.5, 0.5),
             eternal=True
@@ -162,7 +162,7 @@ class HelmetHUD3D:
             parent=self.parent,
             model='quad',
             color=color.rgba(0.2, 0.4, 0.6, 0.4),  # Slightly more visible
-            position=(pos_x + 0.002, pos_y - 0.002, -9),  # Just in front of background
+            position=(pos_x + 0.002, pos_y - 0.002, 9),  # In front of background
             scale=(panel_width - 0.01, panel_height - 0.01),
             origin=(-0.5, 0.5),
             eternal=True
@@ -172,7 +172,7 @@ class HelmetHUD3D:
         self.class_level_text = Text(
             text="Warrior - Level 1",
             parent=self.parent,
-            position=(pos_x + 0.01, pos_y - 0.03, 10),  # High z-level (in front)
+            position=(pos_x + 0.01, pos_y - 0.03, -10),  # Low z-level (in front)
             scale=1.2,
             color=color.rgb(0.3, 1.0, 1.0),  # Cyan
             origin=(-0.5, 0.5),
@@ -188,7 +188,7 @@ class HelmetHUD3D:
             parent=self.parent,
             model='quad',
             color=color.rgba(0.1, 0.1, 0.1, 0.9),  # More opaque
-            position=(pos_x + 0.01, hp_bar_y, -5),  # Behind fill
+            position=(pos_x + 0.01, hp_bar_y, 5),  # Behind fill
             scale=(bar_width, bar_height),
             origin=(-0.5, 0.5),
             eternal=True
@@ -198,7 +198,7 @@ class HelmetHUD3D:
             parent=self.parent,
             model='quad',
             color=color.rgb(0.3, 1.0, 0.3),  # Bright green
-            position=(pos_x + 0.01, hp_bar_y, -4),  # In front of bg
+            position=(pos_x + 0.01, hp_bar_y, 4),  # In front of bg
             scale=(bar_width, bar_height),
             origin=(-0.5, 0.5),
             eternal=True
@@ -207,7 +207,7 @@ class HelmetHUD3D:
         self.hp_text = Text(
             text="100/100 HP",
             parent=self.parent,
-            position=(pos_x + 0.01, hp_bar_y - 0.055, 10),  # High z-level, below bar
+            position=(pos_x + 0.01, hp_bar_y - 0.055, -10),  # Low z-level (in front)
             scale=1.0,
             color=color.white,
             origin=(-0.5, 0.5),
@@ -221,7 +221,7 @@ class HelmetHUD3D:
             parent=self.parent,
             model='quad',
             color=color.rgba(0.1, 0.1, 0.1, 0.9),  # More opaque
-            position=(pos_x + 0.01, xp_bar_y, -5),  # Behind fill
+            position=(pos_x + 0.01, xp_bar_y, 5),  # Behind fill
             scale=(bar_width, bar_height),
             origin=(-0.5, 0.5),
             eternal=True
@@ -231,7 +231,7 @@ class HelmetHUD3D:
             parent=self.parent,
             model='quad',
             color=color.rgb(1.0, 0.85, 0.0),  # Gold
-            position=(pos_x + 0.01, xp_bar_y, -4),  # In front of bg
+            position=(pos_x + 0.01, xp_bar_y, 4),  # In front of bg
             scale=(bar_width, bar_height),
             origin=(-0.5, 0.5),
             eternal=True
@@ -240,7 +240,7 @@ class HelmetHUD3D:
         self.xp_text = Text(
             text="0/100 XP",
             parent=self.parent,
-            position=(pos_x + 0.01, xp_bar_y - 0.055, 10),  # High z-level, below bar
+            position=(pos_x + 0.01, xp_bar_y - 0.055, -10),  # Low z-level (in front)
             scale=1.0,
             color=color.white,
             origin=(-0.5, 0.5),
@@ -260,7 +260,7 @@ class HelmetHUD3D:
             parent=self.parent,
             model='quad',
             color=color.rgba(0.02, 0.02, 0.15, 0.90),  # More opaque
-            position=(pos_x, pos_y, -10),  # Far back z-level
+            position=(pos_x, pos_y, 10),  # Far back z-level (behind text)
             scale=(panel_width, panel_height),
             origin=(-0.5, 0.5),
             eternal=True
@@ -271,7 +271,7 @@ class HelmetHUD3D:
             parent=self.parent,
             model='quad',
             color=color.rgba(0.2, 0.4, 0.6, 0.4),  # Slightly more visible
-            position=(pos_x + 0.002, pos_y - 0.002, -9),  # Just in front of background
+            position=(pos_x + 0.002, pos_y - 0.002, 9),  # In front of background
             scale=(panel_width - 0.01, panel_height - 0.01),
             origin=(-0.5, 0.5),
             eternal=True
@@ -281,7 +281,7 @@ class HelmetHUD3D:
         self.equipment_title = Text(
             text="[EQUIPMENT]",
             parent=self.parent,
-            position=(pos_x + 0.01, pos_y - 0.03, 10),  # High z-level (in front)
+            position=(pos_x + 0.01, pos_y - 0.03, -10),  # Low z-level (in front)
             scale=1.0,
             color=color.rgb(0.3, 1.0, 1.0),  # Cyan
             origin=(-0.5, 0.5),
@@ -296,7 +296,7 @@ class HelmetHUD3D:
         self.weapon_text = Text(
             text="⚔ None",
             parent=self.parent,
-            position=(pos_x + 0.01, pos_y - 0.09, 10),  # High z-level (in front)
+            position=(pos_x + 0.01, pos_y - 0.09, -10),  # Low z-level (in front)
             scale=0.9,
             color=color.white,
             origin=(-0.5, 0.5),
@@ -306,7 +306,7 @@ class HelmetHUD3D:
         self.armor_text = Text(
             text="🛡 None",
             parent=self.parent,
-            position=(pos_x + 0.01, pos_y - 0.09 - line_height, 10),  # High z-level (in front)
+            position=(pos_x + 0.01, pos_y - 0.09 - line_height, -10),  # Low z-level (in front)
             scale=0.9,
             color=color.white,
             origin=(-0.5, 0.5),
@@ -317,7 +317,7 @@ class HelmetHUD3D:
         self.accessory_text = Text(
             text="💍 None",
             parent=self.parent,
-            position=(pos_x + 0.01 + col_offset, pos_y - 0.09, 10),  # High z-level (in front)
+            position=(pos_x + 0.01 + col_offset, pos_y - 0.09, -10),  # Low z-level (in front)
             scale=0.9,
             color=color.white,
             origin=(-0.5, 0.5),
@@ -327,7 +327,7 @@ class HelmetHUD3D:
         self.boots_text = Text(
             text="👢 None",
             parent=self.parent,
-            position=(pos_x + 0.01 + col_offset, pos_y - 0.09 - line_height, 10),  # High z-level (in front)
+            position=(pos_x + 0.01 + col_offset, pos_y - 0.09 - line_height, -10),  # Low z-level (in front)
             scale=0.9,
             color=color.white,
             origin=(-0.5, 0.5),
@@ -347,7 +347,7 @@ class HelmetHUD3D:
             parent=self.parent,
             model='quad',
             color=color.rgba(0.02, 0.02, 0.15, 0.90),  # More opaque
-            position=(pos_x, pos_y, -10),  # Far back z-level
+            position=(pos_x, pos_y, 10),  # Far back z-level (behind text)
             scale=(panel_width, panel_height),
             origin=(-0.5, 0.5),
             eternal=True
@@ -358,7 +358,7 @@ class HelmetHUD3D:
             parent=self.parent,
             model='quad',
             color=color.rgba(0.2, 0.4, 0.6, 0.4),  # Slightly more visible
-            position=(pos_x + 0.002, pos_y - 0.002, -9),  # Just in front of background
+            position=(pos_x + 0.002, pos_y - 0.002, 9),  # In front of background
             scale=(panel_width - 0.01, panel_height - 0.01),
             origin=(-0.5, 0.5),
             eternal=True
@@ -368,7 +368,7 @@ class HelmetHUD3D:
         self.log_title = Text(
             text="[COMBAT LOG]",
             parent=self.parent,
-            position=(pos_x + 0.01, pos_y - 0.02, 10),  # High z-level (in front)
+            position=(pos_x + 0.01, pos_y - 0.02, -10),  # Low z-level (in front)
             scale=0.9,
             color=color.rgb(0.3, 1.0, 1.0),  # Cyan
             origin=(-0.5, 0.5),
@@ -406,7 +406,7 @@ class HelmetHUD3D:
         self.attack_text = Text(
             text="⚔ 10",
             parent=self.parent,
-            position=(pos_x, pos_y, 10),  # High z-level (in front)
+            position=(pos_x, pos_y, -10),  # Low z-level (in front)
             scale=1.1,
             color=color.rgb(1.0, 0.5, 0.5),  # Red
             origin=(-0.5, 0.5),
@@ -417,7 +417,7 @@ class HelmetHUD3D:
         self.defense_text = Text(
             text="🛡 5",
             parent=self.parent,
-            position=(pos_x + 0.12, pos_y, 10),  # High z-level (in front)
+            position=(pos_x + 0.12, pos_y, -10),  # Low z-level (in front)
             scale=1.1,
             color=color.rgb(0.5, 0.8, 1.0),  # Blue
             origin=(-0.5, 0.5),
@@ -428,7 +428,7 @@ class HelmetHUD3D:
         self.depth_text = Text(
             text="📍 D:1",
             parent=self.parent,
-            position=(pos_x + 0.24, pos_y, 10),  # High z-level (in front)
+            position=(pos_x + 0.24, pos_y, -10),  # Low z-level (in front)
             scale=1.1,
             color=color.rgb(1.0, 0.9, 0.3),  # Gold
             origin=(-0.5, 0.5),
@@ -439,7 +439,7 @@ class HelmetHUD3D:
         self.exploration_text = Text(
             text="🗺 0%",
             parent=self.parent,
-            position=(pos_x + 0.40, pos_y, 10),  # High z-level (in front)
+            position=(pos_x + 0.40, pos_y, -10),  # Low z-level (in front)
             scale=1.1,
             color=color.rgb(0.5, 1.0, 0.5),  # Green
             origin=(-0.5, 0.5),
@@ -450,7 +450,7 @@ class HelmetHUD3D:
         self.stealth_text = Text(
             text="",
             parent=self.parent,
-            position=(pos_x, pos_y - line_height, 10),  # High z-level (in front)
+            position=(pos_x, pos_y - line_height, -10),  # Low z-level (in front)
             scale=1.0,
             color=color.white,
             origin=(-0.5, 0.5),
@@ -633,8 +633,8 @@ class HelmetHUD3D:
 
         for i, entry in enumerate(self.combat_log_entries):
             if entry.text_entity:
-                y_pos = pos_y + (i * line_height)
-                entry.text_entity.position = (pos_x, y_pos, 10)  # High z-level (in front)
+                y_pos = pos_y - (i * line_height)  # FIXED: Subtract to go downward
+                entry.text_entity.position = (pos_x, y_pos, -10)  # Low z-level (in front)
 
                 # Fade effect
                 alpha = 1.0 - (entry.age / entry.lifetime)
@@ -663,7 +663,7 @@ class HelmetHUD3D:
         entry.text_entity = Text(
             text=f"• {message}",
             parent=self.parent,
-            position=(-0.59, -0.36, 10),  # High z-level (in front), will be repositioned in update
+            position=(-0.59, -0.36, -10),  # Low z-level (in front), will be repositioned in update
             scale=0.9,
             color=color.rgba(*msg_color, 1.0),
             origin=(-0.5, 0.5),
@@ -789,7 +789,7 @@ class AbilitySlot:
             parent=parent,
             model='quad',
             color=color.rgba(0.1, 0.1, 0.15, 0.9),
-            position=(self.position.x, self.position.y, -10),  # Far back
+            position=(self.position.x, self.position.y, 10),  # Far back (behind text)
             scale=(self.slot_size, self.slot_size),
             origin=(0, 0),
             eternal=True
@@ -800,7 +800,7 @@ class AbilitySlot:
             parent=parent,
             model='quad',
             color=color.rgb(0.3, 0.3, 0.3),
-            position=(self.position.x, self.position.y, -9),  # In front of background
+            position=(self.position.x, self.position.y, 9),  # In front of background
             scale=(self.slot_size * 0.9, self.slot_size * 0.9),
             origin=(0, 0),
             eternal=True
@@ -811,7 +811,7 @@ class AbilitySlot:
             parent=parent,
             model='quad',
             color=color.rgba(0, 0, 0, 0.7),
-            position=(self.position.x, self.position.y, -8),  # In front of icon
+            position=(self.position.x, self.position.y, 8),  # In front of icon
             scale=(self.slot_size * 0.9, self.slot_size * 0.9),
             origin=(0, 0),
             visible=False,
@@ -822,7 +822,7 @@ class AbilitySlot:
         self.ability_name_text = Text(
             text="",
             parent=parent,
-            position=(self.position.x, self.position.y + self.slot_size * 0.65, 10),  # High z-level
+            position=(self.position.x, self.position.y + self.slot_size * 0.65, -10),  # Low z-level (in front)
             scale=0.75,
             color=color.white,
             origin=(0, 0),
@@ -834,7 +834,7 @@ class AbilitySlot:
         self.hotkey_text = Text(
             text=f"[{hotkey_number}]",
             parent=parent,
-            position=(self.position.x, self.position.y - self.slot_size * 0.65, 10),  # High z-level
+            position=(self.position.x, self.position.y - self.slot_size * 0.65, -10),  # Low z-level (in front)
             scale=0.85,
             color=color.rgb(1.0, 0.9, 0.3),  # Gold
             origin=(0, 0),
@@ -845,7 +845,7 @@ class AbilitySlot:
         self.cooldown_text = Text(
             text="",
             parent=parent,
-            position=(self.position.x, self.position.y, 10),  # High z-level
+            position=(self.position.x, self.position.y, -10),  # Low z-level (in front)
             scale=1.1,
             color=color.white,
             origin=(0, 0),
