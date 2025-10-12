@@ -1,0 +1,357 @@
+"""
+3D Main Menu Screen
+
+Main menu with star tunnel background and navigation options.
+Uses Ursina for 3D rendering and UI.
+"""
+
+from ursina import Entity, camera, color, Text, Button, Vec3, time as ursina_time
+import math
+import random
+import constants as c
+from audio import get_audio_manager
+
+
+class MainMenu3D(Entity):
+    """
+    3D main menu screen with animated star tunnel background.
+
+    Options:
+    - New Game -> Class Selection
+    - How to Play -> Info dialog
+    - Settings -> Settings screen
+    - Quit -> Exit application
+    """
+
+    def __init__(self, screen_manager):
+        super().__init__()
+        self.screen_manager = screen_manager
+        self.audio = get_audio_manager()
+
+        # Star tunnel state
+        self.stars = []
+        self.time_elapsed = 0.0
+
+        # UI elements
+        self.ui_elements = []
+        self.buttons = []
+        self.how_to_play_panel = None
+        self.showing_how_to_play = False
+
+        # Initialize
+        self._init_stars()
+        self._create_ui()
+
+        # Initially hidden
+        self.enabled = False
+
+        print("✓ MainMenu3D initialized")
+
+    def _init_stars(self):
+        """Initialize star tunnel with 800-1000 stars in cylindrical distribution"""
+        num_stars = random.randint(800, 1000)
+
+        for _ in range(num_stars):
+            # Cylindrical distribution for tunnel effect
+            angle = random.uniform(0, 2 * math.pi)
+            radius = random.uniform(0, 18)  # Max radius from center
+
+            x = radius * math.cos(angle)
+            y = radius * math.sin(angle)
+            z = random.uniform(-60, -5)  # Depth range
+
+            # Rotation angle for spiral effect
+            rotation_angle = random.uniform(0, 360)
+
+            # Speed varies per star
+            speed = random.uniform(0.8, 1.5)
+
+            self.stars.append({
+                'x': x, 'y': y, 'z': z,
+                'angle': rotation_angle,
+                'speed': speed,
+                'base_x': x,  # Remember original radius position
+                'base_y': y
+            })
+
+    def _create_ui(self):
+        """Create UI overlay elements"""
+        # Title
+        title = Text(
+            text="CLAUDE-LIKE",
+            position=(0, 0.38),
+            origin=(0, 0),
+            scale=3.5,
+            color=color.rgb(200, 180, 255),
+            parent=camera.ui
+        )
+        self.ui_elements.append(title)
+
+        # Subtitle
+        subtitle = Text(
+            text="A Roguelike Adventure",
+            position=(0, 0.28),
+            origin=(0, 0),
+            scale=1.5,
+            color=color.rgb(150, 150, 180),
+            parent=camera.ui
+        )
+        self.ui_elements.append(subtitle)
+
+        # Menu buttons
+        button_y_start = 0.08
+        button_spacing = 0.12
+        button_width = 0.32
+        button_height = 0.08
+
+        # New Game button
+        self.new_game_button = Button(
+            text="NEW GAME",
+            scale=(button_width, button_height),
+            position=(0, button_y_start),
+            color=color.rgb(50, 48, 45),
+            highlight_color=color.rgb(120, 100, 180),
+            parent=camera.ui,
+            on_click=self._on_new_game
+        )
+        self.buttons.append(self.new_game_button)
+        self.ui_elements.append(self.new_game_button)
+
+        # How to Play button
+        self.how_to_play_button = Button(
+            text="HOW TO PLAY",
+            scale=(button_width, button_height),
+            position=(0, button_y_start - button_spacing),
+            color=color.rgb(50, 48, 45),
+            highlight_color=color.rgb(120, 100, 180),
+            parent=camera.ui,
+            on_click=self._on_how_to_play
+        )
+        self.buttons.append(self.how_to_play_button)
+        self.ui_elements.append(self.how_to_play_button)
+
+        # Settings button
+        self.settings_button = Button(
+            text="SETTINGS",
+            scale=(button_width, button_height),
+            position=(0, button_y_start - button_spacing * 2),
+            color=color.rgb(50, 48, 45),
+            highlight_color=color.rgb(120, 100, 180),
+            parent=camera.ui,
+            on_click=self._on_settings
+        )
+        self.buttons.append(self.settings_button)
+        self.ui_elements.append(self.settings_button)
+
+        # Quit button
+        self.quit_button = Button(
+            text="QUIT",
+            scale=(button_width, button_height),
+            position=(0, button_y_start - button_spacing * 3),
+            color=color.rgb(50, 48, 45),
+            highlight_color=color.rgb(120, 100, 180),
+            parent=camera.ui,
+            on_click=self._on_quit
+        )
+        self.buttons.append(self.quit_button)
+        self.ui_elements.append(self.quit_button)
+
+    def _on_new_game(self):
+        """Handle New Game button click"""
+        self.audio.play_ui_select()
+        print("[MainMenu] New Game clicked")
+
+        from ui.screens.screen_manager_3d import ScreenState
+        self.screen_manager.change_screen(ScreenState.CLASS_SELECTION)
+
+    def _on_how_to_play(self):
+        """Handle How to Play button click"""
+        self.audio.play_ui_select()
+        print("[MainMenu] How to Play clicked")
+
+        if not self.showing_how_to_play:
+            self._show_how_to_play_panel()
+        else:
+            self._hide_how_to_play_panel()
+
+    def _show_how_to_play_panel(self):
+        """Show How to Play information panel"""
+        self.showing_how_to_play = True
+
+        # Dim background overlay
+        self.how_to_play_bg = Entity(
+            model='quad',
+            color=(0, 0, 0, 200/255),
+            scale=(100, 100),
+            position=(0, 0, -0.5),
+            parent=camera.ui
+        )
+
+        # Panel background
+        panel_bg = Entity(
+            model='quad',
+            color=color.rgb(40, 40, 45),
+            scale=(1.4, 1.6),
+            position=(0, 0, -0.4),
+            parent=camera.ui
+        )
+
+        # Title
+        title = Text(
+            text="HOW TO PLAY",
+            position=(0, 0.68),
+            origin=(0, 0),
+            scale=2.5,
+            color=color.rgb(220, 220, 230),
+            parent=camera.ui
+        )
+
+        # Instructions (multi-line text)
+        instructions = [
+            "OBJECTIVE: Conquer all 25 levels of the dungeon!",
+            "",
+            "CONTROLS:",
+            "  WASD / Arrow Keys - Move",
+            "  1/2/3 - Use abilities (class-specific)",
+            "  Arrow Left/Right - Rotate camera",
+            "  ESC - Pause menu",
+            "",
+            "GAMEPLAY:",
+            "  • Fight enemies to gain XP and level up",
+            "  • Collect equipment to boost your stats",
+            "  • Find the stairs (purple) to descend",
+            "  • Health potions restore HP immediately",
+            "",
+            "TIPS:",
+            "  • Choose your class wisely",
+            "  • Environment changes every 5 levels",
+            "  • Higher levels = better loot + stronger enemies",
+        ]
+
+        # Create text elements for each line
+        instruction_entities = []
+        line_y = 0.50
+        line_spacing = 0.085
+
+        for line in instructions:
+            if line == "":
+                line_y -= line_spacing * 0.5  # Half spacing for empty lines
+                continue
+
+            text_entity = Text(
+                text=line,
+                position=(-0.62, line_y),  # Left-aligned
+                origin=(0, 0),
+                scale=1.0,
+                color=color.rgb(200, 200, 210),
+                parent=camera.ui
+            )
+            instruction_entities.append(text_entity)
+            line_y -= line_spacing
+
+        # Close button
+        close_button = Button(
+            text="CLOSE",
+            scale=(0.25, 0.08),
+            position=(0, -0.68),
+            color=color.rgb(100, 100, 255),
+            highlight_color=color.rgb(130, 130, 255),
+            parent=camera.ui,
+            on_click=self._hide_how_to_play_panel
+        )
+
+        # Store references for cleanup
+        self.how_to_play_panel = [
+            self.how_to_play_bg,
+            panel_bg,
+            title,
+            close_button
+        ] + instruction_entities
+
+    def _hide_how_to_play_panel(self):
+        """Hide How to Play panel"""
+        if self.how_to_play_panel:
+            for entity in self.how_to_play_panel:
+                entity.enabled = False
+                # Destroy to prevent memory leak
+                if hasattr(entity, 'disable'):
+                    entity.disable()
+            self.how_to_play_panel = None
+
+        self.showing_how_to_play = False
+
+    def _on_settings(self):
+        """Handle Settings button click"""
+        self.audio.play_ui_select()
+        print("[MainMenu] Settings clicked")
+
+        from ui.screens.screen_manager_3d import ScreenState
+        self.screen_manager.change_screen(ScreenState.SETTINGS)
+
+    def _on_quit(self):
+        """Handle Quit button click"""
+        self.audio.play_ui_select()
+        print("[MainMenu] Quit clicked")
+        self.screen_manager.quit_game()
+
+    def update(self):
+        """Update star tunnel animation"""
+        if not self.enabled:
+            return
+
+        dt = ursina_time.dt
+        self.time_elapsed += dt
+
+        # Update star tunnel - move toward camera and rotate
+        for star in self.stars:
+            # Move toward camera
+            star['z'] += dt * star['speed'] * 25
+
+            # Rotate around Z-axis for spiral effect
+            star['angle'] += dt * 30  # Degrees per second
+
+            # Respawn star at back when it reaches camera
+            if star['z'] > -1:
+                star['z'] = -60
+                # Randomize position slightly on respawn
+                angle = random.uniform(0, 2 * math.pi)
+                radius = random.uniform(0, 18)
+                star['base_x'] = radius * math.cos(angle)
+                star['base_y'] = radius * math.sin(angle)
+                star['angle'] = random.uniform(0, 360)
+                star['speed'] = random.uniform(0.8, 1.5)
+
+    def render_stars(self):
+        """Render star tunnel (called by screen manager in paintGL equivalent)"""
+        # This is a placeholder - actual rendering happens in Ursina's render loop
+        # We'd need to implement custom rendering with Ursina's rendering API
+        # For now, stars are visual only (no actual rendering code needed in Ursina)
+        pass
+
+    def show(self):
+        """Show the main menu"""
+        self.enabled = True
+
+        # Show all UI elements
+        for element in self.ui_elements:
+            element.enabled = True
+
+        # Reset camera position (in case it was moved)
+        camera.position = Vec3(0, 0, 0)
+        camera.rotation = Vec3(0, 0, 0)
+
+        print("[MainMenu] Main menu shown")
+
+    def hide(self):
+        """Hide the main menu"""
+        self.enabled = False
+
+        # Hide all UI elements
+        for element in self.ui_elements:
+            element.enabled = False
+
+        # Hide how-to-play panel if showing
+        if self.showing_how_to_play:
+            self._hide_how_to_play_panel()
+
+        print("[MainMenu] Main menu hidden")

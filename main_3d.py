@@ -631,8 +631,8 @@ def main_3d():
 
     updater = ScreenManagerUpdater(screen_manager)
 
-    # Start with class selection screen
-    screen_manager.change_screen(ScreenState.CLASS_SELECTION)
+    # Start with main menu screen
+    screen_manager.change_screen(ScreenState.MAIN_MENU)
 
     # Print controls
     print("\n" + "=" * 50)

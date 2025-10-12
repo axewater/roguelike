@@ -141,10 +141,14 @@ class PauseMenu3D(Entity):
         self.screen_manager.change_screen(ScreenState.CLASS_SELECTION)
 
     def _settings(self):
-        """Open settings (placeholder for Phase 8)"""
+        """Open settings"""
         self.audio.play_ui_select()
-        print("[PauseMenu] Settings clicked (not implemented yet)")
-        # TODO: Implement settings screen in Phase 8
+        print("[PauseMenu] Settings clicked")
+        # First resume from pause, then change to settings
+        self.screen_manager.resume_from_pause()
+        from ui.screens.screen_manager_3d import ScreenState
+        # Set previous state as GAME so settings knows to return to pause menu context
+        self.screen_manager.change_screen(ScreenState.SETTINGS)
 
     def _main_menu(self):
         """Return to main menu"""

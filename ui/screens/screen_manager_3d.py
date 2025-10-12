@@ -14,6 +14,7 @@ class ScreenState(Enum):
     """Screen states for the 3D game"""
     TITLE = "title"
     MAIN_MENU = "main_menu"
+    SETTINGS = "settings"
     CLASS_SELECTION = "class_selection"
     GAME = "game"
     VICTORY = "victory"
@@ -37,6 +38,7 @@ class ScreenManager3D:
         # Screen instances (lazy loaded)
         self.title_screen = None
         self.main_menu = None
+        self.settings_screen = None
         self.class_selection = None
         self.game_controller = None
         self.victory_screen = None
@@ -167,6 +169,10 @@ class ScreenManager3D:
             if self.main_menu:
                 self.main_menu.hide()
 
+        elif self.current_state == ScreenState.SETTINGS:
+            if self.settings_screen:
+                self.settings_screen.hide()
+
         elif self.current_state == ScreenState.CLASS_SELECTION:
             if self.class_selection:
                 self.class_selection.hide()
@@ -200,13 +206,19 @@ class ScreenManager3D:
 
         elif state == ScreenState.MAIN_MENU:
             # Import here to avoid circular imports
-            from ui.screens.main_menu import MainMenuScreen
+            from ui.screens.main_menu_3d import MainMenu3D
             if not self.main_menu:
-                print("[ScreenManager] Main menu needs PyQt6 integration")
-                # For now, skip to class selection
-                self.change_screen(ScreenState.CLASS_SELECTION)
-            else:
-                self.main_menu.show()
+                self.main_menu = MainMenu3D(self)
+            self.main_menu.show()
+
+        elif state == ScreenState.SETTINGS:
+            # Import here to avoid circular imports
+            from ui.screens.settings_screen_3d import Settings3D
+            if not self.settings_screen:
+                self.settings_screen = Settings3D(self)
+            # Set previous screen so Back button works
+            self.settings_screen.set_previous_screen(self.previous_state)
+            self.settings_screen.show()
 
         elif state == ScreenState.CLASS_SELECTION:
             if not self.class_selection:
