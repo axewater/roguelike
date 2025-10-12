@@ -9,6 +9,7 @@ from ursina import Entity, camera, color, Text, Button, Vec3, held_keys, mouse, 
 import math
 import constants as c
 from audio import get_audio_manager
+from ui.widgets.dungeon_button_3d import DungeonButton
 
 
 class ClassSelection3D(Entity):
@@ -246,33 +247,30 @@ class ClassSelection3D(Entity):
             self.ability_texts.append(ability_text)
             self.ui_elements.append(ability_text)
 
-        # Navigation arrows (use text labels to avoid Ursina text rendering bug)
-        self.left_arrow = Button(
-            text="PREV",
-            scale=(0.12, 0.06),
+        # Navigation arrows (dungeon-styled)
+        self.left_arrow = DungeonButton(
+            text="< PREV",
+            scale=(0.15, 0.07),
             position=(-0.6, 0),
-            color=color.rgb(80, 80, 90),
             parent=camera.ui,
             on_click=self._previous_class
         )
         self.ui_elements.append(self.left_arrow)
 
-        self.right_arrow = Button(
-            text="NEXT",
-            scale=(0.12, 0.06),
+        self.right_arrow = DungeonButton(
+            text="NEXT >",
+            scale=(0.15, 0.07),
             position=(0.6, 0),
-            color=color.rgb(80, 80, 90),
             parent=camera.ui,
             on_click=self._next_class
         )
         self.ui_elements.append(self.right_arrow)
 
-        # Start button
-        self.start_button = Button(
+        # Start button (dungeon-styled, larger)
+        self.start_button = DungeonButton(
             text="START GAME",
-            scale=(0.2, 0.08),
+            scale=(0.35, 0.09),
             position=(0, -0.42),
-            color=color.rgb(60, 120, 60),
             parent=camera.ui,
             on_click=self._start_game
         )

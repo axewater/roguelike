@@ -10,6 +10,7 @@ import math
 import random
 import constants as c
 from audio import get_audio_manager
+from ui.widgets.dungeon_button_3d import DungeonButton
 
 
 class MainMenu3D(Entity):
@@ -98,19 +99,17 @@ class MainMenu3D(Entity):
         )
         self.ui_elements.append(subtitle)
 
-        # Menu buttons
+        # Menu buttons (dungeon-styled)
         button_y_start = 0.08
-        button_spacing = 0.12
-        button_width = 0.32
-        button_height = 0.08
+        button_spacing = 0.13  # Slightly more spacing
+        button_width = 0.35  # Slightly wider
+        button_height = 0.09  # Slightly taller
 
         # New Game button
-        self.new_game_button = Button(
+        self.new_game_button = DungeonButton(
             text="NEW GAME",
             scale=(button_width, button_height),
             position=(0, button_y_start),
-            color=color.rgb(50, 48, 45),
-            highlight_color=color.rgb(120, 100, 180),
             parent=camera.ui,
             on_click=self._on_new_game
         )
@@ -118,12 +117,10 @@ class MainMenu3D(Entity):
         self.ui_elements.append(self.new_game_button)
 
         # How to Play button
-        self.how_to_play_button = Button(
+        self.how_to_play_button = DungeonButton(
             text="HOW TO PLAY",
             scale=(button_width, button_height),
             position=(0, button_y_start - button_spacing),
-            color=color.rgb(50, 48, 45),
-            highlight_color=color.rgb(120, 100, 180),
             parent=camera.ui,
             on_click=self._on_how_to_play
         )
@@ -131,12 +128,10 @@ class MainMenu3D(Entity):
         self.ui_elements.append(self.how_to_play_button)
 
         # Settings button
-        self.settings_button = Button(
+        self.settings_button = DungeonButton(
             text="SETTINGS",
             scale=(button_width, button_height),
             position=(0, button_y_start - button_spacing * 2),
-            color=color.rgb(50, 48, 45),
-            highlight_color=color.rgb(120, 100, 180),
             parent=camera.ui,
             on_click=self._on_settings
         )
@@ -144,12 +139,10 @@ class MainMenu3D(Entity):
         self.ui_elements.append(self.settings_button)
 
         # Quit button
-        self.quit_button = Button(
+        self.quit_button = DungeonButton(
             text="QUIT",
             scale=(button_width, button_height),
             position=(0, button_y_start - button_spacing * 3),
-            color=color.rgb(50, 48, 45),
-            highlight_color=color.rgb(120, 100, 180),
             parent=camera.ui,
             on_click=self._on_quit
         )
@@ -249,13 +242,11 @@ class MainMenu3D(Entity):
             instruction_entities.append(text_entity)
             line_y -= line_spacing
 
-        # Close button
-        close_button = Button(
+        # Close button (dungeon-styled)
+        close_button = DungeonButton(
             text="CLOSE",
-            scale=(0.25, 0.08),
+            scale=(0.28, 0.09),
             position=(0, -0.68),
-            color=color.rgb(100, 100, 255),
-            highlight_color=color.rgb(130, 130, 255),
             parent=camera.ui,
             on_click=self._hide_how_to_play_panel
         )

@@ -6,6 +6,7 @@ Semi-transparent overlay that appears when ESC is pressed during gameplay.
 
 from ursina import Entity, camera, color, Text, Button, held_keys
 from audio import get_audio_manager
+from ui.widgets.dungeon_button_3d import DungeonButton
 
 
 class PauseMenu3D(Entity):
@@ -71,55 +72,52 @@ class PauseMenu3D(Entity):
         )
         self.ui_elements.append(hint)
 
-        # Buttons
+        # Buttons (dungeon-styled)
         button_y = 0.08
-        button_spacing = 0.11
+        button_spacing = 0.12  # Slightly more spacing
+        button_width = 0.32
+        button_height = 0.09
 
-        self.resume_button = Button(
+        self.resume_button = DungeonButton(
             text="RESUME",
-            scale=(0.28, 0.08),
+            scale=(button_width, button_height),
             position=(0, button_y),
-            color=color.rgb(60, 120, 60),
             parent=camera.ui,
             on_click=self._resume
         )
         self.ui_elements.append(self.resume_button)
 
-        self.restart_button = Button(
+        self.restart_button = DungeonButton(
             text="RESTART",
-            scale=(0.28, 0.08),
+            scale=(button_width, button_height),
             position=(0, button_y - button_spacing),
-            color=color.rgb(100, 100, 120),
             parent=camera.ui,
             on_click=self._restart
         )
         self.ui_elements.append(self.restart_button)
 
-        self.settings_button = Button(
+        self.settings_button = DungeonButton(
             text="SETTINGS",
-            scale=(0.28, 0.08),
+            scale=(button_width, button_height),
             position=(0, button_y - button_spacing * 2),
-            color=color.rgb(80, 80, 100),
             parent=camera.ui,
             on_click=self._settings
         )
         self.ui_elements.append(self.settings_button)
 
-        self.main_menu_button = Button(
+        self.main_menu_button = DungeonButton(
             text="MAIN MENU",
-            scale=(0.28, 0.08),
+            scale=(button_width, button_height),
             position=(0, button_y - button_spacing * 3),
-            color=color.rgb(120, 100, 60),
             parent=camera.ui,
             on_click=self._main_menu
         )
         self.ui_elements.append(self.main_menu_button)
 
-        self.quit_button = Button(
+        self.quit_button = DungeonButton(
             text="QUIT",
-            scale=(0.28, 0.08),
+            scale=(button_width, button_height),
             position=(0, button_y - button_spacing * 4),
-            color=color.rgb(120, 60, 60),
             parent=camera.ui,
             on_click=self._quit
         )

@@ -8,6 +8,7 @@ Uses Ursina UI elements.
 from ursina import Entity, camera, color, Text, Button, Slider, time as ursina_time
 import constants as c
 from audio import get_audio_manager
+from ui.widgets.dungeon_button_3d import DungeonButton
 
 
 class Settings3D(Entity):
@@ -94,14 +95,16 @@ class Settings3D(Entity):
             min=0, max=100,
             default=int(self.audio.music_volume * 100),
             step=1,
-            height=0.04,
+            height=0.05,  # Thicker for better visibility
             width=0.7,
             position=(-0.48, 0.12),
             parent=camera.ui,
             on_value_changed=self._on_music_volume_changed
         )
-        self.music_slider.knob.color = color.rgb(150, 100, 255)
-        self.music_slider.bg.color = color.rgb(60, 60, 70)
+        # Dungeon-styled slider colors
+        self.music_slider.knob.color = color.rgb(150, 100, 255)  # Purple knob
+        self.music_slider.knob.scale *= 1.3  # Larger knob
+        self.music_slider.bg.color = color.rgb(40, 38, 35)  # Darker stone background
         self.ui_elements.append(self.music_slider)
 
         # Music value display
@@ -131,14 +134,16 @@ class Settings3D(Entity):
             min=0, max=100,
             default=int(self.audio.sfx_volume * 100),
             step=1,
-            height=0.04,
+            height=0.05,  # Thicker for better visibility
             width=0.7,
             position=(-0.48, -0.15),
             parent=camera.ui,
             on_value_changed=self._on_sfx_volume_changed
         )
-        self.sfx_slider.knob.color = color.rgb(100, 200, 255)
-        self.sfx_slider.bg.color = color.rgb(60, 60, 70)
+        # Dungeon-styled slider colors
+        self.sfx_slider.knob.color = color.rgb(100, 200, 255)  # Blue knob
+        self.sfx_slider.knob.scale *= 1.3  # Larger knob
+        self.sfx_slider.bg.color = color.rgb(40, 38, 35)  # Darker stone background
         self.ui_elements.append(self.sfx_slider)
 
         # SFX value display
@@ -152,13 +157,11 @@ class Settings3D(Entity):
         )
         self.ui_elements.append(self.sfx_value_text)
 
-        # Back button
-        self.back_button = Button(
+        # Back button (dungeon-styled)
+        self.back_button = DungeonButton(
             text="BACK",
-            scale=(0.28, 0.08),
+            scale=(0.32, 0.09),
             position=(0, -0.38),
-            color=color.rgb(80, 80, 100),
-            highlight_color=color.rgb(100, 100, 130),
             parent=camera.ui,
             on_click=self._on_back
         )
