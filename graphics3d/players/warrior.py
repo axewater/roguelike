@@ -26,7 +26,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     body = Entity(
         parent=warrior,
         model='cube',
-        color=color.rgb(180, 60, 40),  # Red armor
+        color=color.rgb(180/255, 60/255, 40/255),  # Red armor
         scale=(0.5, 0.6, 0.3),
         position=(0, 0, 0)
     )
@@ -35,7 +35,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     head = Entity(
         parent=warrior,
         model='sphere',
-        color=color.rgb(200, 160, 130),  # Skin tone
+        color=color.rgb(200/255, 160/255, 130/255),  # Skin tone
         scale=(0.25, 0.25, 0.25),
         position=(0, 0.5, 0)
     )
@@ -44,7 +44,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     helmet = Entity(
         parent=warrior,
         model='cube',
-        color=color.rgb(140, 140, 150),  # Steel gray
+        color=color.rgb(140/255, 140/255, 150/255),  # Steel gray
         scale=(0.28, 0.15, 0.28),
         position=(0, 0.6, 0)
     )
@@ -53,7 +53,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     left_arm = Entity(
         parent=warrior,
         model='cube',
-        color=color.rgb(180, 60, 40),
+        color=color.rgb(180/255, 60/255, 40/255),
         scale=(0.15, 0.5, 0.15),
         position=(-0.35, 0, 0)
     )
@@ -62,7 +62,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     right_arm = Entity(
         parent=warrior,
         model='cube',
-        color=color.rgb(180, 60, 40),
+        color=color.rgb(180/255, 60/255, 40/255),
         scale=(0.15, 0.5, 0.15),
         position=(0.35, 0, 0)
     )
@@ -71,7 +71,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     sword = Entity(
         parent=warrior,
         model='cube',
-        color=color.rgb(200, 200, 210),  # Silver blade
+        color=color.rgb(200/255, 200/255, 210/255),  # Silver blade
         scale=(0.08, 0.8, 0.08),
         position=(0.5, 0.2, 0),
         rotation=(0, 0, -45)  # Angled
@@ -81,7 +81,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     hilt = Entity(
         parent=warrior,
         model='cube',
-        color=color.rgb(100, 80, 50),  # Brown leather
+        color=color.rgb(100/255, 80/255, 50/255),  # Brown leather
         scale=(0.12, 0.15, 0.12),
         position=(0.45, -0.3, 0),
         rotation=(0, 0, -45)
@@ -91,7 +91,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     shield = Entity(
         parent=warrior,
         model='cube',
-        color=color.rgb(60, 120, 180),  # Blue shield
+        color=color.rgb(60/255, 120/255, 180/255),  # Blue shield
         scale=(0.35, 0.45, 0.08),
         position=(-0.45, 0, 0.1),
         rotation=(0, 15, 0)
@@ -101,7 +101,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     shield_boss = Entity(
         parent=warrior,
         model='sphere',
-        color=color.rgb(180, 160, 50),  # Gold
+        color=color.rgb(180/255, 160/255, 50/255),  # Gold
         scale=(0.1, 0.1, 0.05),
         position=(-0.45, 0, 0.15)
     )
@@ -110,7 +110,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     left_leg = Entity(
         parent=warrior,
         model='cube',
-        color=color.rgb(80, 70, 60),  # Dark brown pants
+        color=color.rgb(80/255, 70/255, 60/255),  # Dark brown pants
         scale=(0.2, 0.5, 0.2),
         position=(-0.15, -0.6, 0)
     )
@@ -118,7 +118,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     right_leg = Entity(
         parent=warrior,
         model='cube',
-        color=color.rgb(80, 70, 60),
+        color=color.rgb(80/255, 70/255, 60/255),
         scale=(0.2, 0.5, 0.2),
         position=(0.15, -0.6, 0)
     )
@@ -127,7 +127,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     belt = Entity(
         parent=warrior,
         model='cube',
-        color=color.rgb(60, 50, 40),  # Leather belt
+        color=color.rgb(60/255, 50/255, 40/255),  # Leather belt
         scale=(0.52, 0.1, 0.32),
         position=(0, -0.3, 0)
     )

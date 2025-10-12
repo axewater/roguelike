@@ -26,7 +26,7 @@ def create_ranger_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     body = Entity(
         parent=ranger,
         model='cube',
-        color=color.rgb(100, 200, 100),  # Forest green
+        color=color.rgb(100/255, 200/255, 100/255),  # Forest green
         scale=(0.4, 0.6, 0.28),
         position=(0, 0, 0)
     )
@@ -35,7 +35,7 @@ def create_ranger_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     head = Entity(
         parent=ranger,
         model='sphere',
-        color=color.rgb(200, 160, 130),  # Skin tone
+        color=color.rgb(200/255, 160/255, 130/255),  # Skin tone
         scale=(0.22, 0.22, 0.22),
         position=(0, 0.48, 0)
     )
@@ -44,7 +44,7 @@ def create_ranger_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     cap = Entity(
         parent=ranger,
         model='cube',
-        color=color.rgb(80, 140, 70),  # Dark green
+        color=color.rgb(80/255, 140/255, 70/255),  # Dark green
         scale=(0.25, 0.12, 0.25),
         position=(0, 0.58, 0)
     )
@@ -53,7 +53,7 @@ def create_ranger_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     feather = Entity(
         parent=ranger,
         model='cube',
-        color=color.rgb(180, 50, 50),  # Red feather
+        color=color.rgb(180/255, 50/255, 50/255),  # Red feather
         scale=(0.03, 0.15, 0.03),
         position=(0.12, 0.65, 0),
         rotation=(0, 0, -30)
@@ -63,7 +63,7 @@ def create_ranger_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     left_arm = Entity(
         parent=ranger,
         model='cube',
-        color=color.rgb(90, 180, 90),
+        color=color.rgb(90/255, 180/255, 90/255),
         scale=(0.13, 0.45, 0.13),
         position=(-0.3, 0, 0),
         rotation=(0, 0, -30)  # Extended to hold bow
@@ -73,7 +73,7 @@ def create_ranger_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     right_arm = Entity(
         parent=ranger,
         model='cube',
-        color=color.rgb(90, 180, 90),
+        color=color.rgb(90/255, 180/255, 90/255),
         scale=(0.13, 0.45, 0.13),
         position=(0.3, 0.05, 0),
         rotation=(0, 0, 30)
@@ -83,7 +83,7 @@ def create_ranger_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     bow_upper = Entity(
         parent=ranger,
         model='cube',
-        color=color.rgb(120, 80, 40),  # Brown wood
+        color=color.rgb(120/255, 80/255, 40/255),  # Brown wood
         scale=(0.06, 0.5, 0.06),
         position=(-0.4, 0.3, 0),
         rotation=(0, 0, -15)  # Curved
@@ -92,7 +92,7 @@ def create_ranger_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     bow_lower = Entity(
         parent=ranger,
         model='cube',
-        color=color.rgb(120, 80, 40),
+        color=color.rgb(120/255, 80/255, 40/255),
         scale=(0.06, 0.5, 0.06),
         position=(-0.4, -0.3, 0),
         rotation=(0, 0, 15)  # Curved opposite
@@ -102,7 +102,7 @@ def create_ranger_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     bowstring = Entity(
         parent=ranger,
         model='cube',
-        color=color.rgb(220, 220, 200),  # Light string
+        color=color.rgb(220/255, 220/255, 200/255),  # Light string
         scale=(0.02, 0.8, 0.02),
         position=(-0.35, 0, 0)
     )
@@ -111,7 +111,7 @@ def create_ranger_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     quiver = Entity(
         parent=ranger,
         model='cube',
-        color=color.rgb(100, 70, 40),  # Brown leather
+        color=color.rgb(100/255, 70/255, 40/255),  # Brown leather
         scale=(0.15, 0.5, 0.15),
         position=(0.15, 0.1, -0.2),
         rotation=(0, 0, -15)  # Angled on back
@@ -122,7 +122,7 @@ def create_ranger_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         arrow_shaft = Entity(
             parent=ranger,
             model='cube',
-            color=color.rgb(140, 100, 60),  # Wood shaft
+            color=color.rgb(140/255, 100/255, 60/255),  # Wood shaft
             scale=(0.03, 0.3, 0.03),
             position=(0.12 + i * 0.04, 0.45, -0.2),
             rotation=(0, 0, -15)
@@ -131,7 +131,7 @@ def create_ranger_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         arrow_fletching = Entity(
             parent=ranger,
             model='cube',
-            color=color.rgb(200, 50, 50) if i == 1 else color.rgb(100, 150, 50),  # Red or green
+            color=color.rgb(200/255, 50/255, 50/255) if i == 1 else color.rgb(100/255, 150/255, 50/255),  # Red or green
             scale=(0.08, 0.08, 0.02),
             position=(0.12 + i * 0.04, 0.55, -0.2),
             rotation=(0, 0, -15)
@@ -141,7 +141,7 @@ def create_ranger_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     left_leg = Entity(
         parent=ranger,
         model='cube',
-        color=color.rgb(90, 70, 50),  # Brown pants
+        color=color.rgb(90/255, 70/255, 50/255),  # Brown pants
         scale=(0.17, 0.5, 0.17),
         position=(-0.13, -0.6, 0)
     )
@@ -149,7 +149,7 @@ def create_ranger_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     right_leg = Entity(
         parent=ranger,
         model='cube',
-        color=color.rgb(90, 70, 50),
+        color=color.rgb(90/255, 70/255, 50/255),
         scale=(0.17, 0.5, 0.17),
         position=(0.13, -0.6, 0)
     )
@@ -158,7 +158,7 @@ def create_ranger_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     belt = Entity(
         parent=ranger,
         model='cube',
-        color=color.rgb(80, 60, 40),  # Leather belt
+        color=color.rgb(80/255, 60/255, 40/255),  # Leather belt
         scale=(0.42, 0.08, 0.3),
         position=(0, -0.3, 0)
     )
@@ -167,7 +167,7 @@ def create_ranger_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     pouch = Entity(
         parent=ranger,
         model='cube',
-        color=color.rgb(90, 70, 50),
+        color=color.rgb(90/255, 70/255, 50/255),
         scale=(0.12, 0.1, 0.12),
         position=(0.2, -0.35, 0)
     )
@@ -176,7 +176,7 @@ def create_ranger_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     left_boot = Entity(
         parent=ranger,
         model='cube',
-        color=color.rgb(70, 50, 30),  # Dark brown leather
+        color=color.rgb(70/255, 50/255, 30/255),  # Dark brown leather
         scale=(0.2, 0.15, 0.25),
         position=(-0.13, -0.9, 0.02)
     )
@@ -184,7 +184,7 @@ def create_ranger_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     right_boot = Entity(
         parent=ranger,
         model='cube',
-        color=color.rgb(70, 50, 30),
+        color=color.rgb(70/255, 50/255, 30/255),
         scale=(0.2, 0.15, 0.25),
         position=(0.13, -0.9, 0.02)
     )

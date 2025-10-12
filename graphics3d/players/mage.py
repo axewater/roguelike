@@ -26,7 +26,7 @@ def create_mage_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     body = Entity(
         parent=mage,
         model='cube',
-        color=color.rgb(100, 150, 255),  # Purple-blue robes
+        color=color.rgb(100/255, 150/255, 255/255),  # Purple-blue robes
         scale=(0.4, 0.7, 0.3),
         position=(0, 0, 0)
     )
@@ -35,7 +35,7 @@ def create_mage_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     robe_bottom = Entity(
         parent=mage,
         model='cube',
-        color=color.rgb(80, 120, 220),  # Darker purple
+        color=color.rgb(80/255, 120/255, 220/255),  # Darker purple
         scale=(0.5, 0.3, 0.4),
         position=(0, -0.5, 0)
     )
@@ -44,7 +44,7 @@ def create_mage_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     head = Entity(
         parent=mage,
         model='sphere',
-        color=color.rgb(200, 160, 130),  # Skin tone
+        color=color.rgb(200/255, 160/255, 130/255),  # Skin tone
         scale=(0.22, 0.22, 0.22),
         position=(0, 0.5, 0)
     )
@@ -53,7 +53,7 @@ def create_mage_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     hat_base = Entity(
         parent=mage,
         model='cube',
-        color=color.rgb(60, 40, 120),  # Dark purple
+        color=color.rgb(60/255, 40/255, 120/255),  # Dark purple
         scale=(0.3, 0.08, 0.3),
         position=(0, 0.63, 0)
     )
@@ -61,7 +61,7 @@ def create_mage_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     hat_cone = Entity(
         parent=mage,
         model='cube',
-        color=color.rgb(70, 50, 140),  # Purple
+        color=color.rgb(70/255, 50/255, 140/255),  # Purple
         scale=(0.15, 0.5, 0.15),
         position=(0, 0.9, 0)
     )
@@ -70,7 +70,7 @@ def create_mage_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     left_arm = Entity(
         parent=mage,
         model='cube',
-        color=color.rgb(100, 150, 255),
+        color=color.rgb(100/255, 150/255, 255/255),
         scale=(0.12, 0.45, 0.12),
         position=(-0.3, -0.1, 0)
     )
@@ -79,7 +79,7 @@ def create_mage_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     right_arm = Entity(
         parent=mage,
         model='cube',
-        color=color.rgb(100, 150, 255),
+        color=color.rgb(100/255, 150/255, 255/255),
         scale=(0.12, 0.45, 0.12),
         position=(0.3, 0, 0.1),
         rotation=(0, 0, 45)  # Extended for casting
@@ -89,7 +89,7 @@ def create_mage_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     staff_shaft = Entity(
         parent=mage,
         model='cube',
-        color=color.rgb(120, 80, 40),  # Brown wood
+        color=color.rgb(120/255, 80/255, 40/255),  # Brown wood
         scale=(0.06, 1.2, 0.06),
         position=(-0.35, 0, 0)
     )
@@ -98,7 +98,7 @@ def create_mage_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     staff_orb = Entity(
         parent=mage,
         model='sphere',
-        color=color.rgb(150, 100, 255),  # Purple glow
+        color=color.rgb(150/255, 100/255, 255/255),  # Purple glow
         scale=(0.15, 0.15, 0.15),
         position=(-0.35, 0.6, 0)
     )
@@ -107,7 +107,7 @@ def create_mage_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     orb_glow = Entity(
         parent=mage,
         model='sphere',
-        color=color.rgb(200, 150, 255),  # Bright purple
+        color=color.rgb(200/255, 150/255, 255/255),  # Bright purple
         scale=(0.08, 0.08, 0.08),
         position=(-0.35, 0.6, 0)
     )
@@ -116,7 +116,7 @@ def create_mage_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     book = Entity(
         parent=mage,
         model='cube',
-        color=color.rgb(150, 120, 80),  # Leather bound
+        color=color.rgb(150/255, 120/255, 80/255),  # Leather bound
         scale=(0.15, 0.2, 0.12),
         position=(0.25, 0.4, 0.2),
         rotation=(30, -20, 10)  # Floating and tilted
@@ -126,7 +126,7 @@ def create_mage_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     book_glow = Entity(
         parent=mage,
         model='cube',
-        color=color.rgba(150, 200, 255, 0.5),  # Blue glow
+        color=color.rgba(150/255, 200/255, 255/255, 0.5),  # Blue glow
         scale=(0.18, 0.23, 0.15),
         position=(0.25, 0.4, 0.2),
         rotation=(30, -20, 10)
@@ -136,7 +136,7 @@ def create_mage_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     belt = Entity(
         parent=mage,
         model='cube',
-        color=color.rgb(120, 100, 50),  # Gold/brown
+        color=color.rgb(120/255, 100/255, 50/255),  # Gold/brown
         scale=(0.42, 0.08, 0.32),
         position=(0, -0.3, 0)
     )

@@ -26,7 +26,7 @@ def create_rogue_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     body = Entity(
         parent=rogue,
         model='cube',
-        color=color.rgb(80, 80, 80),  # Dark gray leather
+        color=color.rgb(80/255, 80/255, 80/255),  # Dark gray leather
         scale=(0.35, 0.6, 0.25),
         position=(0, 0, 0)
     )
@@ -35,7 +35,7 @@ def create_rogue_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     head = Entity(
         parent=rogue,
         model='sphere',
-        color=color.rgb(200, 160, 130),  # Skin tone
+        color=color.rgb(200/255, 160/255, 130/255),  # Skin tone
         scale=(0.2, 0.2, 0.2),
         position=(0, 0.45, 0)
     )
@@ -44,7 +44,7 @@ def create_rogue_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     hood = Entity(
         parent=rogue,
         model='cube',
-        color=color.rgb(50, 50, 60),  # Very dark
+        color=color.rgb(50/255, 50/255, 60/255),  # Very dark
         scale=(0.28, 0.25, 0.28),
         position=(0, 0.55, -0.02)
     )
@@ -53,7 +53,7 @@ def create_rogue_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     hood_shadow = Entity(
         parent=rogue,
         model='cube',
-        color=color.rgb(20, 20, 25),  # Nearly black
+        color=color.rgb(20/255, 20/255, 25/255),  # Nearly black
         scale=(0.22, 0.12, 0.05),
         position=(0, 0.48, 0.1)
     )
@@ -62,7 +62,7 @@ def create_rogue_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     left_arm = Entity(
         parent=rogue,
         model='cube',
-        color=color.rgb(70, 70, 75),
+        color=color.rgb(70/255, 70/255, 75/255),
         scale=(0.12, 0.45, 0.12),
         position=(-0.28, -0.05, 0),
         rotation=(0, 0, -20)  # Slightly angled
@@ -72,7 +72,7 @@ def create_rogue_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     right_arm = Entity(
         parent=rogue,
         model='cube',
-        color=color.rgb(70, 70, 75),
+        color=color.rgb(70/255, 70/255, 75/255),
         scale=(0.12, 0.45, 0.12),
         position=(0.28, -0.05, 0),
         rotation=(0, 0, 20)  # Slightly angled
@@ -82,7 +82,7 @@ def create_rogue_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     left_dagger = Entity(
         parent=rogue,
         model='cube',
-        color=color.rgb(150, 150, 160),  # Steel
+        color=color.rgb(150/255, 150/255, 160/255),  # Steel
         scale=(0.05, 0.35, 0.05),
         position=(-0.35, -0.25, 0.15),
         rotation=(-30, 0, 0)  # Pointed forward
@@ -92,7 +92,7 @@ def create_rogue_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     left_hilt = Entity(
         parent=rogue,
         model='cube',
-        color=color.rgb(40, 40, 45),  # Black leather
+        color=color.rgb(40/255, 40/255, 45/255),  # Black leather
         scale=(0.08, 0.12, 0.08),
         position=(-0.35, -0.4, 0.1),
         rotation=(-30, 0, 0)
@@ -102,7 +102,7 @@ def create_rogue_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     right_dagger = Entity(
         parent=rogue,
         model='cube',
-        color=color.rgb(150, 150, 160),  # Steel
+        color=color.rgb(150/255, 150/255, 160/255),  # Steel
         scale=(0.05, 0.35, 0.05),
         position=(0.35, -0.25, 0.15),
         rotation=(-30, 0, 0)  # Pointed forward
@@ -112,7 +112,7 @@ def create_rogue_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     right_hilt = Entity(
         parent=rogue,
         model='cube',
-        color=color.rgb(40, 40, 45),  # Black leather
+        color=color.rgb(40/255, 40/255, 45/255),  # Black leather
         scale=(0.08, 0.12, 0.08),
         position=(0.35, -0.4, 0.1),
         rotation=(-30, 0, 0)
@@ -122,7 +122,7 @@ def create_rogue_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     left_leg = Entity(
         parent=rogue,
         model='cube',
-        color=color.rgb(60, 60, 65),  # Dark pants
+        color=color.rgb(60/255, 60/255, 65/255),  # Dark pants
         scale=(0.15, 0.5, 0.15),
         position=(-0.12, -0.6, 0)
     )
@@ -130,7 +130,7 @@ def create_rogue_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     right_leg = Entity(
         parent=rogue,
         model='cube',
-        color=color.rgb(60, 60, 65),
+        color=color.rgb(60/255, 60/255, 65/255),
         scale=(0.15, 0.5, 0.15),
         position=(0.12, -0.6, 0)
     )
@@ -139,7 +139,7 @@ def create_rogue_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     belt = Entity(
         parent=rogue,
         model='cube',
-        color=color.rgb(50, 45, 40),  # Dark leather
+        color=color.rgb(50/255, 45/255, 40/255),  # Dark leather
         scale=(0.38, 0.08, 0.27),
         position=(0, -0.3, 0)
     )
@@ -148,7 +148,7 @@ def create_rogue_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     pouch = Entity(
         parent=rogue,
         model='cube',
-        color=color.rgb(60, 50, 45),
+        color=color.rgb(60/255, 50/255, 45/255),
         scale=(0.12, 0.12, 0.12),
         position=(-0.25, -0.35, 0)
     )
@@ -157,7 +157,7 @@ def create_rogue_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     cape = Entity(
         parent=rogue,
         model='cube',
-        color=color.rgb(40, 40, 50),  # Very dark blue-gray
+        color=color.rgb(40/255, 40/255, 50/255),  # Very dark blue-gray
         scale=(0.38, 0.6, 0.05),
         position=(0, -0.05, -0.2)
     )
