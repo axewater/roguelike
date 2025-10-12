@@ -5,7 +5,7 @@ Displays 4 class models in a circular formation with stats and ability descripti
 Player can rotate between classes and select one to start the game.
 """
 
-from ursina import Entity, camera, color, Text, Button, Vec3, held_keys, mouse, time as ursina_time
+from ursina import Entity, camera, color, Text, Button, Vec3, held_keys, mouse, time as ursina_time, AmbientLight, DirectionalLight, PointLight
 import math
 import constants as c
 from audio import get_audio_manager
@@ -35,6 +35,12 @@ class ClassSelection3D(Entity):
 
         # Class models (lazy loaded)
         self.class_models = {}
+        self.pedestal = None  # Platform under character
+
+        # Lighting
+        self.ambient_light = None
+        self.key_light = None
+        self.rim_light = None
 
         # UI elements
         self.ui_elements = []
@@ -53,10 +59,13 @@ class ClassSelection3D(Entity):
         self.transitioning = False
 
         # Camera position
-        self.camera_distance = 5.0
-        self.camera_height = 1.5
+        self.camera_distance = 4.5  # Slightly closer
+        self.camera_height = 1.2    # Lower to center on model better
+        self.model_display_height = 0.5  # Model center height
 
         # Initialize
+        self._setup_lighting()
+        self._create_pedestal()
         self._create_ui()
         self._load_current_model()
         self._update_ui_for_class()
@@ -65,6 +74,54 @@ class ClassSelection3D(Entity):
         self.enabled = False
 
         print(f"✓ ClassSelection3D initialized")
+
+    def _setup_lighting(self):
+        """Set up lighting for character display"""
+        # Ambient light (general illumination)
+        self.ambient_light = AmbientLight(
+            color=color.rgb(200, 200, 210),
+            intensity=0.4
+        )
+
+        # Key light (main light from front-upper-right)
+        self.key_light = DirectionalLight(
+            position=(3, 5, 2),
+            rotation=(45, -30, 0),
+            color=color.rgb(255, 250, 240),  # Warm white
+            intensity=1.0
+        )
+
+        # Rim light (back light for depth)
+        self.rim_light = DirectionalLight(
+            position=(-2, 3, -4),
+            rotation=(135, 30, 0),
+            color=color.rgb(180, 200, 255),  # Cool blue
+            intensity=0.6
+        )
+
+        print("✓ Class selection lighting configured")
+
+    def _create_pedestal(self):
+        """Create a circular pedestal/platform under the character"""
+        self.pedestal = Entity(
+            model='cylinder',
+            color=color.rgb(40, 40, 50),  # Dark gray
+            scale=(1.5, 0.1, 1.5),  # Wide, flat cylinder
+            position=(0, -0.05, -self.camera_distance),  # Slightly below ground
+            texture='white_cube',
+            enabled=False  # Initially hidden
+        )
+
+        # Add a glowing ring around the pedestal
+        self.pedestal_ring = Entity(
+            model='cylinder',
+            color=color.rgb(100, 150, 255),  # Blue glow
+            scale=(1.7, 0.05, 1.7),
+            position=(0, -0.02, -self.camera_distance),
+            enabled=False
+        )
+
+        print("✓ Pedestal created")
 
     def _create_ui(self):
         """Create UI overlay elements"""
@@ -270,18 +327,17 @@ class ClassSelection3D(Entity):
             print(f"[ClassSelection] Unknown class type: {class_type}")
             return
 
-        # Create model entity
-        model = model_func(position=Vec3(0, 0, 0), scale=Vec3(2, 2, 2))
+        # Create model entity with larger scale for prominence
+        model = model_func(position=Vec3(0, 0, 0), scale=Vec3(2.5, 2.5, 2.5))
         model.color = model_color
         model.rotation_y = 0
 
-        # Position in front of camera
-        model.position = Vec3(0, 0, -self.camera_distance)
-        model.y = self.camera_height - 1.5  # Adjust height
+        # Position in front of camera at display height
+        model.position = Vec3(0, self.model_display_height, -self.camera_distance)
 
         self.class_models[class_type] = model
 
-        print(f"✓ Created model for {class_type}")
+        print(f"✓ Created model for {class_type} at position {model.position}")
 
     def _update_ui_for_class(self):
         """Update UI text and colors for current class"""
@@ -402,14 +458,34 @@ class ClassSelection3D(Entity):
         for element in self.ui_elements:
             element.enabled = True
 
+        # Show pedestal
+        if self.pedestal:
+            self.pedestal.enabled = True
+        if hasattr(self, 'pedestal_ring') and self.pedestal_ring:
+            self.pedestal_ring.enabled = True
+
+        # Enable lighting
+        if self.ambient_light:
+            self.ambient_light.enabled = True
+        if self.key_light:
+            self.key_light.enabled = True
+        if self.rim_light:
+            self.rim_light.enabled = True
+
         # Show current model
         self._load_current_model()
 
-        # Position camera
+        # Position camera to frame the character nicely
         camera.position = Vec3(0, self.camera_height, 0)
-        camera.rotation = Vec3(0, 0, 0)
 
-        print("[ClassSelection] Screen shown")
+        # Make camera look at the model (at display height)
+        model_look_at_pos = Vec3(0, self.model_display_height, -self.camera_distance)
+        camera.look_at(model_look_at_pos)
+
+        print(f"[ClassSelection] Screen shown")
+        print(f"  Camera at: {camera.position}")
+        print(f"  Looking at: {model_look_at_pos}")
+        print(f"  Camera rotation: {camera.rotation}")
 
     def hide(self):
         """Hide the class selection screen"""
@@ -418,6 +494,20 @@ class ClassSelection3D(Entity):
         # Hide all UI elements
         for element in self.ui_elements:
             element.enabled = False
+
+        # Hide pedestal
+        if self.pedestal:
+            self.pedestal.enabled = False
+        if hasattr(self, 'pedestal_ring') and self.pedestal_ring:
+            self.pedestal_ring.enabled = False
+
+        # Disable lighting (but don't destroy - we'll reuse)
+        if self.ambient_light:
+            self.ambient_light.enabled = False
+        if self.key_light:
+            self.key_light.enabled = False
+        if self.rim_light:
+            self.rim_light.enabled = False
 
         # Hide all models
         for model in self.class_models.values():
