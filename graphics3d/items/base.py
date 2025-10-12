@@ -4,50 +4,99 @@ Base utilities for 3D item model rendering
 Shared functions for all item models.
 """
 
+from ursina import Entity, Vec3
 import math
-# from ursina import Entity  # TODO: Import when Ursina is installed
+import constants as c
 
 
-def apply_float_animation(entity, time: float, height: float = 0.3, speed: float = 2.0):
+def create_item_model_3d(item_type: str, rarity: str, position: Vec3) -> Entity:
     """
-    Apply floating animation to item
+    Factory function to create item 3D models
 
     Args:
-        entity: Ursina Entity to animate
-        time: Current animation time
-        height: Max float height offset
-        speed: Float animation speed
+        item_type: Item type string (sword, shield, health_potion, boots, ring)
+        rarity: Item rarity (common, uncommon, rare, epic, legendary)
+        position: 3D world position
+
+    Returns:
+        Entity: Item 3D model
     """
-    # TODO: Implement in Phase 4
-    # float_offset = math.sin(time * speed) * height
-    # entity.y = base_y + float_offset
-    pass
+    # Import item model creators
+    from graphics3d.items.sword import create_sword_3d
+    from graphics3d.items.shield import create_shield_3d
+    from graphics3d.items.health_potion import create_health_potion_3d
+    from graphics3d.items.boots import create_boots_3d
+    from graphics3d.items.ring import create_ring_3d
+
+    # Create model based on type
+    if item_type == c.ITEM_SWORD:
+        return create_sword_3d(position, rarity)
+    elif item_type == c.ITEM_SHIELD:
+        return create_shield_3d(position, rarity)
+    elif item_type == c.ITEM_HEALTH_POTION:
+        return create_health_potion_3d(position)
+    elif item_type == c.ITEM_BOOTS:
+        return create_boots_3d(position, rarity)
+    elif item_type == c.ITEM_RING:
+        return create_ring_3d(position, rarity)
+    else:
+        # Fallback: generic cube
+        from ursina import color as ursina_color
+        return Entity(
+            model='cube',
+            color=ursina_color.rgb(255, 215, 0),  # Gold
+            scale=0.3,
+            position=position
+        )
 
 
-def apply_rotation_animation(entity, time: float, speed: float = 50.0):
+def update_item_animation(item_entity: Entity, dt: float):
     """
-    Apply rotation animation to item
+    Update item floating and rotation animations
 
     Args:
-        entity: Ursina Entity to animate
-        time: Current animation time
-        speed: Rotation speed in degrees per second
+        item_entity: Item entity to animate
+        dt: Delta time since last frame
     """
-    # TODO: Implement in Phase 4
-    # entity.rotation_y = (time * speed) % 360
-    pass
+    if not hasattr(item_entity, 'float_time'):
+        item_entity.float_time = 0.0
+
+    item_entity.float_time += dt
+
+    # Floating animation (up and down)
+    float_height = math.sin(item_entity.float_time * 2.0) * 0.15
+    base_y = 0.5  # Base height off ground
+    item_entity.y = base_y + float_height
+
+    # Rotation animation (spin around Y axis)
+    if hasattr(item_entity, 'rotation_speed'):
+        rotation_speed = item_entity.rotation_speed
+    else:
+        rotation_speed = 50.0  # Default 50 degrees/second
+
+    item_entity.rotation_y = (item_entity.rotation_y + rotation_speed * dt) % 360
 
 
-def apply_rarity_effects(entity, rarity: str):
+def get_rarity_color_ursina(rarity: str):
     """
-    Apply visual effects based on item rarity
+    Get Ursina color for item rarity
 
     Args:
-        entity: Item entity
-        rarity: Rarity string (common, uncommon, rare, epic, legendary)
+        rarity: Item rarity string
+
+    Returns:
+        Ursina color object
     """
-    # TODO: Implement in Phase 4
-    # Rare+: Add sparkle particles
-    # Epic+: Add glow effect
-    # Legendary: Add both + color shift animation
-    pass
+    from ursina import color as ursina_color
+    from graphics3d.utils import qcolor_to_ursina_color
+
+    rarity_colors = {
+        c.RARITY_COMMON: c.COLOR_RARITY_COMMON,
+        c.RARITY_UNCOMMON: c.COLOR_RARITY_UNCOMMON,
+        c.RARITY_RARE: c.COLOR_RARITY_RARE,
+        c.RARITY_EPIC: c.COLOR_RARITY_EPIC,
+        c.RARITY_LEGENDARY: c.COLOR_RARITY_LEGENDARY,
+    }
+
+    qcolor = rarity_colors.get(rarity, c.COLOR_RARITY_COMMON)
+    return qcolor_to_ursina_color(qcolor)

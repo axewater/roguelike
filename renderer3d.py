@@ -11,6 +11,8 @@ import constants as c
 from game import Game
 from graphics3d.tiles import create_floor_mesh, create_wall_mesh, create_stairs_mesh
 from graphics3d.utils import world_to_3d_position, qcolor_to_ursina_color
+from graphics3d.enemies import create_enemy_model_3d, update_enemy_animation, create_health_bar_billboard, update_health_bar
+from graphics3d.items import create_item_model_3d, update_item_animation
 
 
 class Renderer3D:
@@ -176,17 +178,106 @@ class Renderer3D:
         if self.player_light:
             self.player_light.position = (pos[0], pos[1] + 2, pos[2])
 
+    def render_enemies(self):
+        """
+        Render or update all enemy entities with health bars
+        """
+        if not self.game.enemies:
+            return
+
+        # Track which enemies currently exist
+        current_enemy_ids = set()
+
+        for enemy in self.game.enemies:
+            enemy_id = id(enemy)
+            current_enemy_ids.add(enemy_id)
+
+            # Calculate 3D position
+            pos = world_to_3d_position(enemy.x, enemy.y, 0.5)
+
+            # Create enemy model if it doesn't exist
+            if enemy_id not in self.enemy_entities:
+                enemy_model = create_enemy_model_3d(enemy.enemy_type, pos)
+
+                # Create health bar billboard
+                hp_pct = enemy.hp / enemy.max_hp
+                health_bar = create_health_bar_billboard(hp_pct)
+                health_bar.parent = enemy_model  # Attach to enemy
+
+                # Store references
+                self.enemy_entities[enemy_id] = {
+                    'model': enemy_model,
+                    'health_bar': health_bar,
+                    'enemy_type': enemy.enemy_type
+                }
+
+                print(f"✓ Created 3D {enemy.enemy_type} at ({enemy.x}, {enemy.y})")
+            else:
+                # Update existing enemy position
+                enemy_data = self.enemy_entities[enemy_id]
+                enemy_data['model'].position = pos
+
+                # Update health bar
+                hp_pct = enemy.hp / enemy.max_hp
+                update_health_bar(enemy_data['health_bar'], hp_pct)
+
+        # Remove entities for enemies that no longer exist (died)
+        dead_enemy_ids = set(self.enemy_entities.keys()) - current_enemy_ids
+        for enemy_id in dead_enemy_ids:
+            enemy_data = self.enemy_entities[enemy_id]
+            enemy_data['model'].disable()  # Disable the model
+            enemy_data['health_bar'].disable()  # Disable health bar
+            del self.enemy_entities[enemy_id]
+            print(f"✓ Removed dead enemy (ID: {enemy_id})")
+
+    def render_items(self):
+        """
+        Render or update all item entities with floating/rotation animations
+        """
+        if not self.game.items:
+            return
+
+        # Track which items currently exist
+        current_item_ids = set()
+
+        for item in self.game.items:
+            item_id = id(item)
+            current_item_ids.add(item_id)
+
+            # Calculate 3D position (items float above ground)
+            pos = world_to_3d_position(item.x, item.y, 0.5)
+
+            # Create item model if it doesn't exist
+            if item_id not in self.item_entities:
+                item_model = create_item_model_3d(item.item_type, item.rarity, pos)
+
+                # Store reference
+                self.item_entities[item_id] = item_model
+
+                print(f"✓ Created 3D {item.rarity} {item.item_type} at ({item.x}, {item.y})")
+            else:
+                # Update existing item position (base position, animation handles float)
+                item_entity = self.item_entities[item_id]
+                # Only update X and Z, Y is controlled by float animation
+                # pos is a tuple (x, y, z), not a Vec3
+                item_entity.x = pos[0]
+                item_entity.z = pos[2]
+
+        # Remove entities for items that no longer exist (picked up)
+        picked_up_item_ids = set(self.item_entities.keys()) - current_item_ids
+        for item_id in picked_up_item_ids:
+            item_entity = self.item_entities[item_id]
+            item_entity.disable()  # Disable the model
+            del self.item_entities[item_id]
+            print(f"✓ Removed picked up item (ID: {item_id})")
+
     def render_entities(self):
         """
         Render or update all game entities (player, enemies, items)
-
-        For Phase 2, only player is rendered.
-        Enemies and items will be added in Phase 4.
         """
         self.render_player()
-
-        # TODO: Phase 4 - Render enemies
-        # TODO: Phase 4 - Render items
+        self.render_enemies()
+        self.render_items()
 
     def update_camera(self):
         """
@@ -231,6 +322,18 @@ class Renderer3D:
         # Update entity positions
         self.render_entities()
 
+        # Update enemy animations
+        for enemy_id, enemy_data in self.enemy_entities.items():
+            update_enemy_animation(
+                enemy_data['model'],
+                enemy_data['enemy_type'],
+                dt
+            )
+
+        # Update item animations (floating and rotation)
+        for item_id, item_entity in self.item_entities.items():
+            update_item_animation(item_entity, dt)
+
         # Update camera
         self.update_camera()
 
@@ -247,6 +350,17 @@ class Renderer3D:
         if self.player_entity:
             self.player_entity.disable()
             self.player_entity = None
+
+        # Destroy enemies
+        for enemy_id, enemy_data in self.enemy_entities.items():
+            enemy_data['model'].disable()
+            enemy_data['health_bar'].disable()
+        self.enemy_entities.clear()
+
+        # Destroy items
+        for item_id, item_entity in self.item_entities.items():
+            item_entity.disable()
+        self.item_entities.clear()
 
         # Destroy lights
         if self.ambient_light:
