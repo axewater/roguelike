@@ -1,6 +1,84 @@
-# Claude-Like - Developer Guide
+# Claude-Like - A 2D→3D Roguelike Journey 🎮
 
-A feature-rich roguelike game built with Python and PyQt6. This guide helps developers understand the codebase structure and where to find specific pieces of code.
+A feature-rich roguelike game built with Python and PyQt6, **currently migrating from 2D to 3D** using Ursina Engine. This guide helps developers understand the codebase structure and track the migration progress.
+
+## 🚀 Migration Status: 2D → 3D
+
+**Target:** Transform the complete 2D roguelike into a full 3D experience while preserving all gameplay mechanics.
+
+### Current State
+
+| System | 2D (Legacy) | 3D (New) | Status |
+|--------|-------------|----------|--------|
+| **Dungeon Rendering** | ✅ Complete | ✅ **Basic (POC)** | **Phase 2** |
+| **Player Models** | ✅ Complete | ✅ **Cube (POC)** | **Phase 2** |
+| **Enemy Models** | ✅ Complete | ⏳ Not Started | Phase 4 |
+| **Item Models** | ✅ Complete | ⏳ Not Started | Phase 4 |
+| **Particle System** | ✅ Complete | ⏳ Not Started | Phase 5 |
+| **Ability Effects** | ✅ Complete | ⏳ Not Started | Phase 5 |
+| **Camera System** | ✅ 2D Camera | ✅ **3D Follow Cam** | **Phase 2** |
+| **Lighting** | ✅ 2D Colors | ✅ **Basic 3D** | **Phase 2** |
+| **Audio** | ✅ 2D Positional | ⏳ Not Started | Phase 6 |
+| **Documentation** | ✅ Updated | ✅ **Complete** | **Phase 1-2** |
+
+### Phase Checklist
+
+- [x] **Phase 1: Documentation & Planning** ✅ **COMPLETE**
+  - [x] Update CLAUDE.md with 3D architecture
+  - [x] Update README.md with migration tracker
+  - [x] Create MIGRATION.md progress log
+  - [x] Add Ursina to requirements
+  - [x] Create graphics3d/ package structure
+
+- [x] **Phase 2: Ursina Integration** ✅ **COMPLETE**
+  - [x] Install and configure Ursina engine
+  - [x] Create renderer3d.py wrapper
+  - [x] Render first 3D dungeon room
+  - [x] Test player movement in 3D
+  - [x] Implement camera follow system
+  - [x] Implement basic 3D lighting
+  - [x] Create main_3d.py game loop
+  - [x] Test all imports
+
+- [ ] **Phase 3: Dungeon 3D** *(3 weeks)*
+  - [ ] Convert tiles to 3D meshes
+  - [ ] Implement 3D camera system
+  - [ ] Port all 5 biomes to 3D
+  - [ ] Add 3D lighting
+
+- [ ] **Phase 4: Entity 3D Models** *(3 weeks)*
+  - [ ] Create 3D player class models
+  - [ ] Create 3D enemy models
+  - [ ] Create 3D item models
+  - [ ] Implement basic animations
+
+- [ ] **Phase 5: Particle System 3D** *(2 weeks)*
+  - [ ] Port particle effects to 3D
+  - [ ] Convert ability visuals to 3D
+  - [ ] Add 3D death bursts
+  - [ ] Implement floating damage text
+
+- [ ] **Phase 6: Gameplay Integration** *(2 weeks)*
+  - [ ] 3D FOV/visibility system
+  - [ ] 3D ability targeting
+  - [ ] Combat animations in 3D
+  - [ ] 3D positional audio
+
+- [ ] **Phase 7: Polish** *(2 weeks)*
+  - [ ] Height variation in dungeons
+  - [ ] Advanced lighting & shadows
+  - [ ] Post-processing effects
+  - [ ] Multiple camera modes
+
+- [ ] **Phase 8: Optimization** *(2 weeks)*
+  - [ ] Performance profiling
+  - [ ] Optimize rendering pipeline
+  - [ ] Cross-platform testing
+  - [ ] Final documentation
+
+**Estimated Completion:** 10-11 weeks remaining (Phases 1-2 complete in 1 day!)
+
+See `MIGRATION.md` for detailed daily progress logs.
 
 ## 🚀 Quick Start
 
@@ -12,7 +90,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-**Requirements:** Python 3.8+, PyQt6 >= 6.4.0, pygame >= 2.5.0, numpy >= 1.24.0
+**Requirements:** Python 3.8+, PyQt6 >= 6.4.0, pygame >= 2.5.0, numpy >= 1.24.0, ursina >= 6.0.0 (for 3D)
 
 ## 📁 Project Structure
 

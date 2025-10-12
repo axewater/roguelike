@@ -1,6 +1,18 @@
 venv/
 venv/*
+venv_linux/
+venv_linux/*
 __pycache__/
 *.pyc
 .DS_Store
 .claude/
+
+# 3D assets and cache (if any are added later)
+*.bam
+*.egg
+*.pz
+*.pstats
+*.blend1
+models/
+textures/
+ursina_cache/

@@ -3,10 +3,24 @@ Game constants and configuration for Claude-Like
 """
 from PyQt6.QtGui import QColor
 
+# ========================================
+# RENDERING MODE CONFIGURATION
+# ========================================
+USE_3D_RENDERER = False  # Toggle between 2D (False) and 3D (True) rendering
+
+# 3D rendering settings (for Ursina engine)
+CAMERA_DISTANCE = 15.0  # Camera distance from player
+CAMERA_HEIGHT = 8.0     # Camera height above ground
+CAMERA_ANGLE = 45.0     # Camera pitch angle (degrees)
+WALL_HEIGHT = 2.0       # 3D wall height in world units
+PLAYER_HEIGHT = 1.5     # Player model height
+ENTITY_SCALE = 0.8      # Base entity scale
+FOV = 60                # Field of view for 3D camera
+
 # Grid settings
 GRID_WIDTH = 50
 GRID_HEIGHT = 30
-TILE_SIZE = 48  # pixels (2x scale for detailed sprites)
+TILE_SIZE = 48  # pixels (2x scale for detailed sprites - used in 2D mode)
 
 # Viewport/Camera settings
 VIEWPORT_WIDTH = 25   # Tiles visible on screen

@@ -2,6 +2,17 @@
 
 A feature-rich roguelike game built with Python and PyQt6, featuring procedural dungeon generation, class-based combat, and stunning particle effects.
 
+## 🎮 3D Migration Status
+
+**⚡ Currently Migrating: 2D → 3D** using **Ursina Engine**
+
+This project is in active development to transform from a 2D geometric roguelike into a full 3D experience while preserving all core gameplay mechanics.
+
+**Current Phase:** Phase 1 - Documentation & Planning ✅
+**Next Phase:** Phase 2 - Ursina Integration & Proof of Concept
+
+See `MIGRATION.md` for detailed progress tracking.
+
 ## 🚀 Quick Start
 
 ### Installation
@@ -19,6 +30,7 @@ python main.py
 - PyQt6 >= 6.4.0
 - pygame >= 2.5.0
 - numpy >= 1.24.0
+- ursina >= 6.0.0 (for 3D rendering)
 
 ## 🎮 Gameplay
 
@@ -49,9 +61,12 @@ python main.py
 | `dungeon.py` | Procedural dungeon generation (BSP rooms) |
 | `combat.py` | Damage calculation and combat resolution |
 | `abilities.py` | Ability system with cooldowns and effects |
-| `animations.py` | Visual effects (particles, trails, screen shake) |
+| `animations.py` | Visual effects (particles, trails, screen shake) - 2D |
+| `animations3d.py` | 🆕 3D particle system and visual effects |
 | `audio.py` | 🔊 Audio engine with procedural sound synthesis |
-| `graphics.py` | Geometric shape rendering for entities/tiles |
+| `graphics/` | 📦 Legacy 2D geometric shape rendering |
+| `graphics3d/` | 🆕 3D rendering with Ursina engine |
+| `renderer3d.py` | 🆕 3D rendering manager and Ursina wrapper |
 | `constants.py` | All game configuration and constants |
 
 ### Game Flow
@@ -374,16 +389,131 @@ MAX_ROOMS = 15                  # Dungeon room count
 - Color values use `QColor` objects
 - Messages use tuple format: `(message, type)` for color coding
 
+## 🎨 3D Architecture & Rendering
+
+### Ursina Engine Integration
+
+**Why Ursina?**
+- Simple, Pythonic API for 3D game development
+- Built on Panda3D but with minimal boilerplate
+- Perfect for procedural geometry (matches our 2D style)
+- Easy camera controls and entity management
+- Great for rapid prototyping
+
+### 3D Rendering Pipeline
+
+```python
+# renderer3d.py - Ursina wrapper
+from ursina import Ursina, Entity, camera
+
+class Renderer3D:
+    def __init__(self, game):
+        self.app = Ursina()
+        self.game = game
+        self.entities = {}
+
+    def render_dungeon(self):
+        # Convert 2D tile grid to 3D meshes
+        # Walls: 3D boxes with height
+        # Floors: Textured planes
+        # Stairs: 3D staircase models
+
+    def render_entity(self, entity):
+        # Create 3D model based on entity type
+        # Apply position, rotation, scale
+        # Add animations (idle, walk, attack)
+```
+
+### Dual Rendering Support
+
+The game supports both 2D and 3D rendering modes:
+
+```python
+# constants.py
+USE_3D_RENDERER = True  # Toggle between 2D and 3D
+
+# main.py
+if USE_3D_RENDERER:
+    from renderer3d import Renderer3D
+    renderer = Renderer3D(game)
+else:
+    from ui.main_window import MainWindow  # Legacy 2D
+    window = MainWindow()
+```
+
+### 3D Model Generation
+
+All models are **procedurally generated** (no external files needed):
+
+```python
+# graphics3d/players/warrior.py
+def create_warrior_model():
+    # Body: scaled cube with armor texture
+    body = Entity(model='cube', scale=(0.4, 0.6, 0.3))
+
+    # Head: sphere
+    head = Entity(model='sphere', scale=0.25, parent=body, y=0.4)
+
+    # Sword: stretched cube
+    sword = Entity(model='cube', scale=(0.1, 0.6, 0.05), parent=body, x=0.3)
+
+    return body
+```
+
+### 3D Cameras
+
+Multiple camera modes available:
+
+- **Third-Person**: Follow camera behind player
+- **Isometric**: Fixed angle bird's-eye view
+- **First-Person**: Experimental FPP mode
+- **Cinematic**: Automated camera for level transitions
+
+### 3D Particle System
+
+```python
+# animations3d.py
+class Particle3D:
+    def __init__(self, position, velocity, color, lifetime):
+        self.entity = Entity(
+            model='sphere',
+            scale=0.1,
+            color=color,
+            position=position
+        )
+        self.velocity = velocity
+
+    def update(self, dt):
+        # Physics simulation
+        self.entity.position += self.velocity * dt
+        self.velocity.y -= 9.8 * dt  # Gravity
+```
+
+### 3D Audio Positioning
+
+Ursina integrates with Panda3D's audio system for true 3D positional audio:
+
+```python
+# Sounds automatically attenuate with distance
+audio_manager.play_sound_3d(sound, position=(x, y, z))
+```
+
 ## 🔮 Future Ideas
 
-- **Status Effects**: Poison, Burn, Stun with visual indicators
-- **Field of View**: Fog of war, stealth mechanics
-- **Boss Fights**: Multi-phase bosses every 5 floors
-- **Biomes**: Different dungeon themes (catacombs, lava, ice) with unique music
-- **Environmental Hazards**: Traps, spike pits, lava tiles with audio cues
+### Immediate (In 3D Migration)
+- ✅ Height variation in dungeons (platforms, pits)
+- ✅ Dynamic 3D lighting and shadows
+- ✅ 3D particle effects for abilities
+- ✅ Multi-level rooms with vertical gameplay
+
+### Post-Migration
+- **Status Effects**: Poison, Burn, Stun with 3D visual indicators
+- **Boss Fights**: Multi-phase bosses with 3D arenas
+- **Environmental Hazards**: 3D traps, spike pits, lava pools
 - **Meta Progression**: Unlock new classes/abilities between runs
-- **Audio Enhancements**: Reverb/echo effects, enemy proximity warning sounds
+- **Audio Enhancements**: 3D reverb/echo in large rooms
 - **Volume Controls**: In-game settings menu for SFX/Music volume sliders
+- **VR Support**: Experimental VR mode using Ursina VR extensions
 
 ## 📄 License
 
