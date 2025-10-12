@@ -275,13 +275,14 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         )
 
     # ========== SWORD (DETAILED) ==========
-    # Blade (main sword body)
+    # Blade (main sword body) - positioned to extend diagonally forward-up from hand
     sword_blade = Entity(
         parent=warrior,
         model='cube',
         color=polished_steel,
         scale=(0.06, 0.78, 0.06),
-        position=(0.38, 0.06, 0)
+        position=(0.42, -0.05, 0.40),
+        rotation=(55, 0, 0)  # Tilt forward 55 degrees
     )
 
     # Fuller groove (blade center detail)
@@ -290,7 +291,8 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='cube',
         color=color.rgb(0.55, 0.55, 0.60),
         scale=(0.02, 0.68, 0.01),
-        position=(0.38, 0.08, 0.035)
+        position=(0.42, -0.03, 0.435),
+        rotation=(55, 0, 0)  # Match blade rotation
     )
 
     # Crossguard (center)
@@ -299,7 +301,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='cube',
         color=bronze,
         scale=(0.28, 0.06, 0.10),
-        position=(0.38, -0.30, 0)
+        position=(0.38, -0.30, 0.18)
     )
 
     # Crossguard ends (decorative spheres)
@@ -309,7 +311,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
             model='sphere',
             color=bronze,
             scale=(0.05, 0.05, 0.08),
-            position=(0.38 + x_sign * 0.14, -0.30, 0)
+            position=(0.38 + x_sign * 0.14, -0.30, 0.18)
         )
 
     # Hilt (leather grip)
@@ -318,7 +320,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='cube',
         color=leather_brown,
         scale=(0.08, 0.22, 0.08),
-        position=(0.38, -0.46, 0)
+        position=(0.38, -0.46, 0.15)
     )
 
     # Hilt wrapping detail (3 wire wraps)
@@ -328,7 +330,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
             model='cube',
             color=dark_bronze,
             scale=(0.09, 0.015, 0.09),
-            position=(0.38, y, 0)
+            position=(0.38, y, 0.15)
         )
 
     # Pommel (sphere)
@@ -337,7 +339,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='sphere',
         color=bronze,
         scale=(0.10, 0.10, 0.10),
-        position=(0.38, -0.62, 0)
+        position=(0.38, -0.62, 0.15)
     )
 
     # Pommel gem (decorative)
@@ -346,7 +348,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='sphere',
         color=color.rgb(0.8, 0.1, 0.1),  # Ruby red
         scale=(0.04, 0.04, 0.04),
-        position=(0.38, -0.62, 0.06)
+        position=(0.38, -0.62, 0.21)
     )
 
     # ========== SHIELD (DETAILED) ==========
