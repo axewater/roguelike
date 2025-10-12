@@ -33,16 +33,31 @@ for i, seed in enumerate(wall_seeds):
 
 print(f"  ✓ {len(DUNGEON_WALL_TEXTURES)} wall variants generated")
 
-# Floor: Brick with subtle moss accents
+# Floor: Generate 4 variants at 512x512 to break repetition
+# Brick with subtle moss accents
+DUNGEON_FLOOR_TEXTURES = []
+floor_seeds = [11111, 22222, 33333, 44444]
+for i, seed in enumerate(floor_seeds):
+    print(f"  - Generating floor variant {i+1}/4 (seed={seed})...")
+    with RandomSeed(seed):
+        floor_brick = generate_brick_pattern(size=512, darkness=0.8)
+        floor_mossy_pil = generate_moss_overlay(floor_brick, density='light')
+        DUNGEON_FLOOR_TEXTURES.append(Texture(floor_mossy_pil))
 
-_floor_brick = generate_brick_pattern(size=256, darkness=0.8)
-_floor_mossy_pil = generate_moss_overlay(_floor_brick, density='light')
-DUNGEON_FLOOR_TEXTURE = Texture(_floor_mossy_pil)  # Wrap PIL Image in Ursina Texture
+print(f"  ✓ {len(DUNGEON_FLOOR_TEXTURES)} floor variants generated")
 
-# Ceiling: Dark weathered stone with hanging moss and water damage
+# Ceiling: Generate 4 variants at 512x512 to break repetition
+# Dark weathered stone with hanging moss and water damage
 from textures.organic import generate_ceiling_texture
-_ceiling_pil = generate_ceiling_texture(size=256, moisture_level='medium')
-DUNGEON_CEILING_TEXTURE = Texture(_ceiling_pil)  # Wrap PIL Image in Ursina Texture
+DUNGEON_CEILING_TEXTURES = []
+ceiling_seeds = [55555, 66666, 77777, 88888]
+for i, seed in enumerate(ceiling_seeds):
+    print(f"  - Generating ceiling variant {i+1}/4 (seed={seed})...")
+    with RandomSeed(seed):
+        ceiling_pil = generate_ceiling_texture(size=512, moisture_level='medium')
+        DUNGEON_CEILING_TEXTURES.append(Texture(ceiling_pil))
+
+print(f"  ✓ {len(DUNGEON_CEILING_TEXTURES)} ceiling variants generated")
 
 print("✓ Procedural textures generated and cached")
 
@@ -76,12 +91,17 @@ def create_floor_mesh(x: int, y: int, biome_color):
         min(1.0, 0.5 + floor_color.b * 0.5)
     )
 
+    # Select texture variant based on position (deterministic hash)
+    # This breaks repetition while being deterministic
+    variant_idx = (x * 7 + y * 13) % len(DUNGEON_FLOOR_TEXTURES)
+    floor_texture = DUNGEON_FLOOR_TEXTURES[variant_idx]
+
     return Entity(
         model='plane',
         position=pos,
         scale=(1, 1, 1),
         color=subtle_tint,  # Subtle tint to preserve biome identity
-        texture=DUNGEON_FLOOR_TEXTURE,  # Procedural brick texture
+        texture=floor_texture,  # Select from 4 variants
         collider=None  # No collision for floors
     )
 
@@ -173,13 +193,18 @@ def create_ceiling_mesh(x: int, y: int):
     # Position ceiling at top of walls
     pos = world_to_3d_position(x, y, c.WALL_HEIGHT)
 
+    # Select texture variant based on position (deterministic hash)
+    # This breaks repetition while being deterministic
+    variant_idx = (x * 7 + y * 13) % len(DUNGEON_CEILING_TEXTURES)
+    ceiling_texture = DUNGEON_CEILING_TEXTURES[variant_idx]
+
     # Create ceiling plane facing downward
     return Entity(
         model='plane',
         position=pos,
         scale=(1, 1, 1),
         color=ursina_color.white,  # No tinting - let texture show
-        texture=DUNGEON_CEILING_TEXTURE,  # Procedural ceiling with hanging moss
+        texture=ceiling_texture,  # Select from 4 variants
         rotation_x=180,  # Flip to face downward
         collider=None  # No collision for ceilings
     )
