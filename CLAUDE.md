@@ -4,22 +4,32 @@ A feature-rich roguelike game built with Python and PyQt6, featuring procedural 
 
 ## 🎮 3D Migration Status
 
-**⚡ 3D MVP COMPLETE!** using **Ursina Engine**
+**⚡ 3D PARTICLE SYSTEM COMPLETE!** using **Ursina Engine**
 
-The game is now **fully playable in 3D mode**! 🎉
+The game now has **full 3D visual effects**! 🎉✨
 
-**Progress:** 35% Complete (3 of 8 phases done)
+**Progress:** 62.5% Complete (5 of 8 phases done)
 - ✅ Phase 1: Documentation & Planning
 - ✅ Phase 2: Ursina Integration & Setup
-- ✅ Phase 3: Working 3D MVP (Completed 2025-10-12)
+- ✅ Phase 3: Working 3D MVP
+- ✅ Phase 4: Entity 3D Models
+- ✅ Phase 5: Particle System 3D (Completed 2025-10-12)
 
-**Current Phase:** Phase 4 - Entity 3D Models (Next: Render enemies/items)
+**Current Phase:** Phase 6 - Gameplay Systems Integration (Next: FOV, UI, Audio)
 
 **What Works:**
 - Player movement in 3D space (WASD controls)
 - Camera follow system with smooth interpolation
 - Full dungeon rendering (floors, walls, stairs)
+- All 6 enemy types with 3D models and animations
+- All 5 item types with floating/rotation animations
+- Health bars above enemies
 - Combat system (bump-to-attack)
+- **3D particle effects** (explosions, trails, impacts)
+- **Floating damage text** with billboard rendering
+- **Screen shake** on critical hits and deaths
+- **Ability visual effects** (Fireball fire trail, Ice crystals, Dash speed lines)
+- **Atmospheric particles** (floating dust)
 - Level progression and stairs descent
 - All game logic (XP, items, abilities, AI)
 - Runs at 40-45 FPS on Windows
@@ -29,7 +39,7 @@ The game is now **fully playable in 3D mode**! 🎉
 python main.py --mode 3d
 ```
 
-See `MIGRATION.md` and `Phase3_Summary.md` for detailed progress tracking.
+See `MIGRATION.md`, `Phase3_Summary.md`, `Phase4_Summary.md`, and `Phase5_Summary.md` for detailed progress tracking.
 
 ## 🚀 Quick Start
 

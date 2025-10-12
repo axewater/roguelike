@@ -5,10 +5,151 @@ This module provides the main game loop for 3D rendering mode.
 All game logic remains in game.py - this only handles visualization and input.
 """
 
-from ursina import Ursina, Entity, camera, held_keys, time as ursina_time, color, window
+from ursina import Ursina, Entity, camera, held_keys, time as ursina_time, color, window, Vec3
 import constants as c
 from game import Game
 from renderer3d import Renderer3D
+from animations3d import Particle3D
+
+
+class ParticleListWrapper:
+    """
+    Wrapper for particles list that converts 2D Particle objects to 3D when appended.
+    This allows game.py footstep code to continue using direct append.
+    """
+    def __init__(self, anim_manager_3d):
+        self.anim_3d = anim_manager_3d
+
+    def append(self, particle_2d):
+        """Convert 2D particle to 3D and add to 3D particle list"""
+        # Extract 2D particle properties
+        # Position needs to be converted from pixel coords to grid coords
+        # The 2D particle uses pixel coordinates (center_x, center_y)
+        # We need to convert back to grid coords
+
+        # Calculate grid position from pixel coords
+        grid_x = particle_2d.x / c.TILE_SIZE
+        grid_y = particle_2d.y / c.TILE_SIZE
+
+        # Convert to 3D position
+        from graphics3d.utils import world_to_3d_position
+        pos_3d = world_to_3d_position(int(grid_x), int(grid_y), 0.3)  # Near ground
+
+        # Convert velocity (2D velocity is in pixels/frame, 3D needs world units/sec)
+        velocity_3d = Vec3(
+            particle_2d.vx * 0.1,  # Scale down
+            particle_2d.vy * -0.1,  # Invert Y and scale
+            0  # No Z velocity
+        )
+
+        # Convert color (QColor to RGB tuple)
+        color_rgb = (
+            particle_2d.color.red() / 255.0,
+            particle_2d.color.green() / 255.0,
+            particle_2d.color.blue() / 255.0
+        )
+
+        # Convert size (pixel size to world units)
+        size_3d = particle_2d.size * 0.02  # Scale down
+
+        # Create 3D particle
+        particle_3d = Particle3D(
+            pos_3d,
+            velocity_3d,
+            color_rgb,
+            size=size_3d,
+            lifetime=particle_2d.max_lifetime,
+            particle_type="circle",
+            apply_gravity=particle_2d.apply_gravity
+        )
+
+        # Add to 3D particles list
+        self.anim_3d.particles.append(particle_3d)
+
+
+class AnimationManager3DProxy:
+    """
+    Proxy for AnimationManager3D that converts PyQt6 QColor to RGB tuples.
+    This allows game.py to continue using QColor while we use 3D animations.
+    """
+    def __init__(self, anim_manager_3d, enemy_entities_dict):
+        self.anim_3d = anim_manager_3d
+        self.enemy_entities = enemy_entities_dict  # Reference to renderer's enemy dict
+        # Create a dummy particles list that converts 2D particles to 3D
+        self._particle_list_wrapper = ParticleListWrapper(self.anim_3d)
+
+    @property
+    def particles(self):
+        """Expose particles list for direct append (used by footstep code)"""
+        return self._particle_list_wrapper
+
+    @staticmethod
+    def qcolor_to_rgb(qcolor):
+        """Convert QColor to normalized RGB tuple (0-1 range)"""
+        return (qcolor.red() / 255.0, qcolor.green() / 255.0, qcolor.blue() / 255.0)
+
+    def add_floating_text(self, x, y, text, color, is_crit=False):
+        rgb = self.qcolor_to_rgb(color)
+        self.anim_3d.add_floating_text(x, y, text, rgb, is_crit)
+
+    def add_flash_effect(self, x, y, color=None):
+        if color:
+            rgb = self.qcolor_to_rgb(color)
+            self.anim_3d.add_flash_effect(x, y, rgb)
+        else:
+            self.anim_3d.add_flash_effect(x, y)
+
+    def add_particle_burst(self, x, y, color, count=8, particle_type="square"):
+        rgb = self.qcolor_to_rgb(color)
+        self.anim_3d.add_particle_burst(x, y, rgb, count, particle_type)
+
+    def add_blood_splatter(self, x, y):
+        rgb = (0.7, 0.0, 0.0)  # Blood red
+        self.anim_3d.add_particle_burst(x, y, rgb, count=12, particle_type="circle")
+
+    def add_heal_sparkles(self, x, y):
+        self.anim_3d.add_heal_sparkles(x, y)
+
+    def add_screen_shake(self, intensity=5.0, duration=0.2):
+        self.anim_3d.add_screen_shake(intensity, duration)
+
+    def add_directional_impact(self, x, y, from_x, from_y, color, count=10, is_crit=False):
+        rgb = self.qcolor_to_rgb(color)
+        self.anim_3d.add_directional_impact(x, y, from_x, from_y, rgb, count, is_crit)
+
+    def add_trail(self, x, y, color, trail_type="fade"):
+        # Not used in game.py, but for completeness
+        from animations3d import TrailEffect3D
+        rgb = self.qcolor_to_rgb(color)
+        self.anim_3d.trails.append(TrailEffect3D(x, y, rgb, trail_type))
+
+    def add_ability_trail(self, x, y, color, ability_type):
+        rgb = self.qcolor_to_rgb(color)
+        self.anim_3d.add_ability_trail(x, y, rgb, ability_type)
+
+    def add_ambient_particles(self, count=1):
+        self.anim_3d.add_ambient_particles(count)
+
+    def add_fog_particles(self, count=1):
+        # Convert fog to ambient particles in 3D
+        self.anim_3d.add_ambient_particles(count)
+
+    def add_alert_particle(self, enemy):
+        # Get enemy's 3D model entity from renderer's tracking dict
+        enemy_id = id(enemy)
+        if enemy_id in self.enemy_entities:
+            enemy_model = self.enemy_entities[enemy_id]['model']
+            self.anim_3d.add_alert_particle(enemy_model)
+
+    def add_death_burst(self, x, y, enemy_type):
+        self.anim_3d.add_death_burst(x, y, enemy_type)
+
+    def update(self, dt):
+        # Animation manager is updated in renderer, not here
+        pass
+
+    def clear_all(self):
+        self.anim_3d.clear_all()
 
 
 class GameController(Entity):
@@ -171,6 +312,11 @@ def main_3d():
     renderer = Renderer3D(game)
     renderer.render_dungeon()
     renderer.render_entities()
+
+    # Replace 2D animation manager with 3D proxy
+    # This routes all particle effect calls to the 3D system
+    game.anim_manager = AnimationManager3DProxy(renderer.animation_manager, renderer.enemy_entities)
+    print("✓ 3D particle system connected")
 
     # Create game controller (Ursina will automatically call its update() method)
     controller = GameController(game, renderer)

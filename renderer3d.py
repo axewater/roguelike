@@ -13,6 +13,7 @@ from graphics3d.tiles import create_floor_mesh, create_wall_mesh, create_stairs_
 from graphics3d.utils import world_to_3d_position, qcolor_to_ursina_color
 from graphics3d.enemies import create_enemy_model_3d, update_enemy_animation, create_health_bar_billboard, update_health_bar
 from graphics3d.items import create_item_model_3d, update_item_animation
+from animations3d import AnimationManager3D
 
 
 class Renderer3D:
@@ -45,6 +46,10 @@ class Renderer3D:
         self.camera_target_pos = Vec3(0, c.CAMERA_HEIGHT, -c.CAMERA_DISTANCE)
         self.camera_smooth_factor = 0.3  # Increased from 0.1 for faster camera movement
         self.camera_initialized = False  # Track if camera has been positioned initially
+        self.base_camera_pos = Vec3(0, 0, 0)  # Store base camera position for shake
+
+        # 3D Animation Manager
+        self.animation_manager = AnimationManager3D()
 
         # Setup
         self.setup_camera()
@@ -281,7 +286,7 @@ class Renderer3D:
 
     def update_camera(self):
         """
-        Update camera to follow player with smooth interpolation
+        Update camera to follow player with smooth interpolation and screen shake
         """
         if not self.game.player:
             return
@@ -297,19 +302,24 @@ class Renderer3D:
 
         # On first call, jump directly to position (no smoothing)
         if not self.camera_initialized:
-            camera.position = Vec3(cam_x, cam_y, cam_z)
+            self.base_camera_pos = Vec3(cam_x, cam_y, cam_z)
+            camera.position = self.base_camera_pos
             self.camera_initialized = True
             print(f"✓ Camera initialized at {camera.position}")
         else:
             # Smooth interpolation (lerp) for subsequent updates
-            camera.position = Vec3(
-                camera.position.x + (cam_x - camera.position.x) * self.camera_smooth_factor,
-                camera.position.y + (cam_y - camera.position.y) * self.camera_smooth_factor,
-                camera.position.z + (cam_z - camera.position.z) * self.camera_smooth_factor
+            self.base_camera_pos = Vec3(
+                self.base_camera_pos.x + (cam_x - self.base_camera_pos.x) * self.camera_smooth_factor,
+                self.base_camera_pos.y + (cam_y - self.base_camera_pos.y) * self.camera_smooth_factor,
+                self.base_camera_pos.z + (cam_z - self.base_camera_pos.z) * self.camera_smooth_factor
             )
 
-        # Look at player
-        look_at_pos = Vec3(target_x, c.PLAYER_HEIGHT / 2, target_z)
+        # Apply screen shake offset
+        shake_offset = self.animation_manager.get_screen_shake_offset()
+        camera.position = self.base_camera_pos + shake_offset
+
+        # Look at player (with shake offset)
+        look_at_pos = Vec3(target_x, c.PLAYER_HEIGHT / 2, target_z) + shake_offset
         camera.look_at(look_at_pos)
 
     def update(self, dt: float):
@@ -334,7 +344,10 @@ class Renderer3D:
         for item_id, item_entity in self.item_entities.items():
             update_item_animation(item_entity, dt)
 
-        # Update camera
+        # Update 3D particle animations
+        self.animation_manager.update(dt)
+
+        # Update camera (includes screen shake)
         self.update_camera()
 
     def cleanup(self):
@@ -369,5 +382,9 @@ class Renderer3D:
             self.sun_light.disable()
         if self.player_light:
             self.player_light.disable()
+
+        # Clean up animations
+        if self.animation_manager:
+            self.animation_manager.clear_all()
 
         print("3D renderer cleaned up")
