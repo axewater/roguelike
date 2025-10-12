@@ -605,8 +605,8 @@ def main_3d():
 
     # Set window resolution to Full HD for better performance
     window.size = (1920, 1080)
-    window.position = (0, 0)
-    print(f"✓ Window resolution set to 1920x1080")
+    window.position = (100, 50)  # Offset from top-left so title bar is accessible
+    print(f"✓ Window resolution set to 1920x1080, positioned at (100, 50)")
 
     # Set background color (dark blue, matching 2D title screen)
     window.color = color.rgb(0.05, 0.05, 0.15)
