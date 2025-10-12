@@ -18,6 +18,11 @@ def parse_args():
         default='2d',
         help='Rendering mode: 2d (PyQt6) or 3d (Ursina). Default: 2d'
     )
+    parser.add_argument(
+        '--skip-intro',
+        action='store_true',
+        help='Skip the animated intro screen for faster startup (3D mode only)'
+    )
     return parser.parse_args()
 
 
@@ -81,12 +86,15 @@ def show_3d_title_screen():
     print("✓ Title screen closed, preparing to launch game...")
 
 
-def main_3d():
+def main_3d(skip_intro=False):
     """Launch 3D mode using Ursina"""
     print("=== Claude-Like (3D Mode) ===")
 
-    # Show OpenGL title screen first
-    show_3d_title_screen()
+    # Show OpenGL title screen first (unless skipped)
+    if not skip_intro:
+        show_3d_title_screen()
+    else:
+        print("⏩ Skipping intro screen (--skip-intro flag set)")
 
     # Now launch Ursina game
     print("Launching Ursina 3D renderer...")
@@ -99,7 +107,7 @@ def main():
     args = parse_args()
 
     if args.mode == '3d':
-        main_3d()
+        main_3d(skip_intro=args.skip_intro)
     else:
         main_2d()
 
