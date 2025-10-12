@@ -156,16 +156,74 @@ class AnimationManager3DProxy:
         self.anim_3d.clear_all()
 
 
+class GameCoordinator(Entity):
+    """
+    Coordinates between screen manager and game initialization.
+    Watches for class selection and initializes the game when ready.
+    """
+    def __init__(self, screen_manager):
+        super().__init__()
+        self.screen_manager = screen_manager
+        self.game_initialized = False
+
+    def update(self):
+        """Check if we need to initialize a new game"""
+        # Check if a class was selected
+        if hasattr(self.screen_manager, 'selected_class') and not self.game_initialized:
+            class_type = self.screen_manager.selected_class
+            print(f"[GameCoordinator] Initializing game with class: {class_type}")
+
+            # Create game instance
+            game = Game()
+            game.selected_class = class_type
+            game.start_new_game()
+
+            # Create 3D renderer
+            renderer = Renderer3D(game)
+            renderer.render_dungeon()
+            renderer.render_entities()
+
+            # Replace 2D animation manager with 3D proxy
+            game.anim_manager = AnimationManager3DProxy(renderer.animation_manager, renderer.enemy_entities)
+            print("✓ 3D particle system connected")
+
+            # Create UI manager
+            ui_manager = UI3DManager(game)
+            print("✓ UI3D system initialized")
+
+            # Connect game messages to UI combat log
+            game.message_callback = ui_manager.add_message
+            print("✓ Game message callback connected to UI")
+
+            # Create game controller
+            controller = GameController(game, renderer, ui_manager, self.screen_manager)
+            self.screen_manager.set_game_controller(controller)
+
+            # Clear selected_class to prevent re-initialization
+            del self.screen_manager.selected_class
+            self.game_initialized = True
+
+            # Change to game screen
+            from ui.screens.screen_manager_3d import ScreenState
+            self.screen_manager.change_screen(ScreenState.GAME)
+
+            print(f"[GameCoordinator] Game initialized successfully")
+            print(f"Class: {class_type.title()}")
+            print(f"Level: {game.current_level}")
+            print(f"HP: {game.player.hp}/{game.player.max_hp}")
+
+
 class GameController(Entity):
     """
     Main game controller using Ursina Entity pattern.
     Ursina automatically calls update() on all Entity subclasses.
     """
-    def __init__(self, game, renderer, ui_manager):
+    def __init__(self, game, renderer, ui_manager, screen_manager=None):
         super().__init__()
         self.game = game
         self.renderer = renderer
         self.ui_manager = ui_manager
+        self.screen_manager = screen_manager
 
         # Input cooldown to prevent holding keys
         self.move_cooldown = 0.0
@@ -181,6 +239,9 @@ class GameController(Entity):
 
         # Track if game is over
         self.game_over_displayed = False
+
+        # Paused state (for pause menu)
+        self.paused = False
 
         # Debug: Frame counter
         self.frame_count = 0
@@ -215,7 +276,11 @@ class GameController(Entity):
         # Handle ability input and targeting
         self._handle_ability_input()
 
-        # Check for game over
+        # Skip game logic if paused
+        if self.paused:
+            return
+
+        # Check for game over or victory
         if self.game.game_over or self.game.victory:
             if not self.game_over_displayed:
                 print("\n" + "=" * 50)
@@ -226,8 +291,24 @@ class GameController(Entity):
                 print(f"Final Level: {self.game.current_level}")
                 print(f"Final XP: {self.game.player.xp}")
                 print("=" * 50)
-                print("Press ESC to quit")
                 self.game_over_displayed = True
+
+                # Trigger screen transition if screen manager available
+                if self.screen_manager:
+                    stats = {
+                        'level': self.game.current_level,
+                        'xp': self.game.player.xp,
+                        'enemies_defeated': getattr(self.game, 'enemies_defeated', 0)
+                    }
+
+                    if self.game.victory:
+                        self.screen_manager.show_victory(stats)
+                    else:
+                        death_reason = "You were defeated"
+                        # Try to get more specific death reason
+                        if hasattr(self.game, 'last_attacker'):
+                            death_reason = f"Slain by {self.game.last_attacker}"
+                        self.screen_manager.show_game_over(stats, death_reason)
             return
 
         # Handle movement input (only if cooldown expired)
@@ -367,11 +448,17 @@ class GameController(Entity):
         """Handle ability input (1/2/3 keys) and targeting"""
         targeting_system = self.ui_manager.targeting_system
 
-        # ESC key - cancel targeting
+        # ESC key - cancel targeting OR open pause menu
         if held_keys['escape'] and not self.prev_key_states['escape']:
             if targeting_system.mode == targeting_system.MODE_TARGETING:
+                # Cancel targeting
                 targeting_system.cancel_targeting()
                 print("[INPUT] Targeting cancelled")
+            elif self.screen_manager and not self.paused:
+                # Open pause menu (only if not already paused)
+                print("[INPUT] Opening pause menu")
+                from ui.screens.screen_manager_3d import ScreenState
+                self.screen_manager.change_screen(ScreenState.PAUSE)
             self.prev_key_states['escape'] = True
         elif not held_keys['escape']:
             self.prev_key_states['escape'] = False
@@ -525,31 +612,27 @@ def main_3d():
     window.color = color.rgb(0.05, 0.05, 0.15)
     print("✓ Window background set to dark blue")
 
-    # Create game instance
-    game = Game()
-    game.selected_class = c.CLASS_WARRIOR  # Default class for Phase 2 testing
-    game.start_new_game()
+    # Initialize screen manager
+    from ui.screens.screen_manager_3d import ScreenManager3D, ScreenState
+    screen_manager = ScreenManager3D()
+    print("✓ Screen manager initialized")
 
-    # Create 3D renderer
-    renderer = Renderer3D(game)
-    renderer.render_dungeon()
-    renderer.render_entities()
+    # Create game coordinator (handles game initialization after class selection)
+    coordinator = GameCoordinator(screen_manager)
+    print("✓ Game coordinator initialized")
 
-    # Replace 2D animation manager with 3D proxy
-    # This routes all particle effect calls to the 3D system
-    game.anim_manager = AnimationManager3DProxy(renderer.animation_manager, renderer.enemy_entities)
-    print("✓ 3D particle system connected")
+    # Create an entity that updates screen manager each frame
+    class ScreenManagerUpdater(Entity):
+        def __init__(self, sm):
+            super().__init__()
+            self.sm = sm
+        def update(self):
+            self.sm.update(ursina_time.dt)
 
-    # Create UI manager
-    ui_manager = UI3DManager(game)
-    print("✓ UI3D system initialized")
+    updater = ScreenManagerUpdater(screen_manager)
 
-    # Connect game messages to UI combat log
-    game.message_callback = ui_manager.add_message
-    print("✓ Game message callback connected to UI")
-
-    # Create game controller (Ursina will automatically call its update() method)
-    controller = GameController(game, renderer, ui_manager)
+    # Start with class selection screen
+    screen_manager.change_screen(ScreenState.CLASS_SELECTION)
 
     # Print controls
     print("\n" + "=" * 50)
@@ -559,12 +642,9 @@ def main_3d():
     print("  Arrow Left/Right - Rotate Camera")
     print("  Arrow Up/Down - Move Forward/Backward")
     print("  1/2/3 - Use Abilities (click to target)")
-    print("  ESC - Cancel Targeting / Quit")
+    print("  ESC - Pause Menu / Cancel Targeting")
     print("=" * 50)
-    print("Starting game...")
-    print(f"Class: {game.selected_class.title()}")
-    print(f"Level: {game.current_level}")
-    print(f"HP: {game.player.hp}/{game.player.max_hp}")
+    print("Starting class selection...")
     print("=" * 50 + "\n")
 
     # Run Ursina app loop
