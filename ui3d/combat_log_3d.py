@@ -172,13 +172,28 @@ class CombatLog3D:
 
     def update(self, dt: float):
         """
-        Update fade effects
+        Update fade effects (conditional updates for performance)
 
         Args:
             dt: Delta time since last frame
         """
-        # Update alpha for fading messages
+        # Skip update if no messages exist
+        if not self.messages:
+            return
+
+        # Check if any messages are old enough to fade (optimization)
         current_time = time.time()
+        has_fading_messages = False
+        for entry in self.messages:
+            if entry.text_entity and (current_time - entry.timestamp) > self.FADE_DURATION:
+                has_fading_messages = True
+                break
+
+        # Skip fade calculations if no messages are fading yet
+        if not has_fading_messages:
+            return
+
+        # Update alpha for fading messages
         needs_rebuild = False
 
         for entry in self.messages:

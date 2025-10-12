@@ -56,6 +56,14 @@ class StatsDisplay3D:
         self.TEXT_SCALE = 0.8
         self.LABEL_SCALE = 0.7
 
+        # Cached values for conditional updates (performance optimization)
+        self._last_hp = 0
+        self._last_max_hp = 0
+        self._last_xp = 0
+        self._last_xp_to_next = 0
+        self._last_level = 0
+        self._last_depth = 0
+
         # Create UI
         self._create_ui()
 
@@ -170,7 +178,7 @@ class StatsDisplay3D:
 
     def update(self, dt: float):
         """
-        Update stats display
+        Update stats display (conditional updates for performance)
 
         Args:
             dt: Delta time since last frame
@@ -180,31 +188,41 @@ class StatsDisplay3D:
 
         player = self.game.player
 
-        # Update class and level
-        class_name = player.get_class_name()
-        self.class_level_label.text = f"{class_name} - Level {player.level}"
+        # Update class and level (only if level changed)
+        if player.level != self._last_level:
+            class_name = player.get_class_name()
+            self.class_level_label.text = f"{class_name} - Level {player.level}"
+            self._last_level = player.level
 
-        # Update HP bar
-        hp_percent = player.hp / player.max_hp if player.max_hp > 0 else 0
-        self.hp_bar_fill.scale_x = self.BAR_WIDTH * hp_percent
+        # Update HP bar (only if HP or max HP changed)
+        if player.hp != self._last_hp or player.max_hp != self._last_max_hp:
+            hp_percent = player.hp / player.max_hp if player.max_hp > 0 else 0
+            self.hp_bar_fill.scale_x = self.BAR_WIDTH * hp_percent
 
-        # Color code HP bar based on percentage
-        if hp_percent > 0.6:
-            self.hp_bar_fill.color = color.rgb(0.2, 0.8, 0.2)  # Green
-        elif hp_percent > 0.3:
-            self.hp_bar_fill.color = color.rgb(1.0, 0.8, 0.0)  # Yellow
-        else:
-            self.hp_bar_fill.color = color.rgb(1.0, 0.2, 0.2)  # Red
+            # Color code HP bar based on percentage
+            if hp_percent > 0.6:
+                self.hp_bar_fill.color = color.rgb(0.2, 0.8, 0.2)  # Green
+            elif hp_percent > 0.3:
+                self.hp_bar_fill.color = color.rgb(1.0, 0.8, 0.0)  # Yellow
+            else:
+                self.hp_bar_fill.color = color.rgb(1.0, 0.2, 0.2)  # Red
 
-        self.hp_text.text = f"{player.hp}/{player.max_hp} HP"
+            self.hp_text.text = f"{player.hp}/{player.max_hp} HP"
+            self._last_hp = player.hp
+            self._last_max_hp = player.max_hp
 
-        # Update XP bar
-        xp_percent = player.xp / player.xp_to_next_level if player.xp_to_next_level > 0 else 0
-        self.xp_bar_fill.scale_x = self.BAR_WIDTH * xp_percent
-        self.xp_text.text = f"{player.xp}/{player.xp_to_next_level} XP"
+        # Update XP bar (only if XP or XP requirement changed)
+        if player.xp != self._last_xp or player.xp_to_next_level != self._last_xp_to_next:
+            xp_percent = player.xp / player.xp_to_next_level if player.xp_to_next_level > 0 else 0
+            self.xp_bar_fill.scale_x = self.BAR_WIDTH * xp_percent
+            self.xp_text.text = f"{player.xp}/{player.xp_to_next_level} XP"
+            self._last_xp = player.xp
+            self._last_xp_to_next = player.xp_to_next_level
 
-        # Update depth
-        self.depth_label.text = f"Depth: {self.game.current_level}"
+        # Update depth (only if level changed)
+        if self.game.current_level != self._last_depth:
+            self.depth_label.text = f"Depth: {self.game.current_level}"
+            self._last_depth = self.game.current_level
 
     def cleanup(self):
         """Clean up all UI elements"""

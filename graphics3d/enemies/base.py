@@ -124,11 +124,11 @@ def create_health_bar_billboard(hp_percentage: float) -> Entity:
     # Create billboard text entity
     health_bar = Text(
         text=bar_text,
-        scale=0.8,
+        scale=c.HEALTH_BAR_SCALE,  # Now 2.0 for better readability
         color=bar_color,
         origin=(0, 0),
         billboard=True,  # Always faces camera
-        position=(0, 1.8, 0)  # Above enemy
+        position=(0, c.HEALTH_BAR_OFFSET_Y, 0)  # Above enemy
     )
 
     return health_bar

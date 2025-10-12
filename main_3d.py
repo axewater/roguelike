@@ -129,11 +129,14 @@ class AnimationManager3DProxy:
         self.anim_3d.add_ability_trail(x, y, rgb, ability_type)
 
     def add_ambient_particles(self, count=1):
-        self.anim_3d.add_ambient_particles(count)
+        # Disabled in 3D first-person mode (can't see outside dungeon)
+        if c.ENABLE_AMBIENT_PARTICLES_3D:
+            self.anim_3d.add_ambient_particles(count)
 
     def add_fog_particles(self, count=1):
-        # Convert fog to ambient particles in 3D
-        self.anim_3d.add_ambient_particles(count)
+        # Disabled in 3D first-person mode (can't see outside dungeon)
+        if c.ENABLE_AMBIENT_PARTICLES_3D:
+            self.anim_3d.add_ambient_particles(count)
 
     def add_alert_particle(self, enemy):
         # Get enemy's 3D model entity from renderer's tracking dict
@@ -172,6 +175,10 @@ class GameController(Entity):
         self.ability_cooldown = 0.0
         self.ability_cooldown_time = 0.2  # Seconds between ability key presses
 
+        # First-person camera rotation
+        self.camera_yaw = 0.0  # Current yaw in degrees (0 = North, 90 = East, 180 = South, 270 = West)
+        self.target_camera_yaw = 0.0  # Target yaw for smooth interpolation
+
         # Track if game is over
         self.game_over_displayed = False
 
@@ -179,9 +186,13 @@ class GameController(Entity):
         self.frame_count = 0
 
         # Track previous key states (for detecting key press vs hold)
-        self.prev_key_states = {'1': False, '2': False, '3': False, 'escape': False, 'left mouse down': False}
+        self.prev_key_states = {
+            '1': False, '2': False, '3': False,
+            'escape': False, 'left mouse down': False,
+            'left arrow': False, 'right arrow': False
+        }
 
-        print("✓ GameController initialized")
+        print("✓ GameController initialized (First-Person Mode)")
 
     def update(self):
         """Update function called every frame by Ursina"""
@@ -194,6 +205,12 @@ class GameController(Entity):
 
         self.move_cooldown -= dt
         self.ability_cooldown -= dt
+
+        # Update camera rotation (smooth interpolation)
+        self._update_camera_rotation(dt)
+
+        # Handle camera rotation input (arrow keys)
+        self._handle_camera_rotation()
 
         # Handle ability input and targeting
         self._handle_ability_input()
@@ -219,30 +236,78 @@ class GameController(Entity):
             new_x, new_y = self.game.player.x, self.game.player.y
             direction = ""
 
-            # WASD / Arrow Keys movement
-            if held_keys['w'] or held_keys['up arrow']:
-                new_x, new_y = self.game.player.x, self.game.player.y - 1
-                moved = True
-                direction = "UP"
+            # First-person directional movement (relative to camera yaw)
+            if c.USE_FIRST_PERSON:
+                # Get movement offset based on camera direction
+                offset_x, offset_y = 0, 0
 
-            elif held_keys['s'] or held_keys['down arrow']:
-                new_x, new_y = self.game.player.x, self.game.player.y + 1
-                moved = True
-                direction = "DOWN"
+                if held_keys['w']:
+                    # Move forward in camera direction
+                    offset_x, offset_y = self._get_forward_offset()
+                    moved = True
+                    direction = "FORWARD"
 
-            elif held_keys['a'] or held_keys['left arrow']:
-                new_x, new_y = self.game.player.x - 1, self.game.player.y
-                moved = True
-                direction = "LEFT"
+                elif held_keys['s']:
+                    # Move backward
+                    back_x, back_y = self._get_forward_offset()
+                    offset_x, offset_y = -back_x, -back_y
+                    moved = True
+                    direction = "BACKWARD"
 
-            elif held_keys['d'] or held_keys['right arrow']:
-                new_x, new_y = self.game.player.x + 1, self.game.player.y
-                moved = True
-                direction = "RIGHT"
+                elif held_keys['a']:
+                    # Strafe left
+                    offset_x, offset_y = self._get_left_offset()
+                    moved = True
+                    direction = "STRAFE LEFT"
+
+                elif held_keys['d']:
+                    # Strafe right
+                    right_x, right_y = self._get_left_offset()
+                    offset_x, offset_y = -right_x, -right_y
+                    moved = True
+                    direction = "STRAFE RIGHT"
+
+                # Arrow Up/Down also move forward/backward
+                elif held_keys['up arrow']:
+                    offset_x, offset_y = self._get_forward_offset()
+                    moved = True
+                    direction = "FORWARD (arrow)"
+
+                elif held_keys['down arrow']:
+                    back_x, back_y = self._get_forward_offset()
+                    offset_x, offset_y = -back_x, -back_y
+                    moved = True
+                    direction = "BACKWARD (arrow)"
+
+                if moved:
+                    new_x = self.game.player.x + offset_x
+                    new_y = self.game.player.y + offset_y
+
+            else:
+                # Third-person: absolute grid movement (legacy)
+                if held_keys['w'] or held_keys['up arrow']:
+                    new_x, new_y = self.game.player.x, self.game.player.y - 1
+                    moved = True
+                    direction = "UP"
+
+                elif held_keys['s'] or held_keys['down arrow']:
+                    new_x, new_y = self.game.player.x, self.game.player.y + 1
+                    moved = True
+                    direction = "DOWN"
+
+                elif held_keys['a'] or held_keys['left arrow']:
+                    new_x, new_y = self.game.player.x - 1, self.game.player.y
+                    moved = True
+                    direction = "LEFT"
+
+                elif held_keys['d'] or held_keys['right arrow']:
+                    new_x, new_y = self.game.player.x + 1, self.game.player.y
+                    moved = True
+                    direction = "RIGHT"
 
             # DEBUG: Print key press
             if moved:
-                print(f"[INPUT] Key pressed: {direction} | Target: ({new_x}, {new_y})")
+                print(f"[INPUT] {direction} | Yaw: {int(self.camera_yaw)}° | Target: ({new_x}, {new_y})")
 
             # Attempt move
             if moved:
@@ -371,6 +436,74 @@ class GameController(Entity):
             elif not held_keys[key]:
                 self.prev_key_states[key] = False
 
+    def _update_camera_rotation(self, dt):
+        """Smoothly interpolate camera rotation towards target yaw"""
+        if self.camera_yaw != self.target_camera_yaw:
+            # Calculate shortest rotation direction
+            angle_diff = (self.target_camera_yaw - self.camera_yaw + 180) % 360 - 180
+
+            # Interpolate
+            rotation_step = c.CAMERA_ROTATION_SPEED * dt * 60  # Scale by dt and normalize for 60fps
+            if abs(angle_diff) < rotation_step:
+                self.camera_yaw = self.target_camera_yaw
+            else:
+                self.camera_yaw += rotation_step * (1 if angle_diff > 0 else -1)
+
+            # Normalize to 0-360
+            self.camera_yaw = self.camera_yaw % 360
+
+            # Update renderer camera
+            self.renderer.camera_yaw = self.camera_yaw
+
+    def _handle_camera_rotation(self):
+        """Handle arrow key camera rotation input"""
+        # Arrow Left - Rotate left (counterclockwise)
+        if held_keys['left arrow'] and not self.prev_key_states['left arrow']:
+            self.target_camera_yaw = (self.target_camera_yaw - 90) % 360
+            print(f"[CAMERA] Rotating left to {self.target_camera_yaw}°")
+            self.prev_key_states['left arrow'] = True
+        elif not held_keys['left arrow']:
+            self.prev_key_states['left arrow'] = False
+
+        # Arrow Right - Rotate right (clockwise)
+        if held_keys['right arrow'] and not self.prev_key_states['right arrow']:
+            self.target_camera_yaw = (self.target_camera_yaw + 90) % 360
+            print(f"[CAMERA] Rotating right to {self.target_camera_yaw}°")
+            self.prev_key_states['right arrow'] = True
+        elif not held_keys['right arrow']:
+            self.prev_key_states['right arrow'] = False
+
+    def _get_forward_offset(self):
+        """Get grid offset for moving forward based on camera yaw"""
+        # Round yaw to nearest 90° for grid-aligned movement
+        yaw = round(self.camera_yaw / 90) * 90 % 360
+
+        # Map yaw to grid offsets
+        # 0° = North (-Y), 90° = East (+X), 180° = South (+Y), 270° = West (-X)
+        direction_map = {
+            0: (0, -1),    # North
+            90: (1, 0),    # East
+            180: (0, 1),   # South
+            270: (-1, 0),  # West
+        }
+
+        return direction_map.get(yaw, (0, -1))  # Default to North
+
+    def _get_left_offset(self):
+        """Get grid offset for strafing left based on camera yaw"""
+        # Left is 90° counterclockwise from forward
+        left_yaw = (self.camera_yaw - 90) % 360
+        yaw = round(left_yaw / 90) * 90 % 360
+
+        direction_map = {
+            0: (0, -1),    # North
+            90: (1, 0),    # East
+            180: (0, 1),   # South
+            270: (-1, 0),  # West
+        }
+
+        return direction_map.get(yaw, (-1, 0))  # Default to West
+
 
 def main_3d():
     """Main entry point for 3D mode"""
@@ -420,8 +553,11 @@ def main_3d():
 
     # Print controls
     print("\n" + "=" * 50)
-    print("CONTROLS:")
-    print("  WASD / Arrow Keys - Move & Attack")
+    print("FIRST-PERSON CONTROLS:")
+    print("  W/S - Move Forward/Backward")
+    print("  A/D - Strafe Left/Right")
+    print("  Arrow Left/Right - Rotate Camera")
+    print("  Arrow Up/Down - Move Forward/Backward")
     print("  1/2/3 - Use Abilities (click to target)")
     print("  ESC - Cancel Targeting / Quit")
     print("=" * 50)

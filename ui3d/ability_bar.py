@@ -41,6 +41,11 @@ class AbilitySlot:
         self.hotkey_text: Optional[Text] = None
         self.cooldown_text: Optional[Text] = None
 
+        # Cached values for conditional updates (performance optimization)
+        self._last_ability_name = None
+        self._last_is_ready = None
+        self._last_cooldown_remaining = -1
+
         # Ability colors (for icon background)
         self.ABILITY_COLORS = {
             "Fireball": (1.0, 0.5, 0.0),      # Orange
@@ -127,45 +132,56 @@ class AbilitySlot:
 
     def update_ability(self, ability):
         """
-        Update slot with ability data
+        Update slot with ability data (conditional updates for performance)
 
         Args:
             ability: Ability instance or None
         """
         if not ability:
-            # Empty slot
-            self.ability_name_text.text = ""
-            self.icon_bg.color = color.rgb(0.3, 0.3, 0.3)
-            self.cooldown_overlay.visible = False
-            self.cooldown_text.visible = False
+            # Empty slot - only update if changed
+            if self._last_ability_name is not None:
+                self.ability_name_text.text = ""
+                self.icon_bg.color = color.rgb(0.3, 0.3, 0.3)
+                self.cooldown_overlay.visible = False
+                self.cooldown_text.visible = False
+                self._last_ability_name = None
+                self._last_is_ready = None
+                self._last_cooldown_remaining = -1
             return
 
-        # Update ability name
-        self.ability_name_text.text = ability.name
+        # Update ability name (only if changed)
+        if ability.name != self._last_ability_name:
+            self.ability_name_text.text = ability.name
 
-        # Update icon color
-        ability_color = self.ABILITY_COLORS.get(ability.name, (0.5, 0.5, 0.5))
-        self.icon_bg.color = color.rgb(*ability_color)
+            # Update icon color
+            ability_color = self.ABILITY_COLORS.get(ability.name, (0.5, 0.5, 0.5))
+            self.icon_bg.color = color.rgb(*ability_color)
 
-        # Update cooldown state
+            self._last_ability_name = ability.name
+
+        # Update cooldown state (only if changed)
         is_ready = ability.is_ready()
+        cooldown_remaining = int(ability.current_cooldown) + 1 if not is_ready else 0
 
-        if is_ready:
-            # Ability ready
-            self.cooldown_overlay.visible = False
-            self.cooldown_text.visible = False
-        else:
-            # Ability on cooldown
-            self.cooldown_overlay.visible = True
-            self.cooldown_text.visible = True
+        if is_ready != self._last_is_ready or cooldown_remaining != self._last_cooldown_remaining:
+            if is_ready:
+                # Ability ready
+                self.cooldown_overlay.visible = False
+                self.cooldown_text.visible = False
+            else:
+                # Ability on cooldown
+                self.cooldown_overlay.visible = True
+                self.cooldown_text.visible = True
 
-            # Show cooldown timer
-            cooldown_remaining = int(ability.current_cooldown) + 1
-            self.cooldown_text.text = f"{cooldown_remaining}s"
+                # Show cooldown timer
+                self.cooldown_text.text = f"{cooldown_remaining}s"
 
-            # Scale overlay based on cooldown progress
-            cooldown_percent = ability.current_cooldown / ability.max_cooldown
-            self.cooldown_overlay.scale_y = self.slot_size * 0.9 * cooldown_percent
+                # Scale overlay based on cooldown progress
+                cooldown_percent = ability.current_cooldown / ability.max_cooldown
+                self.cooldown_overlay.scale_y = self.slot_size * 0.9 * cooldown_percent
+
+            self._last_is_ready = is_ready
+            self._last_cooldown_remaining = cooldown_remaining
 
     def cleanup(self):
         """Clean up slot UI elements"""

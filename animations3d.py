@@ -688,10 +688,32 @@ class AnimationManager3D:
         self.particles = [p for p in self.particles if p.update(dt) or not p.destroy()]
         self.directional_particles = [p for p in self.directional_particles if p.update(dt) or not p.destroy()]
         self.floating_texts = [t for t in self.floating_texts if t.update(dt) or not t.destroy()]
-        self.flash_effects = [f for f in self.flash_effects if f.update(dt) or not f.destroy()]
+        self.flash_effects = [f for f in self.flash_effects if f.update(dt) or not p.destroy()]
         self.trails = [t for t in self.trails if t.update(dt) or not t.destroy()]
         self.ambient_particles = [p for p in self.ambient_particles if p.update(dt) or not p.destroy()]
         self.alert_particles = [a for a in self.alert_particles if a.update(dt) or not a.destroy()]
+
+        # Enforce particle count limit for performance
+        total_particles = len(self.particles) + len(self.directional_particles)
+        if total_particles > c.MAX_PARTICLES:
+            # Remove oldest particles first (from the front of the list)
+            excess = total_particles - c.MAX_PARTICLES
+
+            if excess <= len(self.particles):
+                # Remove from regular particles
+                for p in self.particles[:excess]:
+                    p.destroy()
+                self.particles = self.particles[excess:]
+            else:
+                # Remove all regular particles, then from directional
+                for p in self.particles:
+                    p.destroy()
+                self.particles.clear()
+
+                remaining_excess = excess - len(self.particles)
+                for p in self.directional_particles[:remaining_excess]:
+                    p.destroy()
+                self.directional_particles = self.directional_particles[remaining_excess:]
 
         # Update screen shake
         if self.screen_shake:

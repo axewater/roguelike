@@ -223,50 +223,81 @@ class TargetingSystem:
     def _screen_to_grid_coords(self) -> Optional[Tuple[int, int]]:
         """
         Convert mouse screen position to grid coordinates via raycast
+        (Updated for first-person camera support)
 
         Returns:
             Tuple[int, int] or None: Grid coordinates (x, y) or None if no intersection
         """
-        # Get mouse position in 3D world
-        # Ursina provides mouse.world_point which does raycasting for us
-        if not mouse.hovered_entity:
-            # If not hovering any entity, raycast to ground plane manually
-            # We need to find intersection with y=0 plane (ground level)
+        # Raycast from camera through mouse cursor position to ground plane (y=0)
 
-            # Get ray from camera through mouse
-            from ursina import scene
-            from ursina.ursinastuff import ray_from_camera
+        # Get ray from camera through mouse screen position
+        ray_origin = camera.world_position
 
-            # Ray from camera through mouse position
-            ray_origin = camera.world_position
-            ray_direction = camera.forward
+        # Calculate ray direction using mouse screen coordinates and camera properties
+        # mouse.x and mouse.y are in normalized screen coords (-0.5 to 0.5)
+        # We need to convert this to a world-space direction
 
-            # Calculate intersection with ground plane (y=0)
-            # Ray equation: P = ray_origin + t * ray_direction
-            # Plane equation: y = 0
-            # Solving: ray_origin.y + t * ray_direction.y = 0
-            # t = -ray_origin.y / ray_direction.y
+        # Get camera's right and up vectors
+        import math
+        from ursina import Vec3
 
-            if abs(ray_direction.y) < 0.001:  # Near-horizontal ray, no intersection
-                return None
+        # Camera rotation (yaw and pitch)
+        yaw_rad = math.radians(camera.rotation_y)
+        pitch_rad = math.radians(camera.rotation_x)
 
-            t = -ray_origin.y / ray_direction.y
+        # Camera forward vector (based on yaw and pitch)
+        forward = Vec3(
+            math.sin(yaw_rad) * math.cos(pitch_rad),
+            -math.sin(pitch_rad),
+            math.cos(yaw_rad) * math.cos(pitch_rad)
+        ).normalized()
 
-            if t < 0:  # Intersection behind camera
-                return None
+        # Camera right vector (perpendicular to forward in XZ plane)
+        right = Vec3(
+            math.cos(yaw_rad),
+            0,
+            -math.sin(yaw_rad)
+        ).normalized()
 
-            # Calculate intersection point
-            intersection_point = ray_origin + (ray_direction * t)
+        # Camera up vector (perpendicular to forward and right)
+        up = right.cross(forward).normalized()
 
-            # Convert 3D world position to grid coordinates
-            # 3D: x maps to grid x, z maps to grid y
-            grid_x = int(round(intersection_point.x))
-            grid_y = int(round(intersection_point.z))
+        # Calculate ray direction using mouse position and FOV
+        fov_rad = math.radians(camera.fov)
+        aspect_ratio = camera.aspect_ratio
 
-            # Validate grid coordinates
-            if (0 <= grid_x < self.game.dungeon.width and
-                0 <= grid_y < self.game.dungeon.height):
-                return (grid_x, grid_y)
+        # Offset ray direction based on mouse position
+        h_offset = mouse.x * math.tan(fov_rad / 2) * aspect_ratio
+        v_offset = mouse.y * math.tan(fov_rad / 2)
+
+        ray_direction = (forward + right * h_offset + up * v_offset).normalized()
+
+        # Calculate intersection with ground plane (y=0)
+        # Ray equation: P = ray_origin + t * ray_direction
+        # Plane equation: y = 0
+        # Solving: ray_origin.y + t * ray_direction.y = 0
+        # t = -ray_origin.y / ray_direction.y
+
+        if abs(ray_direction.y) < 0.001:  # Near-horizontal ray, no intersection
+            return None
+
+        t = -ray_origin.y / ray_direction.y
+
+        if t < 0:  # Intersection behind camera
+            return None
+
+        # Calculate intersection point
+        intersection_point = ray_origin + (ray_direction * t)
+
+        # Convert 3D world position to grid coordinates
+        # 3D: x maps to grid x, z maps to grid y
+        grid_x = int(round(intersection_point.x))
+        grid_y = int(round(intersection_point.z))
+
+        # Validate grid coordinates
+        if (0 <= grid_x < self.game.dungeon.width and
+            0 <= grid_y < self.game.dungeon.height):
+            return (grid_x, grid_y)
 
         return None
 

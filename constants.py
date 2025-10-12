@@ -9,13 +9,22 @@ from PyQt6.QtGui import QColor
 USE_3D_RENDERER = False  # Toggle between 2D (False) and 3D (True) rendering
 
 # 3D rendering settings (for Ursina engine)
-CAMERA_DISTANCE = 15.0  # Camera distance from player
-CAMERA_HEIGHT = 8.0     # Camera height above ground
-CAMERA_ANGLE = 45.0     # Camera pitch angle (degrees)
+# Third-person camera (legacy, not used in first-person mode)
+CAMERA_DISTANCE = 15.0  # Camera distance from player (third-person only)
+CAMERA_HEIGHT = 8.0     # Camera height above ground (third-person only)
+CAMERA_ANGLE = 45.0     # Camera pitch angle (degrees) (third-person only)
+
+# First-person camera settings
+USE_FIRST_PERSON = True  # True = first-person, False = third-person
+EYE_HEIGHT = 1.4        # Camera height at eye level (first-person)
+CAMERA_ROTATION_SPEED = 8.0  # Rotation interpolation speed (higher = snappier)
+CAMERA_FOV_FPS = 90     # Field of view for first-person (wider than third-person)
+
+# World settings
 WALL_HEIGHT = 2.0       # 3D wall height in world units
 PLAYER_HEIGHT = 1.5     # Player model height
 ENTITY_SCALE = 0.8      # Base entity scale
-FOV = 60                # Field of view for 3D camera
+FOV = 60                # Field of view for 3D camera (third-person)
 
 # Grid settings
 GRID_WIDTH = 50
@@ -108,6 +117,10 @@ COLOR_XP_BAR_BG = QColor(50, 50, 55)
 COLOR_ENEMY_HP_BAR = QColor(220, 80, 80)
 COLOR_ENEMY_HP_BAR_BG = QColor(40, 40, 40, 180)
 COLOR_ENEMY_HP_BAR_BORDER = QColor(20, 20, 20)
+
+# 3D health bar settings
+HEALTH_BAR_SCALE = 2.0  # Scale for 3D enemy health bars (increased from 0.8 for readability)
+HEALTH_BAR_OFFSET_Y = 1.8  # Height above enemy
 
 # Sidebar section colors
 COLOR_SECTION_BG = QColor(42, 42, 47)
@@ -278,6 +291,11 @@ VISIBILITY_VISIBLE = "visible"
 
 # Rendering
 EXPLORED_TILE_ALPHA = 0.3  # Darkness factor for explored tiles (30% brightness)
+
+# 3D performance settings
+MAX_PARTICLES = 100  # Maximum active particles (performance limit)
+UI_UPDATE_THROTTLE = 0.05  # Minimum seconds between UI updates (20 FPS update rate)
+ENABLE_AMBIENT_PARTICLES_3D = False  # Disable fog/cloud particles in 3D mode (can't see outside dungeon in first-person)
 
 # Voice taunts
 VOICE_TAUNTS = [

@@ -42,9 +42,8 @@ class Renderer3D:
         self.sun_light: Optional[DirectionalLight] = None
         self.player_light: Optional[PointLight] = None
 
-        # Camera smoothing
-        self.camera_target_pos = Vec3(0, c.CAMERA_HEIGHT, -c.CAMERA_DISTANCE)
-        self.camera_smooth_factor = 0.3  # Increased from 0.1 for faster camera movement
+        # Camera state
+        self.camera_yaw = 0.0  # Camera yaw (set by GameController)
         self.camera_initialized = False  # Track if camera has been positioned initially
         self.base_camera_pos = Vec3(0, 0, 0)  # Store base camera position for shake
 
@@ -56,11 +55,18 @@ class Renderer3D:
         self.setup_lighting()
 
     def setup_camera(self):
-        """Configure third-person follow camera"""
-        camera.position = (0, c.CAMERA_HEIGHT, -c.CAMERA_DISTANCE)
-        camera.rotation_x = c.CAMERA_ANGLE
-        camera.fov = c.FOV
-        print(f"✓ Camera configured: pos={camera.position}, angle={c.CAMERA_ANGLE}°, fov={c.FOV}°")
+        """Configure first-person camera"""
+        if c.USE_FIRST_PERSON:
+            camera.position = (0, c.EYE_HEIGHT, 0)
+            camera.rotation_x = 0  # Look horizontally
+            camera.fov = c.CAMERA_FOV_FPS
+            print(f"✓ First-person camera configured: eye_height={c.EYE_HEIGHT}, fov={c.CAMERA_FOV_FPS}°")
+        else:
+            # Third-person (legacy)
+            camera.position = (0, c.CAMERA_HEIGHT, -c.CAMERA_DISTANCE)
+            camera.rotation_x = c.CAMERA_ANGLE
+            camera.fov = c.FOV
+            print(f"✓ Third-person camera configured: pos={camera.position}, angle={c.CAMERA_ANGLE}°, fov={c.FOV}°")
 
     def setup_lighting(self):
         """Set up basic 3D lighting"""
@@ -160,21 +166,33 @@ class Renderer3D:
 
         # Create or update player entity
         if self.player_entity is None:
-            self.player_entity = Entity(
-                model='cube',
-                color=player_color,
-                scale=(c.ENTITY_SCALE, c.PLAYER_HEIGHT, c.ENTITY_SCALE),
-                position=pos,
-                texture='white_cube'
-            )
-            print(f"✓ Created player cube at 3D position {pos}")
-            print(f"  - Grid position: ({self.game.player.x}, {self.game.player.y})")
-            print(f"  - Class: {self.game.player.class_type}")
-            print(f"  - Color: {player_color}")
+            if c.USE_FIRST_PERSON:
+                # First-person: Create invisible player cube (or skip entirely)
+                self.player_entity = Entity(
+                    model='cube',
+                    color=player_color,
+                    scale=(c.ENTITY_SCALE, c.PLAYER_HEIGHT, c.ENTITY_SCALE),
+                    position=pos,
+                    visible=False  # Hide player in first-person
+                )
+                print(f"✓ Created player entity (INVISIBLE - first-person mode)")
+            else:
+                # Third-person: Visible player cube
+                self.player_entity = Entity(
+                    model='cube',
+                    color=player_color,
+                    scale=(c.ENTITY_SCALE, c.PLAYER_HEIGHT, c.ENTITY_SCALE),
+                    position=pos,
+                    texture='white_cube'
+                )
+                print(f"✓ Created player cube at 3D position {pos}")
+                print(f"  - Grid position: ({self.game.player.x}, {self.game.player.y})")
+                print(f"  - Class: {self.game.player.class_type}")
+                print(f"  - Color: {player_color}")
 
             # Position camera immediately after creating player
             self.update_camera()
-            print(f"✓ Camera positioned behind player at {camera.position}")
+            print(f"✓ Camera positioned at {camera.position}")
         else:
             # Update position
             self.player_entity.position = pos
@@ -286,41 +304,68 @@ class Renderer3D:
 
     def update_camera(self):
         """
-        Update camera to follow player with smooth interpolation and screen shake
+        Update camera position and rotation
+        - First-person: Camera at player position, rotate based on yaw
+        - Third-person: Camera follows behind player
         """
         if not self.game.player:
             return
 
-        # Target position behind and above player
-        target_x = float(self.game.player.x)
-        target_z = float(self.game.player.y)
+        player_x = float(self.game.player.x)
+        player_y = float(self.game.player.y)
 
-        # Third-person camera position
-        cam_x = target_x
-        cam_y = c.CAMERA_HEIGHT
-        cam_z = target_z - c.CAMERA_DISTANCE
+        if c.USE_FIRST_PERSON:
+            # First-person: Camera AT player position
+            cam_x = player_x
+            cam_y = c.EYE_HEIGHT
+            cam_z = player_y
 
-        # On first call, jump directly to position (no smoothing)
-        if not self.camera_initialized:
-            self.base_camera_pos = Vec3(cam_x, cam_y, cam_z)
-            camera.position = self.base_camera_pos
-            self.camera_initialized = True
-            print(f"✓ Camera initialized at {camera.position}")
+            # On first call, jump directly to position
+            if not self.camera_initialized:
+                self.base_camera_pos = Vec3(cam_x, cam_y, cam_z)
+                camera.position = self.base_camera_pos
+                camera.rotation_y = self.camera_yaw
+                self.camera_initialized = True
+                print(f"✓ First-person camera initialized at {camera.position}")
+            else:
+                # Update position (instant snap in first-person for precise control)
+                self.base_camera_pos = Vec3(cam_x, cam_y, cam_z)
+
+            # Apply screen shake offset
+            shake_offset = self.animation_manager.get_screen_shake_offset()
+            camera.position = self.base_camera_pos + shake_offset
+
+            # Set rotation based on yaw (horizontal rotation only)
+            camera.rotation = (0, self.camera_yaw, 0)
+
         else:
-            # Smooth interpolation (lerp) for subsequent updates
-            self.base_camera_pos = Vec3(
-                self.base_camera_pos.x + (cam_x - self.base_camera_pos.x) * self.camera_smooth_factor,
-                self.base_camera_pos.y + (cam_y - self.base_camera_pos.y) * self.camera_smooth_factor,
-                self.base_camera_pos.z + (cam_z - self.base_camera_pos.z) * self.camera_smooth_factor
-            )
+            # Third-person: Camera follows behind player
+            cam_x = player_x
+            cam_y = c.CAMERA_HEIGHT
+            cam_z = player_y - c.CAMERA_DISTANCE
 
-        # Apply screen shake offset
-        shake_offset = self.animation_manager.get_screen_shake_offset()
-        camera.position = self.base_camera_pos + shake_offset
+            # On first call, jump directly to position
+            if not self.camera_initialized:
+                self.base_camera_pos = Vec3(cam_x, cam_y, cam_z)
+                camera.position = self.base_camera_pos
+                self.camera_initialized = True
+                print(f"✓ Third-person camera initialized at {camera.position}")
+            else:
+                # Smooth interpolation for third-person
+                smooth_factor = 0.3
+                self.base_camera_pos = Vec3(
+                    self.base_camera_pos.x + (cam_x - self.base_camera_pos.x) * smooth_factor,
+                    self.base_camera_pos.y + (cam_y - self.base_camera_pos.y) * smooth_factor,
+                    self.base_camera_pos.z + (cam_z - self.base_camera_pos.z) * smooth_factor
+                )
 
-        # Look at player (with shake offset)
-        look_at_pos = Vec3(target_x, c.PLAYER_HEIGHT / 2, target_z) + shake_offset
-        camera.look_at(look_at_pos)
+            # Apply screen shake offset
+            shake_offset = self.animation_manager.get_screen_shake_offset()
+            camera.position = self.base_camera_pos + shake_offset
+
+            # Look at player
+            look_at_pos = Vec3(player_x, c.PLAYER_HEIGHT / 2, player_y) + shake_offset
+            camera.look_at(look_at_pos)
 
     def update(self, dt: float):
         """
