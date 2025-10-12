@@ -30,6 +30,11 @@ _floor_brick = generate_brick_pattern(size=256, darkness=0.8)
 _floor_mossy_pil = generate_moss_overlay(_floor_brick, density='light')
 DUNGEON_FLOOR_TEXTURE = Texture(_floor_mossy_pil)  # Wrap PIL Image in Ursina Texture
 
+# Ceiling: Dark weathered stone with hanging moss and water damage
+from textures.organic import generate_ceiling_texture
+_ceiling_pil = generate_ceiling_texture(size=256, moisture_level='medium')
+DUNGEON_CEILING_TEXTURE = Texture(_ceiling_pil)  # Wrap PIL Image in Ursina Texture
+
 print("✓ Procedural textures generated and cached")
 
 
@@ -137,4 +142,30 @@ def create_stairs_mesh(x: int, y: int, biome_color):
         scale=(0.8, 0.4, 0.8),
         color=bright_color,
         texture='white_cube'
+    )
+
+
+def create_ceiling_mesh(x: int, y: int):
+    """
+    Create a 3D ceiling tile mesh with procedural hanging moss texture
+
+    Args:
+        x: Grid X position
+        y: Grid Y position (becomes Z in 3D space)
+
+    Returns:
+        Ursina Entity representing the ceiling tile
+    """
+    # Position ceiling at top of walls
+    pos = world_to_3d_position(x, y, c.WALL_HEIGHT)
+
+    # Create ceiling plane facing downward
+    return Entity(
+        model='plane',
+        position=pos,
+        scale=(1, 1, 1),
+        color=ursina_color.white,  # No tinting - let texture show
+        texture=DUNGEON_CEILING_TEXTURE,  # Procedural ceiling with hanging moss
+        rotation_x=180,  # Flip to face downward
+        collider=None  # No collision for ceilings
     )

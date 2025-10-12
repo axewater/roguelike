@@ -9,7 +9,7 @@ from typing import Dict, List, Optional
 from ursina import Entity, camera, Vec3, color as ursina_color, DirectionalLight, AmbientLight, PointLight
 import constants as c
 from game import Game
-from graphics3d.tiles import create_floor_mesh, create_wall_mesh, create_stairs_mesh
+from graphics3d.tiles import create_floor_mesh, create_wall_mesh, create_stairs_mesh, create_ceiling_mesh
 from graphics3d.utils import world_to_3d_position, qcolor_to_ursina_color
 from graphics3d.enemies import create_enemy_model_3d, update_enemy_animation, create_health_bar_billboard, update_health_bar
 from graphics3d.items import create_item_model_3d, update_item_animation
@@ -114,8 +114,13 @@ class Renderer3D:
                 tile = self.game.dungeon.get_tile(x, y)
 
                 if tile == c.TILE_FLOOR:
+                    # Render floor
                     entity = create_floor_mesh(x, y, floor_color)
                     self.dungeon_entities.append(entity)
+
+                    # Render ceiling above floor
+                    ceiling_entity = create_ceiling_mesh(x, y)
+                    self.dungeon_entities.append(ceiling_entity)
 
                 elif tile == c.TILE_WALL:
                     entity = create_wall_mesh(x, y, wall_color)
@@ -129,6 +134,10 @@ class Renderer3D:
                     # Then stairs on top
                     stairs_entity = create_stairs_mesh(x, y, stairs_color)
                     self.dungeon_entities.append(stairs_entity)
+
+                    # Render ceiling above stairs
+                    ceiling_entity = create_ceiling_mesh(x, y)
+                    self.dungeon_entities.append(ceiling_entity)
 
         print(f"✓ Rendered dungeon: {len(self.dungeon_entities)} tiles")
         print(f"  - Dungeon size: {self.game.dungeon.width}x{self.game.dungeon.height}")
