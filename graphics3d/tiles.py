@@ -33,11 +33,18 @@ def create_floor_mesh(x: int, y: int, biome_color):
     else:
         floor_color = biome_color
 
+    # Brighten floor color significantly for better visibility (3D debug)
+    brightened_floor = ursina_color.rgb(
+        min(1.0, floor_color.r * 3.0),  # Triple brightness
+        min(1.0, floor_color.g * 3.0),
+        min(1.0, floor_color.b * 3.0)
+    )
+
     return Entity(
         model='plane',
         position=pos,
         scale=(1, 1, 1),
-        color=floor_color,
+        color=brightened_floor,
         texture='white_cube',  # Flat color texture
         collider=None  # No collision for floors
     )
@@ -69,11 +76,11 @@ def create_wall_mesh(x: int, y: int, biome_color, height: float = None):
     else:
         wall_color = biome_color
 
-    # Darken wall color slightly for depth
+    # Brighten and slightly darken for depth (net result: still brighter than original)
     darker_color = ursina_color.rgb(
-        max(0, wall_color.r * 0.8),
-        max(0, wall_color.g * 0.8),
-        max(0, wall_color.b * 0.8)
+        min(1.0, wall_color.r * 2.0),  # Double brightness instead of darkening
+        min(1.0, wall_color.g * 2.0),
+        min(1.0, wall_color.b * 2.0)
     )
 
     return Entity(

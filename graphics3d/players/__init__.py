@@ -40,7 +40,7 @@ def draw_player_3d(player, position=None, facing_direction=None, idle_time=0):
         c.CLASS_RANGER: (100, 220, 80),     # Green - nature-themed
     }
 
-    color_rgb = class_colors.get(player.player_class, (100, 200, 255))
+    color_rgb = class_colors.get(player.class_type, (100, 200, 255))
     player_color = ursina_color.rgb(
         color_rgb[0] / 255.0,
         color_rgb[1] / 255.0,

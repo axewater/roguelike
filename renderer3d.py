@@ -41,7 +41,8 @@ class Renderer3D:
 
         # Camera smoothing
         self.camera_target_pos = Vec3(0, c.CAMERA_HEIGHT, -c.CAMERA_DISTANCE)
-        self.camera_smooth_factor = 0.1
+        self.camera_smooth_factor = 0.3  # Increased from 0.1 for faster camera movement
+        self.camera_initialized = False  # Track if camera has been positioned initially
 
         # Setup
         self.setup_camera()
@@ -52,17 +53,18 @@ class Renderer3D:
         camera.position = (0, c.CAMERA_HEIGHT, -c.CAMERA_DISTANCE)
         camera.rotation_x = c.CAMERA_ANGLE
         camera.fov = c.FOV
+        print(f"✓ Camera configured: pos={camera.position}, angle={c.CAMERA_ANGLE}°, fov={c.FOV}°")
 
     def setup_lighting(self):
         """Set up basic 3D lighting"""
-        # Ambient light (general illumination)
-        self.ambient_light = AmbientLight(color=(0.3, 0.3, 0.35, 1))
+        # Ambient light (general illumination) - BRIGHTENED FOR DEBUG
+        self.ambient_light = AmbientLight(color=(0.8, 0.8, 0.8, 1))
 
         # Directional light (sun/moon)
         self.sun_light = DirectionalLight(
             position=(10, 20, 10),
             rotation=(45, 45, 0),
-            color=(0.8, 0.8, 0.9, 1)
+            color=(1.0, 1.0, 1.0, 1)  # Bright white for debug
         )
 
         # Point light following player (torch effect)
@@ -70,6 +72,7 @@ class Renderer3D:
             color=(1, 0.9, 0.7, 1),
             position=(0, 2, 0)
         )
+        print("✓ Lighting configured (DEBUG MODE: very bright ambient)")
 
     def render_dungeon(self):
         """
@@ -114,7 +117,11 @@ class Renderer3D:
                     stairs_entity = create_stairs_mesh(x, y, stairs_color)
                     self.dungeon_entities.append(stairs_entity)
 
-        print(f"Rendered dungeon: {len(self.dungeon_entities)} tiles")
+        print(f"✓ Rendered dungeon: {len(self.dungeon_entities)} tiles")
+        print(f"  - Dungeon size: {self.game.dungeon.width}x{self.game.dungeon.height}")
+        if self.game.player:
+            print(f"  - Player position: ({self.game.player.x}, {self.game.player.y})")
+        print(f"  - Biome: {self.game.dungeon.biome}")
 
     def render_player(self):
         """
@@ -141,7 +148,7 @@ class Renderer3D:
             c.CLASS_RANGER: (100, 220, 80),     # Green
         }
 
-        color_rgb = class_colors.get(self.game.player.player_class, (100, 200, 255))
+        color_rgb = class_colors.get(self.game.player.class_type, (100, 200, 255))
         player_color = ursina_color.rgb(color_rgb[0] / 255, color_rgb[1] / 255, color_rgb[2] / 255)
 
         # Create or update player entity
@@ -153,6 +160,14 @@ class Renderer3D:
                 position=pos,
                 texture='white_cube'
             )
+            print(f"✓ Created player cube at 3D position {pos}")
+            print(f"  - Grid position: ({self.game.player.x}, {self.game.player.y})")
+            print(f"  - Class: {self.game.player.class_type}")
+            print(f"  - Color: {player_color}")
+
+            # Position camera immediately after creating player
+            self.update_camera()
+            print(f"✓ Camera positioned behind player at {camera.position}")
         else:
             # Update position
             self.player_entity.position = pos
@@ -189,12 +204,18 @@ class Renderer3D:
         cam_y = c.CAMERA_HEIGHT
         cam_z = target_z - c.CAMERA_DISTANCE
 
-        # Smooth interpolation (lerp)
-        camera.position = Vec3(
-            camera.position.x + (cam_x - camera.position.x) * self.camera_smooth_factor,
-            camera.position.y + (cam_y - camera.position.y) * self.camera_smooth_factor,
-            camera.position.z + (cam_z - camera.position.z) * self.camera_smooth_factor
-        )
+        # On first call, jump directly to position (no smoothing)
+        if not self.camera_initialized:
+            camera.position = Vec3(cam_x, cam_y, cam_z)
+            self.camera_initialized = True
+            print(f"✓ Camera initialized at {camera.position}")
+        else:
+            # Smooth interpolation (lerp) for subsequent updates
+            camera.position = Vec3(
+                camera.position.x + (cam_x - camera.position.x) * self.camera_smooth_factor,
+                camera.position.y + (cam_y - camera.position.y) * self.camera_smooth_factor,
+                camera.position.z + (cam_z - camera.position.z) * self.camera_smooth_factor
+            )
 
         # Look at player
         look_at_pos = Vec3(target_x, c.PLAYER_HEIGHT / 2, target_z)
