@@ -2,13 +2,13 @@
 
 **Project**: Complete 3D mode to feature parity with 2D mode
 **Start Date**: 2025-10-12 (Fresh start after Phase 1-5 completion)
-**Status**: 🚧 70% Complete - Core gameplay works, UI/UX pending
+**Status**: 🚧 80% Complete - First-person mode working, UI overlay complete, polish remaining
 
 ---
 
 ## 📊 Current Status
 
-### ✅ What's Working (Completed Phases 1-5)
+### ✅ What's Working (Completed Phases 1-6.5)
 
 **Phase 1-2: Foundation** ✅
 - ✅ Ursina Engine integrated
@@ -39,85 +39,160 @@
 - ✅ Death burst animations
 - ✅ Ambient atmospheric particles
 
+**Phase 6: UI Overlay & Input** ✅
+- ✅ 3D UI overlay system (stats, abilities, combat log)
+- ✅ Stats display (HP/XP bars, level, depth)
+- ✅ Ability bar (cooldown indicators, hotkeys)
+- ✅ Combat log (scrolling messages with color coding)
+- ✅ Mouse targeting system with raycasting
+- ✅ Ability input (1/2/3 keys + mouse confirmation)
+- ✅ Range indicators and validation
+
+**Phase 6.5: First-Person Camera & Performance** ✅
+- ✅ First-person camera system (eye-level, 90° FOV)
+- ✅ Camera rotation with smooth interpolation (arrow keys)
+- ✅ Directional WASD movement (camera-relative)
+- ✅ Hidden player model in first-person
+- ✅ Performance optimizations:
+  - ✅ Particle count limits (MAX_PARTICLES=100)
+  - ✅ Conditional UI updates (only update on change)
+  - ✅ Disabled ambient particles (not visible in first-person)
+- ✅ UI scaling improvements (2.5x larger health bars)
+- ✅ Updated targeting raycast for first-person
+
 ### ❌ What's Missing
 
-**Critical Path (Blocking playability):**
-1. ❌ UI Overlay System (Phase 6)
-   - Stats panel (HP, XP, Level)
-   - Ability buttons (1/2/3 visual indicators)
-   - Combat log (scrolling messages)
-
-2. ❌ Ability Input System (Phase 6)
-   - Keyboard shortcuts (1/2/3 keys)
-   - Mouse targeting for abilities
-   - Range/area indicators
-
-3. ❌ Class Selection (Phase 7)
+**Critical Path (Blocking full playability):**
+1. ❌ Class Selection (Phase 7)
    - 3D class selection screen
    - Character preview in 3D
    - Start game flow
 
 **Nice to Have (Polish):**
-4. ❌ FOV/Fog of War in 3D (Phase 8)
-5. ❌ 3D Positional Audio (Phase 8)
-6. ❌ Title/Menu Screens (Phase 7)
-7. ❌ Victory/Game Over UI (Phase 7)
+2. ❌ FOV/Fog of War in 3D (Phase 8)
+3. ❌ 3D Positional Audio (Phase 8)
+4. ❌ Title/Menu Screens (Phase 7)
+5. ❌ Victory/Game Over UI (Phase 7)
 
 ---
 
 ## 🎯 Migration Phases
 
-### Phase 6: UI Overlay & Input System (Current)
-**Duration**: 1-2 weeks
+### Phase 6: UI Overlay & Input System ✅ COMPLETED
+**Duration**: 1-2 weeks (Completed 2025-10-12)
 **Priority**: CRITICAL - Blocks full playability
 
 #### Tasks
 
 **1. UI Overlay in 3D Window**
-- [ ] Research Ursina UI system (Text, Button, Panel entities)
-- [ ] Create `UI3DManager` class in new file `ui3d_manager.py`
-- [ ] Design overlay layout (corner panels, translucent backgrounds)
-- [ ] Implement stats panel:
-  - [ ] HP bar (current/max with visual bar)
-  - [ ] XP bar with level indicator
-  - [ ] Class name and icon
-  - [ ] Current level/floor number
-- [ ] Implement combat log:
-  - [ ] Scrolling message queue (last 5 messages)
-  - [ ] Color-coded messages (damage, heal, info)
-  - [ ] Auto-fade old messages
-- [ ] Implement ability bar:
-  - [ ] 3 ability slots with icons
-  - [ ] Cooldown overlay (grayed out when on cooldown)
-  - [ ] Hotkey indicators (1, 2, 3)
+- [x] Research Ursina UI system (Text, Button, Panel entities)
+- [x] Create UI widget classes in `ui3d/` directory
+- [x] Design overlay layout (corner panels, translucent backgrounds)
+- [x] Implement stats panel (`ui3d/stats_display.py`):
+  - [x] HP bar (current/max with visual bar)
+  - [x] XP bar with level indicator
+  - [x] Class name and icon
+  - [x] Current level/floor number
+- [x] Implement combat log (`ui3d/combat_log_3d.py`):
+  - [x] Scrolling message queue (last 5 messages)
+  - [x] Color-coded messages (damage, heal, info)
+  - [x] Auto-fade old messages
+- [x] Implement ability bar (`ui3d/ability_bar.py`):
+  - [x] 3 ability slots with icons
+  - [x] Cooldown overlay (grayed out when on cooldown)
+  - [x] Hotkey indicators (1, 2, 3)
 
 **2. Ability Input System**
-- [ ] Hook keyboard events (1/2/3 keys) in `main_3d.py`
-- [ ] Implement mouse position tracking in 3D world
-- [ ] Create targeting system:
-  - [ ] Raycast from camera to world position
-  - [ ] Show target cursor/indicator
-  - [ ] Validate target range/line-of-sight
-- [ ] Integrate ability activation:
-  - [ ] Key press → ability selection
-  - [ ] Mouse click → target confirmation
-  - [ ] Execute ability via `game.py` API
-- [ ] Visual feedback:
-  - [ ] Range circle around player
-  - [ ] Target tile highlight
-  - [ ] "Out of range" indicator
+- [x] Hook keyboard events (1/2/3 keys) in `main_3d.py`
+- [x] Implement mouse position tracking in 3D world
+- [x] Create targeting system (`ui3d/targeting.py`):
+  - [x] Raycast from camera to world position
+  - [x] Show target cursor/indicator
+  - [x] Validate target range/line-of-sight
+- [x] Integrate ability activation:
+  - [x] Key press → ability selection
+  - [x] Mouse click → target confirmation
+  - [x] Execute ability via `game.py` API
+- [x] Visual feedback:
+  - [x] Range circle around player
+  - [x] Target tile highlight
+  - [x] "Out of range" indicator
 
 **3. Integration & Testing**
-- [ ] Test all 6 abilities in 3D mode
-- [ ] Verify cooldown display updates
-- [ ] Test UI scaling on different resolutions
-- [ ] Ensure UI doesn't block gameplay view
+- [x] Test all 6 abilities in 3D mode
+- [x] Verify cooldown display updates
+- [x] Test UI scaling on different resolutions
+- [x] Ensure UI doesn't block gameplay view
 
 **Success Criteria:**
 - ✅ Can see HP/XP bars during gameplay
 - ✅ Can use abilities with 1/2/3 keys + mouse
 - ✅ Combat log shows messages clearly
 - ✅ Ability cooldowns visible on UI
+
+---
+
+### Phase 6.5: First-Person Camera & Performance ✅ COMPLETED
+**Duration**: 1 week (Completed 2025-10-12)
+**Priority**: HIGH - Improves immersion and performance
+
+#### Motivation
+User feedback indicated performance issues and small UI elements in third-person mode. First-person perspective offers better immersion, eliminates the need for player model development (Phase 7 simplification), and allows visibility-based optimizations.
+
+#### Tasks
+
+**1. First-Person Camera System**
+- [x] Add first-person constants to `constants.py`:
+  - [x] `USE_FIRST_PERSON = True`
+  - [x] `EYE_HEIGHT = 1.4` (eye-level camera)
+  - [x] `CAMERA_FOV_FPS = 90` (wider FOV)
+  - [x] `CAMERA_ROTATION_SPEED = 8.0`
+- [x] Update `renderer3d.py` camera system:
+  - [x] Position camera at player position + eye height
+  - [x] Horizontal rotation only (yaw, no pitch)
+  - [x] Hide player cube (`visible=False`)
+- [x] Implement camera rotation in `main_3d.py`:
+  - [x] Track camera yaw (0° = North, 90° = East, etc.)
+  - [x] Smooth interpolation between 90° increments
+  - [x] Arrow keys rotate camera
+
+**2. Directional Movement System**
+- [x] Implement camera-relative WASD controls (`main_3d.py`):
+  - [x] W/S = forward/backward relative to camera
+  - [x] A/D = strafe left/right relative to camera
+  - [x] Arrow Up/Down = also move forward/backward
+  - [x] `_get_forward_offset()` - maps yaw to grid offsets
+  - [x] `_get_left_offset()` - for strafing
+- [x] Grid-based snapping (movement snaps to 90° directions)
+
+**3. Performance Optimizations**
+- [x] Particle count limiting (`animations3d.py`):
+  - [x] `MAX_PARTICLES = 100` constant
+  - [x] Remove oldest particles when limit exceeded
+- [x] Conditional UI updates (`ui3d/*.py`):
+  - [x] Cache previous values (HP, XP, level, cooldowns)
+  - [x] Only update when values change
+  - [x] Skip fade calculations when no messages fading
+- [x] Disable unseen effects:
+  - [x] `ENABLE_AMBIENT_PARTICLES_3D = False`
+  - [x] Remove fog/cloud particles (not visible in first-person)
+
+**4. UI Improvements**
+- [x] Increase health bar scale:
+  - [x] `HEALTH_BAR_SCALE = 2.0` (increased from 0.8)
+  - [x] Better readability in first-person
+- [x] Update targeting raycast (`ui3d/targeting.py`):
+  - [x] Proper ray calculation using mouse cursor position
+  - [x] Account for camera rotation, FOV, and aspect ratio
+  - [x] Works correctly in first-person
+
+**Success Criteria:**
+- ✅ First-person camera at eye level
+- ✅ Smooth camera rotation with arrow keys
+- ✅ WASD movement relative to camera direction
+- ✅ Performance improved (particle limits, conditional updates)
+- ✅ UI elements scaled for readability
+- ✅ Targeting system works in first-person
 
 ---
 
@@ -299,17 +374,20 @@
 
 ## 📅 Timeline Estimate
 
-| Phase | Duration | Dependencies | Priority |
-|-------|----------|--------------|----------|
-| Phase 6: UI & Input | 1-2 weeks | None | CRITICAL |
-| Phase 7: Screens | 1 week | Phase 6 | HIGH |
-| Phase 8: FOV & Audio | 1 week | Phase 6 | MEDIUM |
-| Phase 9: Optimization | 1 week | Phase 6-8 | MEDIUM |
-| Phase 10: Final Review | 3 days | All | HIGH |
+| Phase | Duration | Status | Completed |
+|-------|----------|--------|-----------|
+| Phase 6: UI & Input | 1-2 weeks | ✅ DONE | 2025-10-12 |
+| Phase 6.5: First-Person & Performance | 1 week | ✅ DONE | 2025-10-12 |
+| Phase 7: Screens | 1 week | ⏳ NEXT | - |
+| Phase 8: FOV & Audio | 1 week | ⏸️ Optional | - |
+| Phase 9: Optimization | 1 week | ⏸️ Optional | - |
+| Phase 10: Final Review | 3 days | ⏸️ Pending | - |
 
-**Total Estimated Time**: 4-6 weeks
+**Total Estimated Time**: ~~4-6 weeks~~ → 2-3 weeks remaining
+**Completed**: 2.5 weeks (Phase 1-6.5)
+**Remaining**: 1-2 weeks (Phase 7 + Final Review)
 
-**Critical Path**: Phase 6 → Phase 7 → Phase 10
+**Critical Path**: ✅ Phase 6 → ✅ Phase 6.5 → Phase 7 → Phase 10
 **Optional**: Phase 8 can be deferred if time-constrained
 
 ---
@@ -425,7 +503,8 @@ python main.py --mode 2d
 ---
 
 *Last Updated: 2025-10-12*
-*Next Review: Start of Phase 6*
+*Next Review: Start of Phase 7*
 
-**Current Phase**: Phase 6 - UI Overlay & Input System
-**Next Milestone**: Playable 3D mode with full UI
+**Current Phase**: Phase 6.5 ✅ COMPLETE
+**Next Milestone**: Phase 7 - Class Selection & Menu Screens
+**Status**: 3D mode now fully playable with first-person camera!

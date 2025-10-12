@@ -1,6 +1,8 @@
 # Claude-Like Roguelike 🎮
 
-A Python roguelike game migrating from 2D (PyQt6) to 3D (Ursina Engine).
+A Python roguelike game with both 2D (PyQt6) and 3D (Ursina Engine) rendering modes.
+
+**NEW**: 3D first-person mode is now fully playable!
 
 ## Quick Start
 
@@ -8,11 +10,11 @@ A Python roguelike game migrating from 2D (PyQt6) to 3D (Ursina Engine).
 # Install dependencies
 pip install -r requirements.txt
 
-# Run in 2D mode (complete, legacy)
-python main.py --mode 2d
-
-# Run in 3D mode (in development)
+# Run in 3D mode (first-person, recommended)
 python main.py --mode 3d
+
+# Run in 2D mode (classic version)
+python main.py --mode 2d
 ```
 
 ## Project Structure
@@ -49,25 +51,26 @@ python main.py --mode 3d
 ## Current Status
 
 **2D Mode**: ✅ Complete - Fully playable with all features
-**3D Mode**: 🚧 70% Complete - Core gameplay works, UI pending
+**3D Mode**: ✅ 80% Complete - Fully playable first-person mode!
 
-### What Works in 3D
+### What Works in 3D (Phase 1-6.5 Complete)
 - ✅ Dungeon rendering (walls, floors, stairs)
-- ✅ Player movement (WASD)
+- ✅ **First-person camera** with smooth rotation (arrow keys)
+- ✅ **Directional WASD movement** (camera-relative)
 - ✅ Combat system (bump-to-attack)
-- ✅ Enemy AI and 3D models
+- ✅ Enemy AI and 3D models with health bars
 - ✅ Item models with animations
 - ✅ Particle effects (explosions, trails, text)
-- ✅ Camera follow system
 - ✅ Level progression
+- ✅ **Full UI overlay** (stats, abilities, combat log)
+- ✅ **Ability targeting system** (1/2/3 keys + mouse)
+- ✅ **Performance optimizations** (particle limits, conditional UI updates)
 
-### What's Missing in 3D
-- ❌ UI overlay (stats, abilities, combat log)
-- ❌ FOV/Fog of War in 3D
-- ❌ Ability targeting system
-- ❌ Class selection screen
-- ❌ Title/Victory screens
-- ❌ 3D positional audio
+### What's Missing in 3D (Optional Polish)
+- ❌ FOV/Fog of War in 3D (Phase 8 - optional)
+- ❌ Class selection screen (Phase 7 - currently hardcoded to Warrior)
+- ❌ Title/Victory/Menu screens (Phase 7)
+- ❌ 3D positional audio (Phase 8 - optional)
 
 See `MIGRATION.md` for the complete development roadmap.
 

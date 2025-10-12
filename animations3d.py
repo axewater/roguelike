@@ -688,7 +688,7 @@ class AnimationManager3D:
         self.particles = [p for p in self.particles if p.update(dt) or not p.destroy()]
         self.directional_particles = [p for p in self.directional_particles if p.update(dt) or not p.destroy()]
         self.floating_texts = [t for t in self.floating_texts if t.update(dt) or not t.destroy()]
-        self.flash_effects = [f for f in self.flash_effects if f.update(dt) or not p.destroy()]
+        self.flash_effects = [f for f in self.flash_effects if f.update(dt) or not f.destroy()]
         self.trails = [t for t in self.trails if t.update(dt) or not t.destroy()]
         self.ambient_particles = [p for p in self.ambient_particles if p.update(dt) or not p.destroy()]
         self.alert_particles = [a for a in self.alert_particles if a.update(dt) or not a.destroy()]

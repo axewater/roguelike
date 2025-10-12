@@ -2,20 +2,28 @@
 
 A feature-rich, turn-based roguelike with procedural dungeons, class-based combat, and no external assets - everything is procedurally generated!
 
+**NEW**: 3D first-person mode with full UI overlay!
+
 ## 🚀 Quick Start
 
 ```bash
 # Install dependencies
 pip install -r requirements.txt
 
-# Play in 2D (complete version)
-python main.py --mode 2d
-
-# Play in 3D (development version)
+# Play in 3D (first-person, recommended)
 python main.py --mode 3d
+
+# Play in 2D (classic version)
+python main.py --mode 2d
 ```
 
 **Requirements**: Python 3.8+, PyQt6, pygame, numpy, ursina
+
+**Controls (3D Mode)**:
+- WASD - Move (camera-relative direction)
+- Arrow Keys - Rotate camera / Move forward-backward
+- 1/2/3 - Use abilities (click to target)
+- ESC - Cancel targeting
 
 ## 🎮 Game Features
 
@@ -456,21 +464,23 @@ Typical performance:
 
 ## 🚧 Known Limitations
 
-### 3D Mode (In Development)
-- ❌ No UI overlay (stats, abilities, combat log)
-- ❌ No FOV/Fog of War
-- ❌ Can't use abilities (1/2/3 keys not implemented)
-- ❌ No class selection screen (hardcoded to Warrior)
-- ❌ No title/menu screens
-- ❌ No 3D positional audio
-- ❌ No victory/game over UI (console only)
+### 3D Mode (80% Complete)
+- ✅ Full UI overlay (stats, abilities, combat log)
+- ✅ First-person camera with smooth rotation
+- ✅ Ability targeting system (1/2/3 keys + mouse)
+- ✅ Performance optimizations (particle limits, conditional UI updates)
+- ❌ No FOV/Fog of War (planned for Phase 8)
+- ❌ No class selection screen (hardcoded to Warrior - Phase 7)
+- ❌ No title/menu screens (Phase 7)
+- ❌ No 3D positional audio (optional - Phase 8)
+- ❌ No victory/game over UI (console only - Phase 7)
 
 ### Both Modes
-- Audio only works in 2D mode
+- Audio only works in 2D mode (3D audio planned)
 - Saving/loading not implemented
 - No multiplayer
 
-See `MIGRATION.md` for roadmap to complete 3D mode.
+See `MIGRATION.md` for detailed roadmap.
 
 ## 📚 Additional Documentation
 
