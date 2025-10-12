@@ -99,9 +99,9 @@ class AbilitySlot:
         self.ability_name_text = Text(
             text="",
             parent=parent,
-            position=(self.position.x, self.position.y + self.slot_size * 0.6, 0),
+            position=(self.position.x, self.position.y + self.slot_size * 0.6, 1),
             scale=0.8,  # Increased from 0.5 for visibility
-            color=color.rgba(1, 1, 1, 1),
+            color=color.white,
             origin=(0, 0),
             eternal=True
         )
@@ -111,9 +111,9 @@ class AbilitySlot:
         self.hotkey_text = Text(
             text=f"[{hotkey_number}]",
             parent=parent,
-            position=(self.position.x, self.position.y - self.slot_size * 0.6, 0),
+            position=(self.position.x, self.position.y - self.slot_size * 0.6, 1),
             scale=0.9,  # Increased from 0.6 for visibility
-            color=color.rgba(1, 1, 0.5, 1),
+            color=color.yellow,  # Keep yellow for hotkeys
             origin=(0, 0),
             eternal=True
         )
@@ -122,9 +122,9 @@ class AbilitySlot:
         self.cooldown_text = Text(
             text="",
             parent=parent,
-            position=(self.position.x, self.position.y, 0),
+            position=(self.position.x, self.position.y, 1),
             scale=1.2,  # Increased from 0.8 for visibility
-            color=color.rgba(1, 1, 1, 1),
+            color=color.white,
             origin=(0, 0),
             visible=False,
             eternal=True
@@ -230,11 +230,11 @@ class AbilityBar3D:
         self.background_panel: Optional[Entity] = None
         self.slots: List[AbilitySlot] = []
 
-        # Layout constants (scaled for camera.ui coordinate space)
-        self.PANEL_WIDTH = 0.60   # Adjusted for proper fit
-        self.PANEL_HEIGHT = 0.25  # Adjusted for proper fit
-        self.SLOT_SIZE = 0.12     # Increased for visibility
-        self.SLOT_SPACING = 0.15  # Increased spacing
+        # Layout constants (optimized for camera.ui coordinate space)
+        self.PANEL_WIDTH = 0.55   # Optimized for proper fit
+        self.PANEL_HEIGHT = 0.25  # Good height for slots
+        self.SLOT_SIZE = 0.12     # Clear, readable slots
+        self.SLOT_SPACING = 0.15  # Good spacing
 
         # Create UI
         self._create_ui()
@@ -243,11 +243,11 @@ class AbilityBar3D:
 
     def _create_ui(self):
         """Create ability bar UI"""
-        # Background panel
+        # Background panel (more opaque for visibility)
         self.background_panel = Entity(
             parent=self.parent,
             model='quad',
-            color=color.rgba(0.05, 0.05, 0.1, 0.85),
+            color=color.rgba(0.02, 0.02, 0.08, 0.95),
             position=(self.position.x, self.position.y, -1),
             scale=(self.PANEL_WIDTH, self.PANEL_HEIGHT),
             origin=(0, 0),

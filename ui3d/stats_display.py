@@ -52,13 +52,13 @@ class StatsDisplay3D:
         self.exploration_label: Optional[Text] = None
         self.stealth_label: Optional[Text] = None
 
-        # Layout constants (scaled for camera.ui coordinate space)
-        self.PANEL_WIDTH = 0.50  # Reduced from 0.25
-        self.PANEL_HEIGHT = 0.55  # Reduced from 0.30
-        self.BAR_WIDTH = 0.40   # Reduced from 0.20
-        self.BAR_HEIGHT = 0.04  # Adjusted
-        self.TEXT_SCALE = 1.2   # Increased for visibility
-        self.LABEL_SCALE = 1.0  # Increased for visibility
+        # Layout constants (optimized for camera.ui coordinate space)
+        self.PANEL_WIDTH = 0.45  # Optimized for visibility
+        self.PANEL_HEIGHT = 0.50  # Optimized for all stats
+        self.BAR_WIDTH = 0.35   # Wider bars for visibility
+        self.BAR_HEIGHT = 0.035  # Taller bars
+        self.TEXT_SCALE = 1.3   # Larger text for readability
+        self.LABEL_SCALE = 1.1  # Larger labels
 
         # Cached values for conditional updates (performance optimization)
         self._last_hp = 0
@@ -83,11 +83,11 @@ class StatsDisplay3D:
 
     def _create_ui(self):
         """Create all UI elements"""
-        # Background panel (translucent dark)
+        # Background panel (more opaque for better text visibility)
         self.background_panel = Entity(
             parent=self.parent,
             model='quad',
-            color=color.rgba(0.05, 0.05, 0.15, 0.8),
+            color=color.rgba(0.02, 0.02, 0.08, 0.95),
             position=(self.position.x, self.position.y, -1),
             scale=(self.PANEL_WIDTH, self.PANEL_HEIGHT),
             origin=(-0.5, 0.5),  # Anchor to top-left of panel
@@ -102,19 +102,19 @@ class StatsDisplay3D:
         self.class_level_label = Text(
             text="Warrior - Level 1",
             parent=self.parent,
-            position=(base_x + 0.01, base_y - 0.02, 0),
+            position=(base_x + 0.01, base_y - 0.02, 1),  # z=1 to be in front
             scale=self.TEXT_SCALE,
-            color=color.rgba(1, 1, 1, 1),
+            color=color.white,
             origin=(-0.5, 0.5),
             eternal=True
         )
 
-        # HP Bar (background)
-        hp_bar_y = base_y - 0.05
+        # HP Bar (background) - increased size
+        hp_bar_y = base_y - 0.06
         self.hp_bar_bg = Entity(
             parent=self.parent,
             model='quad',
-            color=color.rgba(0.2, 0.2, 0.2, 0.9),
+            color=color.rgba(0.15, 0.15, 0.15, 1.0),
             position=(base_x + 0.01, hp_bar_y, -0.5),
             scale=(self.BAR_WIDTH, self.BAR_HEIGHT),
             origin=(-0.5, 0.5),
@@ -125,98 +125,98 @@ class StatsDisplay3D:
         self.hp_bar_fill = Entity(
             parent=self.parent,
             model='quad',
-            color=color.rgb(0.2, 0.8, 0.2),  # Green (will change based on HP %)
+            color=color.rgb(0.3, 1.0, 0.3),  # Brighter green
             position=(base_x + 0.01, hp_bar_y, -0.4),
             scale=(self.BAR_WIDTH, self.BAR_HEIGHT),
             origin=(-0.5, 0.5),
             eternal=True
         )
 
-        # HP Text label
+        # HP Text label (brighter and larger)
         self.hp_text = Text(
             text="100/100 HP",
             parent=self.parent,
-            position=(base_x + 0.01 + self.BAR_WIDTH + 0.01, hp_bar_y, 0),
+            position=(base_x + 0.01 + self.BAR_WIDTH + 0.015, hp_bar_y, 1),
             scale=self.LABEL_SCALE,
-            color=color.rgba(1, 1, 1, 1),
+            color=color.white,
             origin=(-0.5, 0.5),
             eternal=True
         )
 
-        # XP Bar (background)
-        xp_bar_y = base_y - 0.08
+        # XP Bar (background) - increased size
+        xp_bar_y = base_y - 0.10
         self.xp_bar_bg = Entity(
             parent=self.parent,
             model='quad',
-            color=color.rgba(0.2, 0.2, 0.2, 0.9),
+            color=color.rgba(0.15, 0.15, 0.15, 1.0),
             position=(base_x + 0.01, xp_bar_y, -0.5),
             scale=(self.BAR_WIDTH, self.BAR_HEIGHT),
             origin=(-0.5, 0.5),
             eternal=True
         )
 
-        # XP Bar (fill)
+        # XP Bar (fill) - brighter gold
         self.xp_bar_fill = Entity(
             parent=self.parent,
             model='quad',
-            color=color.rgb(1, 0.8, 0),  # Gold
+            color=color.rgb(1.0, 0.85, 0.0),  # Brighter gold
             position=(base_x + 0.01, xp_bar_y, -0.4),
             scale=(self.BAR_WIDTH, self.BAR_HEIGHT),
             origin=(-0.5, 0.5),
             eternal=True
         )
 
-        # XP Text label
+        # XP Text label (brighter and larger)
         self.xp_text = Text(
             text="0/100 XP",
             parent=self.parent,
-            position=(base_x + 0.01 + self.BAR_WIDTH + 0.01, xp_bar_y, 0),
+            position=(base_x + 0.01 + self.BAR_WIDTH + 0.015, xp_bar_y, 1),
             scale=self.LABEL_SCALE,
-            color=color.rgba(1, 1, 1, 1),
+            color=color.white,
             origin=(-0.5, 0.5),
             eternal=True
         )
 
-        # Attack label
+        # Attack label (white for visibility)
         self.attack_label = Text(
             text="Attack: 10",
             parent=self.parent,
-            position=(base_x + 0.01, base_y - 0.12, 0),
+            position=(base_x + 0.01, base_y - 0.15, 1),
             scale=self.LABEL_SCALE,
-            color=color.rgba(1.0, 0.7, 0.7, 1),  # Light red
+            color=color.white,
             origin=(-0.5, 0.5),
             eternal=True
         )
 
-        # Defense label
+        # Defense label (white for visibility)
         self.defense_label = Text(
             text="Defense: 5",
             parent=self.parent,
-            position=(base_x + 0.01, base_y - 0.15, 0),
+            position=(base_x + 0.01, base_y - 0.19, 1),
             scale=self.LABEL_SCALE,
-            color=color.rgba(0.7, 0.7, 1.0, 1),  # Light blue
+            color=color.white,
             origin=(-0.5, 0.5),
             eternal=True
         )
 
-        # Depth label
+        # Depth label (white for visibility)
         self.depth_label = Text(
             text="Depth: 1",
             parent=self.parent,
-            position=(base_x + 0.01, base_y - 0.18, 0),
+            position=(base_x + 0.01, base_y - 0.23, 1),
             scale=self.LABEL_SCALE,
-            color=color.rgba(0.8, 0.8, 0.8, 1),
+            color=color.white,
             origin=(-0.5, 0.5),
             eternal=True
         )
 
-        # Exploration label
+        # Exploration label (white for visibility)
         self.exploration_label = Text(
             text="Explored: 0.0%",
             parent=self.parent,
-            position=(base_x + 0.01, base_y - 0.21, 0),
+            position=(base_x + 0.01, base_y - 0.27, 1),
             scale=self.LABEL_SCALE,
-            color=color.rgba(0.7, 0.9, 0.7, 1),  # Light green
+            color=color.white,
             origin=(-0.5, 0.5),
             eternal=True
         )
@@ -225,9 +225,9 @@ class StatsDisplay3D:
         self.stealth_label = Text(
             text="",
             parent=self.parent,
-            position=(base_x + 0.01, base_y - 0.24, 0),
+            position=(base_x + 0.01, base_y - 0.31, 1),
             scale=self.LABEL_SCALE,
-            color=color.rgba(0.3, 0.9, 0.5, 1),  # Bright green for HIDDEN
+            color=color.white,  # Will be colored in update based on status
             origin=(-0.5, 0.5),
             eternal=True
         )
@@ -255,13 +255,13 @@ class StatsDisplay3D:
             hp_percent = player.hp / player.max_hp if player.max_hp > 0 else 0
             self.hp_bar_fill.scale_x = self.BAR_WIDTH * hp_percent
 
-            # Color code HP bar based on percentage
+            # Color code HP bar based on percentage (brighter colors)
             if hp_percent > 0.6:
-                self.hp_bar_fill.color = color.rgb(0.2, 0.8, 0.2)  # Green
+                self.hp_bar_fill.color = color.rgb(0.3, 1.0, 0.3)  # Bright green
             elif hp_percent > 0.3:
-                self.hp_bar_fill.color = color.rgb(1.0, 0.8, 0.0)  # Yellow
+                self.hp_bar_fill.color = color.rgb(1.0, 0.9, 0.0)  # Bright yellow
             else:
-                self.hp_bar_fill.color = color.rgb(1.0, 0.2, 0.2)  # Red
+                self.hp_bar_fill.color = color.rgb(1.0, 0.3, 0.3)  # Bright red
 
             self.hp_text.text = f"{player.hp}/{player.max_hp} HP"
             self._last_hp = player.hp
@@ -304,9 +304,9 @@ class StatsDisplay3D:
 
                 # Change color based on stealth state
                 if "HIDDEN" in stealth_status:
-                    self.stealth_label.color = color.rgba(0.3, 0.9, 0.5, 1)  # Bright green
+                    self.stealth_label.color = color.green  # Green
                 else:
-                    self.stealth_label.color = color.rgba(1.0, 0.3, 0.3, 1)  # Red
+                    self.stealth_label.color = color.red  # Red
 
                 self._last_stealth_status = stealth_status
         else:

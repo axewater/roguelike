@@ -55,13 +55,13 @@ class NearbyItemsDisplay3D:
         self.item_labels: List[Text] = []  # Item name + distance labels
         self.stat_labels: List[Text] = []  # Stat preview labels
 
-        # Layout constants (scaled for camera.ui coordinate space)
-        self.PANEL_WIDTH = 0.50   # Adjusted for proper fit
-        self.PANEL_HEIGHT = 0.35  # Adjusted for proper fit
-        self.TEXT_SCALE = 1.0     # Increased for visibility
-        self.STAT_SCALE = 0.8     # Increased for visibility
-        self.TITLE_SCALE = 1.1    # Increased for visibility
-        self.ITEM_SPACING = 0.08  # Vertical spacing between items
+        # Layout constants (optimized for camera.ui coordinate space)
+        self.PANEL_WIDTH = 0.45   # Optimized for visibility
+        self.PANEL_HEIGHT = 0.38  # Fits all items comfortably
+        self.TEXT_SCALE = 1.0     # Readable text
+        self.STAT_SCALE = 0.85    # Clear stat preview
+        self.TITLE_SCALE = 1.1    # Clear title
+        self.ITEM_SPACING = 0.10  # Better spacing between items
         self.MAX_VISIBLE_ITEMS = 3
 
         # Cached values for conditional updates (performance optimization)
@@ -78,11 +78,11 @@ class NearbyItemsDisplay3D:
 
     def _create_ui(self):
         """Create all UI elements"""
-        # Background panel (translucent dark)
+        # Background panel (more opaque for visibility)
         self.background_panel = Entity(
             parent=self.parent,
             model='quad',
-            color=color.rgba(0.05, 0.05, 0.1, 0.85),
+            color=color.rgba(0.02, 0.02, 0.08, 0.95),
             position=(self.position.x, self.position.y, -1),
             scale=(self.PANEL_WIDTH, self.PANEL_HEIGHT),
             origin=(-0.5, 0.5),  # Anchor to top-left of panel
@@ -93,13 +93,13 @@ class NearbyItemsDisplay3D:
         base_x = self.position.x
         base_y = self.position.y
 
-        # Title label
+        # Title label (brighter)
         self.title_label = Text(
             text="[NEARBY ITEMS]",
             parent=self.parent,
-            position=(base_x + 0.01, base_y - 0.02, 0),
+            position=(base_x + 0.01, base_y - 0.02, 1),
             scale=self.TITLE_SCALE,
-            color=color.rgba(0.7, 0.7, 0.8, 1),
+            color=color.white,
             origin=(-0.5, 0.5),
             eternal=True
         )
@@ -111,23 +111,23 @@ class NearbyItemsDisplay3D:
             item_label = Text(
                 text="",
                 parent=self.parent,
-                position=(base_x + 0.01, item_y, 0),
+                position=(base_x + 0.01, item_y, 1),
                 scale=self.TEXT_SCALE,
-                color=color.rgba(1, 1, 1, 1),
+                color=color.white,
                 origin=(-0.5, 0.5),
                 visible=False,  # Hidden initially
                 eternal=True
             )
             self.item_labels.append(item_label)
 
-            # Stat preview label (below item name)
-            stat_y = item_y - 0.02
+            # Stat preview label (below item name, brighter)
+            stat_y = item_y - 0.03
             stat_label = Text(
                 text="",
                 parent=self.parent,
-                position=(base_x + 0.03, stat_y, 0),  # Indent slightly
+                position=(base_x + 0.03, stat_y, 1),  # Indent slightly
                 scale=self.STAT_SCALE,
-                color=color.rgba(0.5, 0.5, 0.5, 1),  # Gray
+                color=color.white,  # Brighter gray
                 origin=(-0.5, 0.5),
                 visible=False,  # Hidden initially
                 eternal=True
@@ -211,7 +211,7 @@ class NearbyItemsDisplay3D:
         # Show "No items nearby" message if no items
         if not nearby_items:
             self.item_labels[0].text = "No items nearby"
-            self.item_labels[0].color = color.rgba(0.4, 0.4, 0.4, 1)
+            self.item_labels[0].color = color.rgba(0.6, 0.6, 0.6, 1)
             self.item_labels[0].visible = True
             self.stat_labels[0].visible = False
 

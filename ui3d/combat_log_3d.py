@@ -76,13 +76,13 @@ class CombatLog3D:
         # Message queue (FIFO, max 50 stored)
         self.messages: deque[CombatLogEntry] = deque(maxlen=50)
 
-        # Display settings (scaled for camera.ui coordinate space)
+        # Display settings (optimized for camera.ui coordinate space)
         self.MAX_VISIBLE_MESSAGES = 5
         self.FADE_DURATION = 5.0  # Seconds before message starts fading
-        self.PANEL_WIDTH = 0.50   # Adjusted for proper fit
-        self.PANEL_HEIGHT = 0.30  # Adjusted for proper fit
-        self.MESSAGE_SPACING = 0.05  # Vertical spacing between messages
-        self.TEXT_SCALE = 0.9     # Increased for visibility
+        self.PANEL_WIDTH = 0.55   # Optimized for longer messages
+        self.PANEL_HEIGHT = 0.35  # Taller for better visibility
+        self.MESSAGE_SPACING = 0.05  # Good spacing between messages
+        self.TEXT_SCALE = 1.0     # Readable text size
 
         # UI elements
         self.background_panel: Optional[Entity] = None
@@ -95,24 +95,24 @@ class CombatLog3D:
 
     def _create_ui(self):
         """Create background panel and title"""
-        # Background panel
+        # Background panel (more opaque for visibility)
         self.background_panel = Entity(
             parent=self.parent,
             model='quad',
-            color=color.rgba(0.05, 0.05, 0.1, 0.85),
+            color=color.rgba(0.02, 0.02, 0.08, 0.95),
             position=(self.position.x, self.position.y, -1),
             scale=(self.PANEL_WIDTH, self.PANEL_HEIGHT),
             origin=(-0.5, -0.5),  # Anchor to bottom-left
             eternal=True
         )
 
-        # Title label
+        # Title label (brighter)
         self.title_label = Text(
             text="[COMBAT LOG]",
             parent=self.parent,
-            position=(self.position.x + 0.01, self.position.y + self.PANEL_HEIGHT - 0.02, 0),
+            position=(self.position.x + 0.01, self.position.y + self.PANEL_HEIGHT - 0.02, 1),
             scale=self.TEXT_SCALE * 0.9,
-            color=color.rgba(0.7, 0.7, 0.8, 1),
+            color=color.white,
             origin=(-0.5, 0.5),
             eternal=True
         )
@@ -163,7 +163,7 @@ class CombatLog3D:
             entry.text_entity = Text(
                 text=f"• {entry.message}",
                 parent=self.parent,
-                position=(self.position.x + 0.01, y_pos, 0),
+                position=(self.position.x + 0.01, y_pos, 1),
                 scale=self.TEXT_SCALE,
                 color=color.rgba(*msg_color, alpha),
                 origin=(-0.5, -0.5),

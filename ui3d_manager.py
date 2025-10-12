@@ -2,26 +2,22 @@
 3D UI Overlay Manager
 
 Manages all UI components for 3D mode using Ursina's UI system.
-Provides a unified interface for updating and rendering UI elements.
+Now uses a unified Helmet HUD design for immersive gameplay.
 """
 
 from typing import Optional
-from ursina import Entity, Text, color, window, Vec2, camera
+from ursina import Entity, color, window, camera
 from game import Game
-from ui3d.stats_display import StatsDisplay3D
-from ui3d.combat_log_3d import CombatLog3D
-from ui3d.ability_bar import AbilityBar3D
+from ui3d.helmet_hud import HelmetHUD3D
 from ui3d.targeting import TargetingSystem
-from ui3d.equipment_display import EquipmentDisplay3D
-from ui3d.nearby_items import NearbyItemsDisplay3D
 
 
 class UI3DManager:
     """
     Main manager for 3D UI overlay
 
-    Coordinates all UI widgets (stats, combat log, ability bar) and
-    provides lifecycle management (init, update, cleanup).
+    Now uses a unified Helmet HUD design for immersive gameplay.
+    All UI elements are consolidated into a single widget.
     """
 
     def __init__(self, game: Game):
@@ -34,28 +30,8 @@ class UI3DManager:
         self.game = game
         self.visible = True
 
-        # UI positioning constants (relative to screen edges)
-        # Ursina camera.ui uses normalized coordinates: approximately -0.5 to 0.5 range
-        # (0, 0) = screen center
-        self.ANCHOR_TOP_LEFT = Vec2(-0.85, 0.45)      # Stats display
-        self.ANCHOR_TOP_RIGHT = Vec2(0.35, 0.45)      # Equipment display
-        self.ANCHOR_RIGHT_MID = Vec2(0.35, 0.0)       # Nearby items display
-        self.ANCHOR_BOTTOM_LEFT = Vec2(-0.85, -0.30)  # Combat log
-        self.ANCHOR_BOTTOM_RIGHT = Vec2(0.20, -0.40)  # Ability bar
-
-        # UI scale factors (adjust for different resolutions)
-        self.UI_SCALE = 1.0
-        self.TEXT_SCALE = 1.0
-
-        # Background panels (translucent)
-        self.background_panels = []
-
-        # UI widgets (will be initialized in subclasses)
-        self.stats_display = None
-        self.equipment_display = None
-        self.nearby_items_display = None
-        self.combat_log = None
-        self.ability_bar = None
+        # UI widgets
+        self.helmet_hud = None
         self.targeting_system = None
 
         # Root UI entity (parent for all UI elements)
@@ -70,49 +46,16 @@ class UI3DManager:
         # Initialize all widgets
         self.initialize_widgets()
 
-        print("✓ UI3DManager initialized")
+        print("✓ UI3DManager initialized (Helmet HUD design)")
         print(f"  - Screen size: {window.size}")
-        print(f"  - Anchors configured:")
-        print(f"    • Top-Left (Stats): {self.ANCHOR_TOP_LEFT}")
-        print(f"    • Top-Right (Equipment): {self.ANCHOR_TOP_RIGHT}")
-        print(f"    • Right-Mid (Nearby Items): {self.ANCHOR_RIGHT_MID}")
-        print(f"    • Bottom-Left (Combat Log): Vec2(-0.95, -0.50)")
-        print(f"    • Bottom-Right (Ability Bar): Vec2(0.55, -0.85)")
+        print(f"  - Using unified Helmet HUD layout")
 
     def initialize_widgets(self):
         """Initialize all UI widgets"""
-        # Stats display (top-left)
-        self.stats_display = StatsDisplay3D(
+        # Helmet HUD (unified UI design)
+        self.helmet_hud = HelmetHUD3D(
             game=self.game,
-            parent=self.ui_root,
-            position=self.ANCHOR_TOP_LEFT
-        )
-
-        # Equipment display (top-right)
-        self.equipment_display = EquipmentDisplay3D(
-            game=self.game,
-            parent=self.ui_root,
-            position=self.ANCHOR_TOP_RIGHT
-        )
-
-        # Nearby items display (right side, below equipment)
-        self.nearby_items_display = NearbyItemsDisplay3D(
-            game=self.game,
-            parent=self.ui_root,
-            position=self.ANCHOR_RIGHT_MID
-        )
-
-        # Combat log (bottom-left)
-        self.combat_log = CombatLog3D(
-            parent=self.ui_root,
-            position=self.ANCHOR_BOTTOM_LEFT
-        )
-
-        # Ability bar (bottom-right)
-        self.ability_bar = AbilityBar3D(
-            game=self.game,
-            parent=self.ui_root,
-            position=self.ANCHOR_BOTTOM_RIGHT
+            parent=self.ui_root
         )
 
         # Targeting system
@@ -122,67 +65,10 @@ class UI3DManager:
         )
 
         print("✓ All UI widgets initialized")
-        print(f"  - Widget count: 6 (Stats, Equipment, Nearby Items, Combat Log, Ability Bar, Targeting)")
+        print(f"  - Widget count: 2 (Helmet HUD, Targeting)")
         print(f"  - UI root enabled: {self.ui_root.enabled}")
         print(f"  - UI visible: {self.visible}")
 
-    def create_background_panel(self, position: Vec2, size: Vec2, panel_color: tuple = (0.05, 0.05, 0.1, 0.7)) -> Entity:
-        """
-        Create a translucent background panel
-
-        Args:
-            position: Panel position (normalized screen coords)
-            size: Panel size (normalized screen coords)
-            panel_color: RGBA color tuple (0-1 range), default dark blue with 70% opacity
-
-        Returns:
-            Entity: Background panel entity
-        """
-        panel = Entity(
-            parent=self.ui_root,
-            model='quad',
-            color=color.rgba(*panel_color),
-            position=(position.x, position.y, 0),
-            scale=(size.x, size.y, 1),
-            origin=(0, 0),  # Anchor to center of quad
-            eternal=True
-        )
-
-        self.background_panels.append(panel)
-        return panel
-
-    def create_text_label(
-        self,
-        text: str = "",
-        position: Vec2 = Vec2(0, 0),
-        scale: float = 1.0,
-        text_color: tuple = (1, 1, 1, 1),
-        parent: Optional[Entity] = None
-    ) -> Text:
-        """
-        Create a text label entity
-
-        Args:
-            text: Initial text content
-            position: Text position (normalized coords)
-            scale: Text scale multiplier
-            text_color: RGBA color tuple (0-1 range)
-            parent: Parent entity (defaults to ui_root)
-
-        Returns:
-            Text: Text entity
-        """
-        text_entity = Text(
-            text=text,
-            parent=parent if parent else self.ui_root,
-            position=(position.x, position.y, 0),
-            scale=scale * self.TEXT_SCALE,
-            color=color.rgba(*text_color),
-            origin=(0, 0),
-            eternal=True
-        )
-
-        return text_entity
 
     def set_visibility(self, visible: bool):
         """
@@ -206,22 +92,11 @@ class UI3DManager:
         if not self.visible:
             return
 
-        # Update individual widgets
-        if self.stats_display:
-            self.stats_display.update(dt)
+        # Update Helmet HUD
+        if self.helmet_hud:
+            self.helmet_hud.update(dt)
 
-        if self.equipment_display:
-            self.equipment_display.update(dt)
-
-        if self.nearby_items_display:
-            self.nearby_items_display.update(dt)
-
-        if self.combat_log:
-            self.combat_log.update(dt)
-
-        if self.ability_bar:
-            self.ability_bar.update(dt)
-
+        # Update targeting system
         if self.targeting_system:
             self.targeting_system.update(dt)
 
@@ -233,8 +108,8 @@ class UI3DManager:
             message: Message text
             msg_type: Message type for color coding (damage, heal, loot, event, etc.)
         """
-        if self.combat_log:
-            self.combat_log.add_message(message, msg_type)
+        if self.helmet_hud:
+            self.helmet_hud.add_message(message, msg_type)
         else:
             print(f"[COMBAT LOG] {message}")  # Fallback to console
 
@@ -242,31 +117,10 @@ class UI3DManager:
         """
         Clean up all UI entities and resources
         """
-        # Disable and destroy all background panels
-        for panel in self.background_panels:
-            panel.disable()
-        self.background_panels.clear()
-
         # Clean up widgets
-        if self.stats_display:
-            self.stats_display.cleanup()
-            self.stats_display = None
-
-        if self.equipment_display:
-            self.equipment_display.cleanup()
-            self.equipment_display = None
-
-        if self.nearby_items_display:
-            self.nearby_items_display.cleanup()
-            self.nearby_items_display = None
-
-        if self.combat_log:
-            self.combat_log.cleanup()
-            self.combat_log = None
-
-        if self.ability_bar:
-            self.ability_bar.cleanup()
-            self.ability_bar = None
+        if self.helmet_hud:
+            self.helmet_hud.cleanup()
+            self.helmet_hud = None
 
         if self.targeting_system:
             self.targeting_system.cleanup()
@@ -295,4 +149,4 @@ class UI3DManager:
         return max(0.5, min(2.0, scale))  # Clamp between 0.5x and 2.0x
 
     def __repr__(self) -> str:
-        return f"<UI3DManager visible={self.visible} widgets={sum([1 for w in [self.stats_display, self.equipment_display, self.nearby_items_display, self.combat_log, self.ability_bar, self.targeting_system] if w is not None])}>"
+        return f"<UI3DManager visible={self.visible} widgets={sum([1 for w in [self.helmet_hud, self.targeting_system] if w is not None])}>"

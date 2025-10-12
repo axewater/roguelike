@@ -55,12 +55,12 @@ class EquipmentDisplay3D:
         self.accessory_label: Optional[Text] = None
         self.boots_label: Optional[Text] = None
 
-        # Layout constants (scaled for camera.ui coordinate space)
-        self.PANEL_WIDTH = 0.50  # Adjusted for proper fit
-        self.PANEL_HEIGHT = 0.40  # Adjusted for proper fit
-        self.TEXT_SCALE = 1.0    # Increased for visibility
-        self.TITLE_SCALE = 1.1   # Increased for visibility
-        self.LINE_SPACING = 0.05 # Increased spacing
+        # Layout constants (optimized for camera.ui coordinate space)
+        self.PANEL_WIDTH = 0.45  # Optimized for visibility
+        self.PANEL_HEIGHT = 0.35  # Optimized for all equipment
+        self.TEXT_SCALE = 1.0    # Readable text size
+        self.TITLE_SCALE = 1.1   # Clear title
+        self.LINE_SPACING = 0.05 # Good spacing between items
 
         # Cached values for conditional updates (performance optimization)
         self._last_weapon = None
@@ -78,11 +78,11 @@ class EquipmentDisplay3D:
 
     def _create_ui(self):
         """Create all UI elements"""
-        # Background panel (translucent dark)
+        # Background panel (more opaque for visibility)
         self.background_panel = Entity(
             parent=self.parent,
             model='quad',
-            color=color.rgba(0.05, 0.05, 0.1, 0.85),
+            color=color.rgba(0.02, 0.02, 0.08, 0.95),
             position=(self.position.x, self.position.y, -1),
             scale=(self.PANEL_WIDTH, self.PANEL_HEIGHT),
             origin=(-0.5, 0.5),  # Anchor to top-left of panel
@@ -93,24 +93,24 @@ class EquipmentDisplay3D:
         base_x = self.position.x
         base_y = self.position.y
 
-        # Title label
+        # Title label (brighter)
         self.title_label = Text(
             text="[EQUIPMENT]",
             parent=self.parent,
-            position=(base_x + 0.01, base_y - 0.02, 0),
+            position=(base_x + 0.01, base_y - 0.02, 1),
             scale=self.TITLE_SCALE,
-            color=color.rgba(0.7, 0.7, 0.8, 1),
+            color=color.white,
             origin=(-0.5, 0.5),
             eternal=True
         )
 
-        # Equipment labels
+        # Equipment labels (brighter, better spacing)
         self.weapon_label = Text(
             text="Weapon: None",
             parent=self.parent,
-            position=(base_x + 0.01, base_y - 0.06, 0),
+            position=(base_x + 0.01, base_y - 0.07, 1),
             scale=self.TEXT_SCALE,
-            color=color.rgba(0.7, 0.7, 0.7, 1),
+            color=color.white,
             origin=(-0.5, 0.5),
             eternal=True
         )
@@ -118,9 +118,9 @@ class EquipmentDisplay3D:
         self.armor_label = Text(
             text="Armor: None",
             parent=self.parent,
-            position=(base_x + 0.01, base_y - 0.06 - self.LINE_SPACING, 0),
+            position=(base_x + 0.01, base_y - 0.07 - self.LINE_SPACING, 1),
             scale=self.TEXT_SCALE,
-            color=color.rgba(0.7, 0.7, 0.7, 1),
+            color=color.white,
             origin=(-0.5, 0.5),
             eternal=True
         )
@@ -128,9 +128,9 @@ class EquipmentDisplay3D:
         self.accessory_label = Text(
             text="Accessory: None",
             parent=self.parent,
-            position=(base_x + 0.01, base_y - 0.06 - self.LINE_SPACING * 2, 0),
+            position=(base_x + 0.01, base_y - 0.07 - self.LINE_SPACING * 2, 1),
             scale=self.TEXT_SCALE,
-            color=color.rgba(0.7, 0.7, 0.7, 1),
+            color=color.white,
             origin=(-0.5, 0.5),
             eternal=True
         )
@@ -138,9 +138,9 @@ class EquipmentDisplay3D:
         self.boots_label = Text(
             text="Boots: None",
             parent=self.parent,
-            position=(base_x + 0.01, base_y - 0.06 - self.LINE_SPACING * 3, 0),
+            position=(base_x + 0.01, base_y - 0.07 - self.LINE_SPACING * 3, 1),
             scale=self.TEXT_SCALE,
-            color=color.rgba(0.7, 0.7, 0.7, 1),
+            color=color.white,
             origin=(-0.5, 0.5),
             eternal=True
         )
@@ -167,7 +167,7 @@ class EquipmentDisplay3D:
                 self.weapon_label.color = color.rgb(*item_color)
             else:
                 self.weapon_label.text = "Weapon: None"
-                self.weapon_label.color = color.rgba(0.5, 0.5, 0.5, 1)
+                self.weapon_label.color = color.rgba(0.6, 0.6, 0.6, 1)
             self._last_weapon = weapon
 
         # Update armor (only if changed)
@@ -180,7 +180,7 @@ class EquipmentDisplay3D:
                 self.armor_label.color = color.rgb(*item_color)
             else:
                 self.armor_label.text = "Armor: None"
-                self.armor_label.color = color.rgba(0.5, 0.5, 0.5, 1)
+                self.armor_label.color = color.rgba(0.6, 0.6, 0.6, 1)
             self._last_armor = armor
 
         # Update accessory (only if changed)
@@ -193,7 +193,7 @@ class EquipmentDisplay3D:
                 self.accessory_label.color = color.rgb(*item_color)
             else:
                 self.accessory_label.text = "Accessory: None"
-                self.accessory_label.color = color.rgba(0.5, 0.5, 0.5, 1)
+                self.accessory_label.color = color.rgba(0.6, 0.6, 0.6, 1)
             self._last_accessory = accessory
 
         # Update boots (only if changed)
@@ -206,7 +206,7 @@ class EquipmentDisplay3D:
                 self.boots_label.color = color.rgb(*item_color)
             else:
                 self.boots_label.text = "Boots: None"
-                self.boots_label.color = color.rgba(0.5, 0.5, 0.5, 1)
+                self.boots_label.color = color.rgba(0.6, 0.6, 0.6, 1)
             self._last_boots = boots
 
     def cleanup(self):
