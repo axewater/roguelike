@@ -323,8 +323,8 @@ class ClassSelection3D(Entity):
             print(f"[ClassSelection] Unknown class type: {class_type}")
             return
 
-        # Create model entity - scaled to 50% of previous size (1.25 instead of 2.5)
-        model = model_func(position=Vec3(0, 0, 0), scale=Vec3(1.25, 1.25, 1.25))
+        # Create model entity - scaled to comfortable viewing size (0.625)
+        model = model_func(position=Vec3(0, 0, 0), scale=Vec3(0.625, 0.625, 0.625))
         # NOTE: Do NOT override model.color - let child entities keep their individual colors
         model.rotation_y = 0
 
@@ -333,7 +333,7 @@ class ClassSelection3D(Entity):
 
         self.class_models[class_type] = model
 
-        print(f"✓ Created model for {class_type} at position {model.position} with scale 1.25")
+        print(f"✓ Created model for {class_type} at position {model.position} with scale 0.625")
 
     def _update_ui_for_class(self):
         """Update UI text and colors for current class"""
