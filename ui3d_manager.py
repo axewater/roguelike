@@ -6,12 +6,14 @@ Provides a unified interface for updating and rendering UI elements.
 """
 
 from typing import Optional
-from ursina import Entity, Text, color, window, Vec2
+from ursina import Entity, Text, color, window, Vec2, camera
 from game import Game
 from ui3d.stats_display import StatsDisplay3D
 from ui3d.combat_log_3d import CombatLog3D
 from ui3d.ability_bar import AbilityBar3D
 from ui3d.targeting import TargetingSystem
+from ui3d.equipment_display import EquipmentDisplay3D
+from ui3d.nearby_items import NearbyItemsDisplay3D
 
 
 class UI3DManager:
@@ -33,10 +35,13 @@ class UI3DManager:
         self.visible = True
 
         # UI positioning constants (relative to screen edges)
-        # Ursina uses normalized coordinates: (-1, -1) = bottom-left, (1, 1) = top-right
-        self.ANCHOR_TOP_LEFT = Vec2(-0.95, 0.95)      # Stats display
-        self.ANCHOR_BOTTOM_LEFT = Vec2(-0.95, -0.95)  # Combat log
-        self.ANCHOR_BOTTOM_RIGHT = Vec2(0.65, -0.95)  # Ability bar
+        # Ursina camera.ui uses normalized coordinates: approximately -0.5 to 0.5 range
+        # (0, 0) = screen center
+        self.ANCHOR_TOP_LEFT = Vec2(-0.85, 0.45)      # Stats display
+        self.ANCHOR_TOP_RIGHT = Vec2(0.35, 0.45)      # Equipment display
+        self.ANCHOR_RIGHT_MID = Vec2(0.35, 0.0)       # Nearby items display
+        self.ANCHOR_BOTTOM_LEFT = Vec2(-0.85, -0.30)  # Combat log
+        self.ANCHOR_BOTTOM_RIGHT = Vec2(0.20, -0.40)  # Ability bar
 
         # UI scale factors (adjust for different resolutions)
         self.UI_SCALE = 1.0
@@ -47,13 +52,17 @@ class UI3DManager:
 
         # UI widgets (will be initialized in subclasses)
         self.stats_display = None
+        self.equipment_display = None
+        self.nearby_items_display = None
         self.combat_log = None
         self.ability_bar = None
         self.targeting_system = None
 
         # Root UI entity (parent for all UI elements)
+        # IMPORTANT: Must be parented to camera.ui for screen-space rendering
         self.ui_root = Entity(
             name='ui_root_3d',
+            parent=camera.ui,  # Attach to Ursina's screen-space UI system
             eternal=True,  # Don't destroy on scene change
             enabled=True
         )
@@ -63,7 +72,12 @@ class UI3DManager:
 
         print("✓ UI3DManager initialized")
         print(f"  - Screen size: {window.size}")
-        print(f"  - Anchors configured: TL={self.ANCHOR_TOP_LEFT}, BL={self.ANCHOR_BOTTOM_LEFT}, BR={self.ANCHOR_BOTTOM_RIGHT}")
+        print(f"  - Anchors configured:")
+        print(f"    • Top-Left (Stats): {self.ANCHOR_TOP_LEFT}")
+        print(f"    • Top-Right (Equipment): {self.ANCHOR_TOP_RIGHT}")
+        print(f"    • Right-Mid (Nearby Items): {self.ANCHOR_RIGHT_MID}")
+        print(f"    • Bottom-Left (Combat Log): Vec2(-0.95, -0.50)")
+        print(f"    • Bottom-Right (Ability Bar): Vec2(0.55, -0.85)")
 
     def initialize_widgets(self):
         """Initialize all UI widgets"""
@@ -74,17 +88,31 @@ class UI3DManager:
             position=self.ANCHOR_TOP_LEFT
         )
 
+        # Equipment display (top-right)
+        self.equipment_display = EquipmentDisplay3D(
+            game=self.game,
+            parent=self.ui_root,
+            position=self.ANCHOR_TOP_RIGHT
+        )
+
+        # Nearby items display (right side, below equipment)
+        self.nearby_items_display = NearbyItemsDisplay3D(
+            game=self.game,
+            parent=self.ui_root,
+            position=self.ANCHOR_RIGHT_MID
+        )
+
         # Combat log (bottom-left)
         self.combat_log = CombatLog3D(
             parent=self.ui_root,
-            position=Vec2(-0.95, -0.50)
+            position=self.ANCHOR_BOTTOM_LEFT
         )
 
         # Ability bar (bottom-right)
         self.ability_bar = AbilityBar3D(
             game=self.game,
             parent=self.ui_root,
-            position=Vec2(0.55, -0.85)
+            position=self.ANCHOR_BOTTOM_RIGHT
         )
 
         # Targeting system
@@ -94,6 +122,9 @@ class UI3DManager:
         )
 
         print("✓ All UI widgets initialized")
+        print(f"  - Widget count: 6 (Stats, Equipment, Nearby Items, Combat Log, Ability Bar, Targeting)")
+        print(f"  - UI root enabled: {self.ui_root.enabled}")
+        print(f"  - UI visible: {self.visible}")
 
     def create_background_panel(self, position: Vec2, size: Vec2, panel_color: tuple = (0.05, 0.05, 0.1, 0.7)) -> Entity:
         """
@@ -179,6 +210,12 @@ class UI3DManager:
         if self.stats_display:
             self.stats_display.update(dt)
 
+        if self.equipment_display:
+            self.equipment_display.update(dt)
+
+        if self.nearby_items_display:
+            self.nearby_items_display.update(dt)
+
         if self.combat_log:
             self.combat_log.update(dt)
 
@@ -215,6 +252,14 @@ class UI3DManager:
             self.stats_display.cleanup()
             self.stats_display = None
 
+        if self.equipment_display:
+            self.equipment_display.cleanup()
+            self.equipment_display = None
+
+        if self.nearby_items_display:
+            self.nearby_items_display.cleanup()
+            self.nearby_items_display = None
+
         if self.combat_log:
             self.combat_log.cleanup()
             self.combat_log = None
@@ -250,4 +295,4 @@ class UI3DManager:
         return max(0.5, min(2.0, scale))  # Clamp between 0.5x and 2.0x
 
     def __repr__(self) -> str:
-        return f"<UI3DManager visible={self.visible} widgets={sum([1 for w in [self.stats_display, self.combat_log, self.ability_bar, self.targeting_system] if w is not None])}>"
+        return f"<UI3DManager visible={self.visible} widgets={sum([1 for w in [self.stats_display, self.equipment_display, self.nearby_items_display, self.combat_log, self.ability_bar, self.targeting_system] if w is not None])}>"

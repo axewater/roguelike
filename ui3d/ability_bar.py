@@ -18,7 +18,7 @@ class AbilitySlot:
         ability_index: int,
         parent: Optional[Entity],
         position: Vec2,
-        slot_size: float = 0.08
+        slot_size: float = 0.12  # Increased from 0.08 for visibility
     ):
         """
         Create ability slot
@@ -100,7 +100,7 @@ class AbilitySlot:
             text="",
             parent=parent,
             position=(self.position.x, self.position.y + self.slot_size * 0.6, 0),
-            scale=0.5,
+            scale=0.8,  # Increased from 0.5 for visibility
             color=color.rgba(1, 1, 1, 1),
             origin=(0, 0),
             eternal=True
@@ -112,7 +112,7 @@ class AbilitySlot:
             text=f"[{hotkey_number}]",
             parent=parent,
             position=(self.position.x, self.position.y - self.slot_size * 0.6, 0),
-            scale=0.6,
+            scale=0.9,  # Increased from 0.6 for visibility
             color=color.rgba(1, 1, 0.5, 1),
             origin=(0, 0),
             eternal=True
@@ -123,7 +123,7 @@ class AbilitySlot:
             text="",
             parent=parent,
             position=(self.position.x, self.position.y, 0),
-            scale=0.8,
+            scale=1.2,  # Increased from 0.8 for visibility
             color=color.rgba(1, 1, 1, 1),
             origin=(0, 0),
             visible=False,
@@ -230,11 +230,11 @@ class AbilityBar3D:
         self.background_panel: Optional[Entity] = None
         self.slots: List[AbilitySlot] = []
 
-        # Layout constants
-        self.PANEL_WIDTH = 0.40
-        self.PANEL_HEIGHT = 0.18
-        self.SLOT_SIZE = 0.08
-        self.SLOT_SPACING = 0.10
+        # Layout constants (scaled for camera.ui coordinate space)
+        self.PANEL_WIDTH = 0.60   # Adjusted for proper fit
+        self.PANEL_HEIGHT = 0.25  # Adjusted for proper fit
+        self.SLOT_SIZE = 0.12     # Increased for visibility
+        self.SLOT_SPACING = 0.15  # Increased spacing
 
         # Create UI
         self._create_ui()

@@ -76,13 +76,13 @@ class CombatLog3D:
         # Message queue (FIFO, max 50 stored)
         self.messages: deque[CombatLogEntry] = deque(maxlen=50)
 
-        # Display settings
+        # Display settings (scaled for camera.ui coordinate space)
         self.MAX_VISIBLE_MESSAGES = 5
         self.FADE_DURATION = 5.0  # Seconds before message starts fading
-        self.PANEL_WIDTH = 0.35
-        self.PANEL_HEIGHT = 0.25
-        self.MESSAGE_SPACING = 0.03  # Vertical spacing between messages
-        self.TEXT_SCALE = 0.6
+        self.PANEL_WIDTH = 0.50   # Adjusted for proper fit
+        self.PANEL_HEIGHT = 0.30  # Adjusted for proper fit
+        self.MESSAGE_SPACING = 0.05  # Vertical spacing between messages
+        self.TEXT_SCALE = 0.9     # Increased for visibility
 
         # UI elements
         self.background_panel: Optional[Entity] = None

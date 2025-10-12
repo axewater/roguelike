@@ -110,8 +110,8 @@ def create_health_bar_billboard(hp_percentage: float) -> Entity:
     filled = max(0, min(10, int(hp_percentage * 10)))
     empty = 10 - filled
 
-    # Bar text using block characters
-    bar_text = "█" * filled + "░" * empty
+    # Bar text using ASCII characters (# for filled, - for empty)
+    bar_text = "#" * filled + "-" * empty
 
     # Determine color based on HP percentage
     if hp_percentage > 0.6:
@@ -146,8 +146,8 @@ def update_health_bar(health_bar: Entity, hp_percentage: float):
     filled = max(0, min(10, int(hp_percentage * 10)))
     empty = 10 - filled
 
-    # Update text
-    health_bar.text = "█" * filled + "░" * empty
+    # Update text (# for filled, - for empty)
+    health_bar.text = "#" * filled + "-" * empty
 
     # Update color
     if hp_percentage > 0.6:
