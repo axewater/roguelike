@@ -5,11 +5,12 @@ This module provides the main game loop for 3D rendering mode.
 All game logic remains in game.py - this only handles visualization and input.
 """
 
-from ursina import Ursina, Entity, camera, held_keys, time as ursina_time, color, window, Vec3
+from ursina import Ursina, Entity, camera, held_keys, time as ursina_time, color, window, Vec3, mouse
 import constants as c
 from game import Game
 from renderer3d import Renderer3D
 from animations3d import Particle3D
+from ui3d_manager import UI3DManager
 
 
 class ParticleListWrapper:
@@ -157,20 +158,28 @@ class GameController(Entity):
     Main game controller using Ursina Entity pattern.
     Ursina automatically calls update() on all Entity subclasses.
     """
-    def __init__(self, game, renderer):
+    def __init__(self, game, renderer, ui_manager):
         super().__init__()
         self.game = game
         self.renderer = renderer
+        self.ui_manager = ui_manager
 
         # Input cooldown to prevent holding keys
         self.move_cooldown = 0.0
         self.move_cooldown_time = 0.15  # Seconds between moves
+
+        # Ability input cooldown (prevent rapid key presses)
+        self.ability_cooldown = 0.0
+        self.ability_cooldown_time = 0.2  # Seconds between ability key presses
 
         # Track if game is over
         self.game_over_displayed = False
 
         # Debug: Frame counter
         self.frame_count = 0
+
+        # Track previous key states (for detecting key press vs hold)
+        self.prev_key_states = {'1': False, '2': False, '3': False, 'escape': False, 'left mouse down': False}
 
         print("✓ GameController initialized")
 
@@ -184,6 +193,10 @@ class GameController(Entity):
             print(f"[HEARTBEAT] Frame {self.frame_count} | dt={dt:.4f} | FPS={1/dt:.1f}")
 
         self.move_cooldown -= dt
+        self.ability_cooldown -= dt
+
+        # Handle ability input and targeting
+        self._handle_ability_input()
 
         # Check for game over
         if self.game.game_over or self.game.victory:
@@ -257,7 +270,7 @@ class GameController(Entity):
                         # Check for stairs
                         if self.game.dungeon.get_tile(new_x, new_y) == c.TILE_STAIRS:
                             print(f"[EVENT] Player on stairs! Descending...")
-                            self.game.descend_stairs()
+                            self.game._descend_stairs()
                             # Re-render dungeon after descending
                             self.renderer.render_dungeon()
 
@@ -274,6 +287,9 @@ class GameController(Entity):
         # Update renderer
         self.renderer.update(dt)
 
+        # Update UI
+        self.ui_manager.update(dt)
+
         # Debug output (every 120 frames = ~2 seconds at 60fps)
         if self.frame_count % 120 == 0:
             print(f"Player: ({self.game.player.x}, {self.game.player.y}) | "
@@ -281,6 +297,79 @@ class GameController(Entity):
                   f"Level: {self.game.current_level} | "
                   f"Enemies: {len(self.game.enemies)} | "
                   f"Camera: {camera.position}")
+
+    def _handle_ability_input(self):
+        """Handle ability input (1/2/3 keys) and targeting"""
+        targeting_system = self.ui_manager.targeting_system
+
+        # ESC key - cancel targeting
+        if held_keys['escape'] and not self.prev_key_states['escape']:
+            if targeting_system.mode == targeting_system.MODE_TARGETING:
+                targeting_system.cancel_targeting()
+                print("[INPUT] Targeting cancelled")
+            self.prev_key_states['escape'] = True
+        elif not held_keys['escape']:
+            self.prev_key_states['escape'] = False
+
+        # Mouse left click - confirm target (only when targeting)
+        if mouse.left and not self.prev_key_states['left mouse down']:
+            if targeting_system.mode == targeting_system.MODE_TARGETING:
+                success = targeting_system.confirm_target()
+                if success:
+                    print(f"[ABILITY] Ability executed successfully")
+            self.prev_key_states['left mouse down'] = True
+        elif not mouse.left:
+            self.prev_key_states['left mouse down'] = False
+
+        # Don't handle ability keys if already targeting
+        if targeting_system.mode == targeting_system.MODE_TARGETING:
+            return
+
+        # Only handle ability keys if cooldown expired
+        if self.ability_cooldown > 0:
+            return
+
+        # 1/2/3 keys - select ability
+        ability_keys = {'1': 0, '2': 1, '3': 2}
+
+        for key, ability_index in ability_keys.items():
+            key_pressed = held_keys[key] and not self.prev_key_states[key]
+
+            if key_pressed:
+                if not self.game.player or ability_index >= len(self.game.player.abilities):
+                    continue
+
+                ability = self.game.player.abilities[ability_index]
+
+                # Check if ability is ready
+                if not ability.is_ready():
+                    self.ui_manager.add_message(f"{ability.name} is on cooldown ({int(ability.current_cooldown)}s remaining)", "event")
+                    print(f"[ABILITY] {ability.name} on cooldown")
+                    self.prev_key_states[key] = True
+                    continue
+
+                # Check if ability needs targeting
+                targeting_abilities = ["Fireball", "Dash", "Shadow Step"]
+
+                if ability.name in targeting_abilities:
+                    # Enter targeting mode
+                    targeting_system.start_targeting(ability_index)
+                    print(f"[ABILITY] Entered targeting mode for {ability.name}")
+                else:
+                    # Use ability immediately (self-cast abilities)
+                    # Note: use_ability() returns bool only, message is handled internally
+                    success = self.game.use_ability(ability_index, self.game.player.x, self.game.player.y)
+
+                    if success:
+                        print(f"[ABILITY] Used {ability.name}")
+                    else:
+                        print(f"[ABILITY] Failed to use {ability.name}")
+
+                self.ability_cooldown = self.ability_cooldown_time
+                self.prev_key_states[key] = True
+
+            elif not held_keys[key]:
+                self.prev_key_states[key] = False
 
 
 def main_3d():
@@ -318,14 +407,23 @@ def main_3d():
     game.anim_manager = AnimationManager3DProxy(renderer.animation_manager, renderer.enemy_entities)
     print("✓ 3D particle system connected")
 
+    # Create UI manager
+    ui_manager = UI3DManager(game)
+    print("✓ UI3D system initialized")
+
+    # Connect game messages to UI combat log
+    game.message_callback = ui_manager.add_message
+    print("✓ Game message callback connected to UI")
+
     # Create game controller (Ursina will automatically call its update() method)
-    controller = GameController(game, renderer)
+    controller = GameController(game, renderer, ui_manager)
 
     # Print controls
     print("\n" + "=" * 50)
     print("CONTROLS:")
     print("  WASD / Arrow Keys - Move & Attack")
-    print("  ESC - Quit")
+    print("  1/2/3 - Use Abilities (click to target)")
+    print("  ESC - Cancel Targeting / Quit")
     print("=" * 50)
     print("Starting game...")
     print(f"Class: {game.selected_class.title()}")
