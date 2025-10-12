@@ -14,17 +14,26 @@ from textures import get_moss_stone_texture, get_brick_texture
 
 # ===== CACHED PROCEDURAL TEXTURES =====
 # Generate these once at module load for performance
-print("Generating procedural dungeon textures...")
+print("Generating procedural dungeon textures (AAA quality - 512px, 4 variants)...")
 
-# Wall: Medium moss density (less coverage than heavy)
-# This returns an Ursina Texture object directly
-DUNGEON_WALL_TEXTURE = get_moss_stone_texture(size=256, moss_density='medium')
+# Wall: Generate 4 variants at 512x512 to break repetition
+# Each variant uses a different random seed for unique patterns
+from textures import RandomSeed
+from textures.organic import generate_moss_stone_texture, generate_moss_overlay
+from textures.bricks import generate_brick_pattern
+from ursina import Texture
+
+DUNGEON_WALL_TEXTURES = []
+wall_seeds = [12345, 67890, 24680, 13579]
+for i, seed in enumerate(wall_seeds):
+    print(f"  - Generating wall variant {i+1}/4 (seed={seed})...")
+    with RandomSeed(seed):
+        wall_pil = generate_moss_stone_texture(size=512, moss_density='medium')
+        DUNGEON_WALL_TEXTURES.append(Texture(wall_pil))
+
+print(f"  ✓ {len(DUNGEON_WALL_TEXTURES)} wall variants generated")
 
 # Floor: Brick with subtle moss accents
-# Need to manually create Ursina Texture from PIL image
-from textures.bricks import generate_brick_pattern
-from textures.organic import generate_moss_overlay
-from ursina import Texture
 
 _floor_brick = generate_brick_pattern(size=256, darkness=0.8)
 _floor_mossy_pil = generate_moss_overlay(_floor_brick, density='light')
@@ -95,13 +104,18 @@ def create_wall_mesh(x: int, y: int, biome_color, height: float = None):
 
     pos = world_to_3d_position(x, y, height / 2)
 
+    # Select texture variant based on position (deterministic hash)
+    # This breaks repetition while being deterministic
+    variant_idx = (x * 7 + y * 13) % len(DUNGEON_WALL_TEXTURES)
+    wall_texture = DUNGEON_WALL_TEXTURES[variant_idx]
+
     # Use procedural moss-covered stone texture (no color tinting needed)
     return Entity(
         model='cube',
         position=pos,
         scale=(1, height, 1),
         color=ursina_color.white,  # Neutral tint - let texture show its true colors
-        texture=DUNGEON_WALL_TEXTURE,  # Procedural moss stone texture
+        texture=wall_texture,  # Select from 4 variants
         collider='box'  # Walls have collision
     )
 
