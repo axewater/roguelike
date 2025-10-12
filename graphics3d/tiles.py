@@ -15,8 +15,21 @@ from textures import get_moss_stone_texture, get_brick_texture
 # ===== CACHED PROCEDURAL TEXTURES =====
 # Generate these once at module load for performance
 print("Generating procedural dungeon textures...")
-DUNGEON_WALL_TEXTURE = get_moss_stone_texture(size=256, moss_density='heavy')
-DUNGEON_FLOOR_TEXTURE = get_brick_texture(size=256, darkness=0.8)
+
+# Wall: Medium moss density (less coverage than heavy)
+# This returns an Ursina Texture object directly
+DUNGEON_WALL_TEXTURE = get_moss_stone_texture(size=256, moss_density='medium')
+
+# Floor: Brick with subtle moss accents
+# Need to manually create Ursina Texture from PIL image
+from textures.bricks import generate_brick_pattern
+from textures.organic import generate_moss_overlay
+from ursina import Texture
+
+_floor_brick = generate_brick_pattern(size=256, darkness=0.8)
+_floor_mossy_pil = generate_moss_overlay(_floor_brick, density='light')
+DUNGEON_FLOOR_TEXTURE = Texture(_floor_mossy_pil)  # Wrap PIL Image in Ursina Texture
+
 print("✓ Procedural textures generated and cached")
 
 
