@@ -113,3 +113,5 @@ The `AnimationManager3DProxy` in `main_3d.py` converts 2D particle calls to 3D:
 
 **For detailed feature documentation:** See `README.md`
 **For migration progress:** See `MIGRATION.md`
+- You are working in a Linux shell on a headless server. You must ask the user to perform any testing (its done on windows)
+ if you need to load libraries or test other stuff from the command line, activate the "venv_linux"

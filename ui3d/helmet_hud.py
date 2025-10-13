@@ -101,6 +101,8 @@ class HelmetHUD3D:
         # Combat log entries created dynamically
 
         # ===== BOTTOM-LEFT (Abilities) =====
+        self.bottom_left_panel: Optional[Entity] = None
+        self.abilities_title: Optional[Text] = None
         self.ability_slots: List['AbilitySlot'] = []
 
         # ===== BOTTOM-RIGHT (Quick Stats) =====
@@ -384,11 +386,50 @@ class HelmetHUD3D:
 
     # ========== BOTTOM-LEFT (Abilities) ==========
     def _create_bottom_left_abilities(self):
-        """Create bottom-left ability slots"""
-        start_x = -0.85
-        start_y = -0.75
-        slot_size = 0.12
-        slot_spacing = 0.15
+        """Create bottom-left ability slots with background panel"""
+        pos_x = -0.85
+        pos_y = -0.30  # Aligned with combat log and minimap level
+        panel_width = 0.38  # More compact width
+        panel_height = 0.16  # Smaller height
+
+        # Background panel (matching other HUD sections)
+        self.bottom_left_panel = Entity(
+            parent=self.parent,
+            model='quad',
+            color=color.rgba(0.02, 0.02, 0.15, 0.90),  # More opaque
+            position=(pos_x, pos_y, 10),  # Far back z-level (behind text)
+            scale=(panel_width, panel_height),
+            origin=(-0.5, 0.5),
+            eternal=True
+        )
+
+        # Inner border for "visor" effect
+        Entity(
+            parent=self.parent,
+            model='quad',
+            color=color.rgba(0.2, 0.4, 0.6, 0.4),  # Slightly more visible
+            position=(pos_x + 0.002, pos_y - 0.002, 9),  # In front of background
+            scale=(panel_width - 0.01, panel_height - 0.01),
+            origin=(-0.5, 0.5),
+            eternal=True
+        )
+
+        # Title
+        self.abilities_title = Text(
+            text="[ABILITIES]",
+            parent=self.parent,
+            position=(pos_x + 0.01, pos_y - 0.02, -10),  # Low z-level (in front)
+            scale=0.75,  # Smaller title
+            color=color.rgb(0.3, 1.0, 1.0),  # Cyan
+            origin=(-0.5, 0.5),
+            eternal=True
+        )
+
+        # Create ability slots
+        start_x = pos_x + 0.02
+        start_y = pos_y - 0.08  # Adjusted for smaller panel
+        slot_size = 0.09  # Much more compact
+        slot_spacing = 0.11  # Tighter spacing
 
         for i in range(3):
             slot_x = start_x + (i * slot_spacing)
@@ -812,70 +853,70 @@ class AbilitySlot:
         self._create_ui(parent)
 
     def _create_ui(self, parent: Entity):
-        """Create slot UI elements"""
-        # Background (dark border)
+        """Create slot UI elements with improved visibility"""
+        # Background border (outermost)
         self.background = Entity(
             parent=parent,
             model='quad',
-            color=color.rgba(0.1, 0.1, 0.15, 0.9),
-            position=(self.position.x, self.position.y, 10),  # Far back (behind text)
+            color=color.rgba(0.15, 0.15, 0.2, 0.95),  # More opaque, slightly lighter
+            position=(self.position.x, self.position.y, 10),  # Far back (behind everything)
             scale=(self.slot_size, self.slot_size),
             origin=(0, 0),
             eternal=True
         )
 
-        # Icon background
+        # Icon background (ability color)
         self.icon_bg = Entity(
             parent=parent,
             model='quad',
-            color=color.rgb(0.3, 0.3, 0.3),
+            color=color.rgb(0.3, 0.3, 0.3),  # Gray until ability assigned
             position=(self.position.x, self.position.y, 9),  # In front of background
-            scale=(self.slot_size * 0.9, self.slot_size * 0.9),
+            scale=(self.slot_size * 0.88, self.slot_size * 0.88),
             origin=(0, 0),
             eternal=True
         )
 
-        # Cooldown overlay
+        # Cooldown overlay (covers icon when on cooldown)
         self.cooldown_overlay = Entity(
             parent=parent,
             model='quad',
-            color=color.rgba(0, 0, 0, 0.7),
+            color=color.rgba(0, 0, 0, 0.75),  # Darker for better contrast
             position=(self.position.x, self.position.y, 8),  # In front of icon
-            scale=(self.slot_size * 0.9, self.slot_size * 0.9),
+            scale=(self.slot_size * 0.88, self.slot_size * 0.88),
             origin=(0, 0),
             visible=False,
             eternal=True
         )
 
-        # Ability name (above slot)
+        # Ability name (above slot) - compact size
         self.ability_name_text = Text(
             text="",
             parent=parent,
-            position=(self.position.x, self.position.y + self.slot_size * 0.65, -10),  # Low z-level (in front)
-            scale=0.75,
+            position=(self.position.x, self.position.y + self.slot_size * 0.6, -10),  # In front of all
+            scale=0.55,  # Smaller for compact layout
             color=color.white,
             origin=(0, 0),
             eternal=True
         )
 
-        # Hotkey label (bottom of slot)
+        # Hotkey label (bottom of slot) - compact but readable
         hotkey_number = self.ability_index + 1
         self.hotkey_text = Text(
             text=f"[{hotkey_number}]",
             parent=parent,
-            position=(self.position.x, self.position.y - self.slot_size * 0.65, -10),  # Low z-level (in front)
-            scale=0.85,
-            color=color.rgb(1.0, 0.9, 0.3),  # Gold
+            position=(self.position.x, self.position.y - self.slot_size * 0.6, -10),  # In front of all
+            scale=0.7,  # Smaller for compact layout
+            color=color.rgb(1.0, 0.9, 0.2),  # Brighter gold
             origin=(0, 0),
             eternal=True
         )
 
-        # Cooldown timer text
+        # Cooldown timer text (center of slot when on cooldown)
         self.cooldown_text = Text(
             text="",
             parent=parent,
-            position=(self.position.x, self.position.y, -10),  # Low z-level (in front)
-            scale=1.1,
+            position=(self.position.x, self.position.y, -10),  # In front of all
+            scale=0.9,  # Smaller for compact slots
             color=color.white,
             origin=(0, 0),
             visible=False,
@@ -883,7 +924,7 @@ class AbilitySlot:
         )
 
     def update_ability(self, ability):
-        """Update slot with ability data"""
+        """Update slot with ability data and visual feedback"""
         if not ability:
             if self._last_ability_name is not None:
                 self.ability_name_text.text = ""
@@ -895,29 +936,51 @@ class AbilitySlot:
                 self._last_cooldown_remaining = -1
             return
 
-        # Update ability name
+        # Update ability name and color
         if ability.name != self._last_ability_name:
             self.ability_name_text.text = ability.name
             ability_color = self.ABILITY_COLORS.get(ability.name, (0.5, 0.5, 0.5))
             self.icon_bg.color = color.rgb(*ability_color)
             self._last_ability_name = ability.name
 
-        # Update cooldown state
+        # Update cooldown state with enhanced visuals
         is_ready = ability.is_ready()
         cooldown_remaining = int(ability.current_cooldown) + 1 if not is_ready else 0
 
         if is_ready != self._last_is_ready or cooldown_remaining != self._last_cooldown_remaining:
             if is_ready:
+                # Ability ready - brighten colors
                 self.cooldown_overlay.visible = False
                 self.cooldown_text.visible = False
+
+                # Make ability name and hotkey brighter when ready
+                self.ability_name_text.color = color.white
+                self.hotkey_text.color = color.rgb(1.0, 0.9, 0.2)  # Bright gold
+
+                # Brighten icon background
+                ability_color = self.ABILITY_COLORS.get(ability.name, (0.5, 0.5, 0.5))
+                self.icon_bg.color = color.rgb(*ability_color)
             else:
+                # Ability on cooldown - dim colors
                 self.cooldown_overlay.visible = True
                 self.cooldown_text.visible = True
-                self.cooldown_text.text = f"{cooldown_remaining}s"
+                self.cooldown_text.text = f"{cooldown_remaining}"
 
-                # Scale overlay based on cooldown progress
+                # Dim ability name and hotkey when on cooldown
+                self.ability_name_text.color = color.rgba(0.6, 0.6, 0.6, 1)  # Gray
+                self.hotkey_text.color = color.rgba(0.6, 0.6, 0.4, 1)  # Dim gold
+
+                # Scale overlay based on cooldown progress (fills from bottom)
                 cooldown_percent = ability.current_cooldown / ability.max_cooldown
-                self.cooldown_overlay.scale_y = self.slot_size * 0.9 * cooldown_percent
+                self.cooldown_overlay.scale_y = self.slot_size * 0.88 * cooldown_percent
+
+                # Dim icon background
+                ability_color = self.ABILITY_COLORS.get(ability.name, (0.5, 0.5, 0.5))
+                self.icon_bg.color = color.rgb(
+                    ability_color[0] * 0.4,
+                    ability_color[1] * 0.4,
+                    ability_color[2] * 0.4
+                )
 
             self._last_is_ready = is_ready
             self._last_cooldown_remaining = cooldown_remaining

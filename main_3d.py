@@ -409,6 +409,8 @@ class GameController(Entity):
                         # Attack enemy
                         print(f"[COMBAT] Attacking enemy at ({new_x}, {new_y})")
                         self.game._player_attack(target_enemy)
+                        self.game._enemy_turn()
+                        self.game._reduce_ability_cooldowns()
                     else:
                         # Move player
                         old_pos = (self.game.player.x, self.game.player.y)
@@ -416,6 +418,9 @@ class GameController(Entity):
                         self.game.update_camera()
                         self.game.update_fov()
                         print(f"[MOVE] Player moved: {old_pos} → ({self.game.player.x}, {self.game.player.y})")
+
+                        # Check for item pickup
+                        self.game._check_item_pickup()
 
                         # Check for stairs
                         if self.game.dungeon.get_tile(new_x, new_y) == c.TILE_STAIRS:
@@ -426,6 +431,9 @@ class GameController(Entity):
 
                         # Enemy turn
                         self.game._enemy_turn()
+
+                        # Reduce ability cooldowns
+                        self.game._reduce_ability_cooldowns()
 
                     self.move_cooldown = self.move_cooldown_time  # Reset cooldown
                 else:
