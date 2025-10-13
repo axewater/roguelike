@@ -590,15 +590,17 @@ class GameController(Entity):
         yaw = round(self.camera_yaw / 90) * 90 % 360
 
         # Map yaw to grid offsets
-        # 0° = North (-Y), 90° = East (+X), 180° = South (+Y), 270° = West (-X)
+        # Camera rotation_y in Ursina: 0° = +Z (South), 90° = +X (East), 180° = -Z (North), 270° = -X (West)
+        # Grid coordinates: +Y = South, +X = East, -Y = North, -X = West
+        # 3D coordinates: +Z = South (+Y grid), +X = East (+X grid), -Z = North (-Y grid), -X = West (-X grid)
         direction_map = {
-            0: (0, -1),    # North
-            90: (1, 0),    # East
-            180: (0, 1),   # South
-            270: (-1, 0),  # West
+            0: (0, 1),     # South (+Y grid, +Z in 3D)
+            90: (1, 0),    # East (+X grid, +X in 3D)
+            180: (0, -1),  # North (-Y grid, -Z in 3D)
+            270: (-1, 0),  # West (-X grid, -X in 3D)
         }
 
-        return direction_map.get(yaw, (0, -1))  # Default to North
+        return direction_map.get(yaw, (0, 1))  # Default to South
 
     def _get_left_offset(self):
         """Get grid offset for strafing left based on camera yaw"""
@@ -607,10 +609,10 @@ class GameController(Entity):
         yaw = round(left_yaw / 90) * 90 % 360
 
         direction_map = {
-            0: (0, -1),    # North
-            90: (1, 0),    # East
-            180: (0, 1),   # South
-            270: (-1, 0),  # West
+            0: (0, 1),     # South (+Y grid, +Z in 3D)
+            90: (1, 0),    # East (+X grid, +X in 3D)
+            180: (0, -1),  # North (-Y grid, -Z in 3D)
+            270: (-1, 0),  # West (-X grid, -X in 3D)
         }
 
         return direction_map.get(yaw, (-1, 0))  # Default to West
