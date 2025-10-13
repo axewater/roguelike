@@ -44,13 +44,13 @@ class DungeonButton(Button):
             color=self.color_bg,
             parent=parent,
             on_click=on_click,
+            text_scale=1.8,  # Make text larger and readable
             eternal=True,
             **kwargs
         )
 
         # Override Button's default text color
         self.text_entity.color = self.color_text
-        self.text_entity.scale = 1.8  # Larger text
 
         # Create border (behind button) - parented to button so it hides automatically
         border_width = scale[0] + 0.016
