@@ -408,7 +408,8 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='cube',
         color=bronze,
         scale=(0.28, 0.06, 0.10),
-        position=(0.38, -0.30, 0.18)
+        position=(0.38, -0.274, 0.081),
+        rotation=(55, 0, 0)  # Match blade rotation
     )
 
     # Crossguard ends (decorative spheres)
@@ -418,7 +419,8 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
             model='sphere',
             color=bronze,
             scale=(0.05, 0.05, 0.08),
-            position=(0.38 + x_sign * 0.14, -0.30, 0.18)
+            position=(0.38 + x_sign * 0.14, -0.274, 0.081),
+            rotation=(55, 0, 0)  # Match blade rotation
         )
 
     # Hilt (leather grip)
@@ -427,17 +429,19 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='cube',
         color=leather_brown,
         scale=(0.08, 0.22, 0.08),
-        position=(0.38, -0.46, 0.15)
+        position=(0.38, -0.350, -0.035),
+        rotation=(55, 0, 0)  # Match blade rotation
     )
 
     # Hilt wrapping detail (3 wire wraps)
-    for y in [-0.38, -0.46, -0.54]:
+    for y, z in [(-0.304, 0.026), (-0.350, -0.035), (-0.396, -0.106)]:
         wrap = Entity(
             parent=warrior,
             model='cube',
             color=dark_bronze,
             scale=(0.09, 0.015, 0.09),
-            position=(0.38, y, 0.15)
+            position=(0.38, y, z),
+            rotation=(55, 0, 0)  # Match blade rotation
         )
 
     # Pommel (sphere)
@@ -446,7 +450,8 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='sphere',
         color=bronze,
         scale=(0.10, 0.10, 0.10),
-        position=(0.38, -0.62, 0.15)
+        position=(0.38, -0.470, -0.212),
+        rotation=(55, 0, 0)  # Match blade rotation
     )
 
     # Pommel gem (decorative)
@@ -455,7 +460,8 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='sphere',
         color=color.rgb(0.8, 0.1, 0.1),  # Ruby red
         scale=(0.04, 0.04, 0.04),
-        position=(0.38, -0.62, 0.21)
+        position=(0.38, -0.519, -0.176),
+        rotation=(55, 0, 0)  # Match blade rotation
     )
 
     # ========== SHIELD (ENHANCED HERALDRY) ==========
