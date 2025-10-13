@@ -36,7 +36,6 @@ class ClassSelection3D(Entity):
 
         # Class models (lazy loaded)
         self.class_models = {}
-        self.pedestal = None  # Platform under character
 
         # Lighting
         self.ambient_light = None
@@ -66,7 +65,6 @@ class ClassSelection3D(Entity):
 
         # Initialize
         self._setup_lighting()
-        self._create_pedestal()
         self._create_ui()
         self._load_current_model()
         self._update_ui_for_class()
@@ -101,28 +99,6 @@ class ClassSelection3D(Entity):
         )
 
         print("✓ Class selection lighting configured")
-
-    def _create_pedestal(self):
-        """Create a circular pedestal/platform under the character"""
-        self.pedestal = Entity(
-            model='cylinder',
-            color=color.rgb(0.157, 0.157, 0.196),  # Dark gray
-            scale=(1.5, 0.1, 1.5),  # Wide, flat cylinder
-            position=(0, -0.05, -self.camera_distance),  # Slightly below ground
-            texture='white_cube',
-            enabled=False  # Initially hidden
-        )
-
-        # Add a glowing ring around the pedestal
-        self.pedestal_ring = Entity(
-            model='cylinder',
-            color=color.rgb(0.392, 0.588, 1.0),  # Blue glow
-            scale=(1.7, 0.05, 1.7),
-            position=(0, -0.02, -self.camera_distance),
-            enabled=False
-        )
-
-        print("✓ Pedestal created")
 
     def _create_ui(self):
         """Create UI overlay elements"""
@@ -453,12 +429,6 @@ class ClassSelection3D(Entity):
         for element in self.ui_elements:
             element.enabled = True
 
-        # Show pedestal
-        if self.pedestal:
-            self.pedestal.enabled = True
-        if hasattr(self, 'pedestal_ring') and self.pedestal_ring:
-            self.pedestal_ring.enabled = True
-
         # Enable lighting
         if self.ambient_light:
             self.ambient_light.enabled = True
@@ -489,12 +459,6 @@ class ClassSelection3D(Entity):
         # Hide all UI elements
         for element in self.ui_elements:
             element.enabled = False
-
-        # Hide pedestal
-        if self.pedestal:
-            self.pedestal.enabled = False
-        if hasattr(self, 'pedestal_ring') and self.pedestal_ring:
-            self.pedestal_ring.enabled = False
 
         # Disable lighting (but don't destroy - we'll reuse)
         if self.ambient_light:
