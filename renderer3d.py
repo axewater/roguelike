@@ -5,8 +5,8 @@ This module handles all 3D rendering for the game, converting the 2D game state
 into a 3D visualization while keeping all game logic unchanged.
 """
 
-from typing import Dict, List, Optional
-from ursina import Entity, camera, Vec3, color as ursina_color, DirectionalLight, AmbientLight, PointLight
+from typing import Dict, List, Optional, Tuple
+from ursina import Entity, camera, Vec3, color as ursina_color, DirectionalLight, AmbientLight, PointLight, scene
 import constants as c
 from game import Game
 from graphics3d.tiles import create_floor_mesh, create_wall_mesh, create_stairs_mesh, create_ceiling_mesh
@@ -32,7 +32,8 @@ class Renderer3D:
         self.game = game
 
         # Entity tracking dictionaries
-        self.dungeon_entities: List[Entity] = []
+        self.dungeon_entities: Dict[Tuple[int, int], List[Entity]] = {}  # (x, y) -> [entities at that position]
+        self.tile_visibility_cache: Dict[Tuple[int, int], str] = {}  # (x, y) -> last visibility state
         self.player_entity: Optional[Entity] = None
         self.enemy_entities: Dict[int, Entity] = {}  # enemy id -> Entity
         self.item_entities: Dict[int, Entity] = {}   # item id -> Entity
@@ -69,23 +70,29 @@ class Renderer3D:
             print(f"✓ Third-person camera configured: pos={camera.position}, angle={c.CAMERA_ANGLE}°, fov={c.FOV}°")
 
     def setup_lighting(self):
-        """Set up basic 3D lighting"""
-        # Ambient light (general illumination) - BRIGHTENED FOR DEBUG
-        self.ambient_light = AmbientLight(color=(0.8, 0.8, 0.8, 1))
+        """Set up basic 3D lighting with fog of war ambiance"""
+        # Ambient light (general illumination) - REDUCED for fog of war atmosphere
+        self.ambient_light = AmbientLight(color=(0.2, 0.2, 0.25, 1))
 
-        # Directional light (sun/moon)
+        # Directional light (sun/moon) - REDUCED for mysterious dungeon feel
         self.sun_light = DirectionalLight(
             position=(10, 20, 10),
             rotation=(45, 45, 0),
-            color=(1.0, 1.0, 1.0, 1)  # Bright white for debug
+            color=(0.3, 0.3, 0.35, 1)  # Dim blue-gray light
         )
 
-        # Point light following player (torch effect)
+        # Point light following player (torch effect) - NOW MORE IMPORTANT
         self.player_light = PointLight(
-            color=(1, 0.9, 0.7, 1),
+            color=(1, 0.9, 0.7, 1),  # Warm torch light
             position=(0, 2, 0)
         )
-        print("✓ Lighting configured (DEBUG MODE: very bright ambient)")
+
+        # Atmospheric fog for depth and mystery
+        scene.fog_color = ursina_color.rgb(0.1, 0.1, 0.15)  # Dark blue-gray
+        scene.fog_density = (5, 15)  # Start at 5 units, full fog at 15 units
+
+        print("✓ Lighting configured for fog of war (low ambient, torch-focused)")
+        print("✓ Atmospheric fog enabled (density: 5-15 units)")
 
     def render_dungeon(self):
         """
@@ -94,9 +101,11 @@ class Renderer3D:
         Clears old dungeon meshes and creates new ones based on current level.
         """
         # Clear old dungeon entities
-        for entity in self.dungeon_entities:
-            entity.disable()  # Disable instead of destroy for better performance
+        for pos, entities in self.dungeon_entities.items():
+            for entity in entities:
+                entity.disable()  # Disable instead of destroy for better performance
         self.dungeon_entities.clear()
+        self.tile_visibility_cache.clear()
 
         if not self.game.dungeon:
             return
@@ -112,32 +121,37 @@ class Renderer3D:
         for y in range(self.game.dungeon.height):
             for x in range(self.game.dungeon.width):
                 tile = self.game.dungeon.get_tile(x, y)
+                tile_entities = []
 
                 if tile == c.TILE_FLOOR:
                     # Render floor
                     entity = create_floor_mesh(x, y, floor_color)
-                    self.dungeon_entities.append(entity)
+                    tile_entities.append(entity)
 
                     # Render ceiling above floor
                     ceiling_entity = create_ceiling_mesh(x, y)
-                    self.dungeon_entities.append(ceiling_entity)
+                    tile_entities.append(ceiling_entity)
 
                 elif tile == c.TILE_WALL:
                     entity = create_wall_mesh(x, y, wall_color)
-                    self.dungeon_entities.append(entity)
+                    tile_entities.append(entity)
 
                 elif tile == c.TILE_STAIRS:
                     # Render floor first
                     floor_entity = create_floor_mesh(x, y, floor_color)
-                    self.dungeon_entities.append(floor_entity)
+                    tile_entities.append(floor_entity)
 
                     # Then stairs on top
                     stairs_entity = create_stairs_mesh(x, y, stairs_color)
-                    self.dungeon_entities.append(stairs_entity)
+                    tile_entities.append(stairs_entity)
 
                     # Render ceiling above stairs
                     ceiling_entity = create_ceiling_mesh(x, y)
-                    self.dungeon_entities.append(ceiling_entity)
+                    tile_entities.append(ceiling_entity)
+
+                # Store entities by position for fog of war updates
+                if tile_entities:
+                    self.dungeon_entities[(x, y)] = tile_entities
 
         print(f"✓ Rendered dungeon: {len(self.dungeon_entities)} tiles")
         print(f"  - Dungeon size: {self.game.dungeon.width}x{self.game.dungeon.height}")
@@ -213,15 +227,26 @@ class Renderer3D:
     def render_enemies(self):
         """
         Render or update all enemy entities with health bars
+        Only renders enemies in visible tiles (FOV system)
         """
         if not self.game.enemies:
             return
 
-        # Track which enemies currently exist
+        # Track which enemies currently exist AND are visible
         current_enemy_ids = set()
 
         for enemy in self.game.enemies:
             enemy_id = id(enemy)
+
+            # FOG OF WAR: Only render enemies in visible tiles
+            if self.game.visibility_map and not self.game.visibility_map.is_visible(enemy.x, enemy.y):
+                # Enemy not visible - hide if it exists, skip creation if it doesn't
+                if enemy_id in self.enemy_entities:
+                    self.enemy_entities[enemy_id]['model'].visible = False
+                    self.enemy_entities[enemy_id]['health_bar'].visible = False
+                continue
+
+            # Enemy is visible
             current_enemy_ids.add(enemy_id)
 
             # Calculate 3D position
@@ -248,6 +273,8 @@ class Renderer3D:
                 # Update existing enemy position
                 enemy_data = self.enemy_entities[enemy_id]
                 enemy_data['model'].position = pos
+                enemy_data['model'].visible = True  # Make visible if was hidden
+                enemy_data['health_bar'].visible = True
 
                 # Update health bar
                 hp_pct = enemy.hp / enemy.max_hp
@@ -265,15 +292,25 @@ class Renderer3D:
     def render_items(self):
         """
         Render or update all item entities with floating/rotation animations
+        Only renders items in visible tiles (FOV system)
         """
         if not self.game.items:
             return
 
-        # Track which items currently exist
+        # Track which items currently exist AND are visible
         current_item_ids = set()
 
         for item in self.game.items:
             item_id = id(item)
+
+            # FOG OF WAR: Only render items in visible tiles
+            if self.game.visibility_map and not self.game.visibility_map.is_visible(item.x, item.y):
+                # Item not visible - hide if it exists, skip creation if it doesn't
+                if item_id in self.item_entities:
+                    self.item_entities[item_id].visible = False
+                continue
+
+            # Item is visible
             current_item_ids.add(item_id)
 
             # Calculate 3D position (items float above ground)
@@ -294,6 +331,7 @@ class Renderer3D:
                 # pos is a tuple (x, y, z), not a Vec3
                 item_entity.x = pos[0]
                 item_entity.z = pos[2]
+                item_entity.visible = True  # Make visible if was hidden
 
         # Remove entities for items that no longer exist (picked up)
         picked_up_item_ids = set(self.item_entities.keys()) - current_item_ids
@@ -310,6 +348,46 @@ class Renderer3D:
         self.render_player()
         self.render_enemies()
         self.render_items()
+
+    def update_tile_visibility(self):
+        """
+        Update tile appearance based on fog of war visibility state
+
+        - VISIBLE tiles: Full brightness
+        - EXPLORED tiles: Darkened (0.3x brightness)
+        - UNEXPLORED tiles: Hidden
+        """
+        if not self.game.visibility_map or not self.game.dungeon:
+            return
+
+        # Only update tiles that changed visibility state (optimization)
+        for (x, y), entities in self.dungeon_entities.items():
+            # Get current visibility state
+            vis_state = self.game.visibility_map.get_state(x, y)
+
+            # Check if state changed (optimization - skip if no change)
+            cached_state = self.tile_visibility_cache.get((x, y))
+            if cached_state == vis_state:
+                continue  # No change, skip update
+
+            # Update cache
+            self.tile_visibility_cache[(x, y)] = vis_state
+
+            # Apply visibility changes to all entities at this position
+            for entity in entities:
+                if vis_state == c.VISIBILITY_VISIBLE:
+                    # Visible: Full brightness
+                    entity.visible = True
+                    entity.color = ursina_color.white  # Reset to full brightness
+
+                elif vis_state == c.VISIBILITY_EXPLORED:
+                    # Explored: Darkened
+                    entity.visible = True
+                    entity.color = ursina_color.rgb(0.3, 0.3, 0.35)  # Dark blue-gray tint
+
+                elif vis_state == c.VISIBILITY_UNEXPLORED:
+                    # Unexplored: Hidden
+                    entity.visible = False
 
     def update_camera(self):
         """
@@ -386,6 +464,9 @@ class Renderer3D:
         # Update entity positions
         self.render_entities()
 
+        # Update tile visibility (fog of war)
+        self.update_tile_visibility()
+
         # Update enemy animations
         for enemy_id, enemy_data in self.enemy_entities.items():
             update_enemy_animation(
@@ -409,9 +490,11 @@ class Renderer3D:
         Clean up all 3D entities and resources
         """
         # Destroy dungeon
-        for entity in self.dungeon_entities:
-            entity.disable()
+        for pos, entities in self.dungeon_entities.items():
+            for entity in entities:
+                entity.disable()
         self.dungeon_entities.clear()
+        self.tile_visibility_cache.clear()
 
         # Destroy player
         if self.player_entity:

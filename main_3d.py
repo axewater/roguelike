@@ -250,7 +250,8 @@ class GameController(Entity):
         self.prev_key_states = {
             '1': False, '2': False, '3': False,
             'escape': False, 'left mouse down': False,
-            'left arrow': False, 'right arrow': False
+            'left arrow': False, 'right arrow': False,
+            'f1': False  # Debug: reveal map
         }
 
         print("✓ GameController initialized (First-Person Mode)")
@@ -272,6 +273,9 @@ class GameController(Entity):
 
         # Handle camera rotation input (arrow keys)
         self._handle_camera_rotation()
+
+        # Handle debug keys (F1)
+        self._handle_debug_input()
 
         # Handle ability input and targeting
         self._handle_ability_input()
@@ -443,6 +447,18 @@ class GameController(Entity):
                   f"Level: {self.game.current_level} | "
                   f"Enemies: {len(self.game.enemies)} | "
                   f"Camera: {camera.position}")
+
+    def _handle_debug_input(self):
+        """Handle debug key inputs (F1 to reveal map)"""
+        # F1 key - Reveal entire map (debug)
+        if held_keys['f1'] and not self.prev_key_states['f1']:
+            if self.game.visibility_map:
+                self.game.visibility_map.reveal_all()
+                self.game.add_message("DEBUG: Map fully revealed!", "event")
+                print("🗺️  DEBUG: Full map revealed (F1)")
+            self.prev_key_states['f1'] = True
+        elif not held_keys['f1']:
+            self.prev_key_states['f1'] = False
 
     def _handle_ability_input(self):
         """Handle ability input (1/2/3 keys) and targeting"""
@@ -643,6 +659,7 @@ def main_3d():
     print("  Arrow Up/Down - Move Forward/Backward")
     print("  1/2/3 - Use Abilities (click to target)")
     print("  ESC - Pause Menu / Cancel Targeting")
+    print("  F1 - Reveal Map (Debug)")
     print("=" * 50)
     print("Starting class selection...")
     print("=" * 50 + "\n")
