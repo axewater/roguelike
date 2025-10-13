@@ -303,7 +303,7 @@ MINIMAP_MODE = "full"  # "full" (entire dungeon) or "radar" (nearby area only)
 MINIMAP_SIZE_FULL = (200, 120)  # Width x Height for full map view
 MINIMAP_SIZE_RADAR = (150, 150)  # Size for radar mode
 MINIMAP_RADAR_RANGE = 15  # Tiles visible in radar mode
-MINIMAP_POSITION = "top_right"  # "top_right" or "bottom_right"
+MINIMAP_POSITION = "bottom_right"  # "top_right" or "bottom_right"
 MINIMAP_OPACITY = 0.90  # Background panel opacity
 MINIMAP_BORDER_COLOR = (0.2, 0.4, 0.6, 0.4)  # Cyan border (matches HUD style)
 MINIMAP_PIXEL_SCALE = 2  # Pixels per tile (2 = 2x2 pixels per dungeon tile)
