@@ -14,6 +14,8 @@ from graphics3d.utils import world_to_3d_position, qcolor_to_ursina_color
 from graphics3d.enemies import create_enemy_model_3d, update_enemy_animation, create_health_bar_billboard, update_health_bar
 from graphics3d.items import create_item_model_3d, update_item_animation
 from animations3d import AnimationManager3D
+from textures import get_fog_of_war_texture
+import time
 
 
 class Renderer3D:
@@ -34,6 +36,7 @@ class Renderer3D:
         # Entity tracking dictionaries
         self.dungeon_entities: Dict[Tuple[int, int], List[Entity]] = {}  # (x, y) -> [entities at that position]
         self.tile_visibility_cache: Dict[Tuple[int, int], str] = {}  # (x, y) -> last visibility state
+        self.fog_entities: Dict[Tuple[int, int], Entity] = {}  # (x, y) -> fog plane entity
         self.player_entity: Optional[Entity] = None
         self.enemy_entities: Dict[int, Entity] = {}  # enemy id -> Entity
         self.item_entities: Dict[int, Entity] = {}   # item id -> Entity
@@ -50,6 +53,10 @@ class Renderer3D:
 
         # 3D Animation Manager
         self.animation_manager = AnimationManager3D()
+
+        # Fog of War
+        self.fog_texture = None  # Lazy-loaded fog texture
+        self.fog_animation_time = 0.0  # Track time for UV animation
 
         # Setup
         self.setup_camera()
@@ -349,13 +356,46 @@ class Renderer3D:
         self.render_enemies()
         self.render_items()
 
+    def create_fog_plane(self, x: int, y: int) -> Entity:
+        """
+        Create a fog-of-war plane entity for an unexplored tile.
+
+        Args:
+            x, y: Grid coordinates
+
+        Returns:
+            Entity representing fog plane
+        """
+        # Lazy-load fog texture on first use
+        if self.fog_texture is None:
+            print("Generating fog-of-war texture (512x512)...")
+            self.fog_texture = get_fog_of_war_texture(size=512)
+            print("✓ Fog texture generated")
+
+        # Position fog plane at floor level + slight offset
+        pos = world_to_3d_position(x, y, 0.05)
+
+        # Create semi-transparent fog plane
+        fog_plane = Entity(
+            model='plane',
+            texture=self.fog_texture,
+            position=pos,
+            scale=(1, 1, 1),
+            color=ursina_color.white,
+            alpha=0.8,  # Semi-transparent for mystery effect
+            rotation_x=0,  # Flat on ground
+            collider=None  # No collision
+        )
+
+        return fog_plane
+
     def update_tile_visibility(self):
         """
         Update tile appearance based on fog of war visibility state
 
-        - VISIBLE tiles: Full brightness
-        - EXPLORED tiles: Darkened (0.3x brightness)
-        - UNEXPLORED tiles: Hidden
+        - VISIBLE tiles: Full brightness, no fog
+        - EXPLORED tiles: Darkened (0.3x brightness), no fog
+        - UNEXPLORED tiles: Hidden tiles, visible fog plane
         """
         if not self.game.visibility_map or not self.game.dungeon:
             return
@@ -388,6 +428,21 @@ class Renderer3D:
                 elif vis_state == c.VISIBILITY_UNEXPLORED:
                     # Unexplored: Hidden
                     entity.visible = False
+
+            # Fog plane handling
+            if vis_state == c.VISIBILITY_UNEXPLORED:
+                # Create or show fog plane for unexplored tiles
+                if (x, y) not in self.fog_entities:
+                    # Create new fog plane
+                    self.fog_entities[(x, y)] = self.create_fog_plane(x, y)
+                else:
+                    # Show existing fog plane
+                    self.fog_entities[(x, y)].visible = True
+
+            else:
+                # Hide fog plane for explored/visible tiles
+                if (x, y) in self.fog_entities:
+                    self.fog_entities[(x, y)].visible = False
 
     def update_camera(self):
         """
@@ -467,6 +522,18 @@ class Renderer3D:
         # Update tile visibility (fog of war)
         self.update_tile_visibility()
 
+        # Update fog-of-war animation (UV scrolling)
+        self.fog_animation_time += dt * 0.08  # Slow scroll speed
+        for fog_entity in self.fog_entities.values():
+            if fog_entity.visible:
+                # Scroll UV coordinates to create swirling motion
+                # Use sine/cosine for circular motion effect
+                offset_x = self.fog_animation_time * 0.3
+                offset_y = self.fog_animation_time * 0.2
+
+                # Set texture offset (Ursina uses texture_offset for UV scrolling)
+                fog_entity.texture_offset = (offset_x, offset_y)
+
         # Update enemy animations
         for enemy_id, enemy_data in self.enemy_entities.items():
             update_enemy_animation(
@@ -495,6 +562,11 @@ class Renderer3D:
                 entity.disable()
         self.dungeon_entities.clear()
         self.tile_visibility_cache.clear()
+
+        # Destroy fog entities
+        for fog_entity in self.fog_entities.values():
+            fog_entity.disable()
+        self.fog_entities.clear()
 
         # Destroy player
         if self.player_entity:
