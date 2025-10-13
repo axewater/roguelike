@@ -344,9 +344,9 @@ class HelmetHUD3D:
     # ========== BOTTOM-CENTER PANEL (Combat Log + Nearby Items) ==========
     def _create_bottom_center_panel(self):
         """Create bottom-center panel for combat log and nearby items"""
-        pos_x = -0.60
+        pos_x = -0.40
         pos_y = -0.30
-        panel_width = 1.20
+        panel_width = 0.80
         panel_height = 0.18
 
         # Background panel
@@ -375,7 +375,7 @@ class HelmetHUD3D:
         self.log_title = Text(
             text="[COMBAT LOG]",
             parent=self.parent,
-            position=(pos_x + 0.01, pos_y - 0.02, -10),  # Low z-level (in front)
+            position=(pos_x + 0.01, pos_y - 0.02, -10),  # Low z-level (in front), uses updated pos_x
             scale=0.9,
             color=color.rgb(0.3, 1.0, 1.0),  # Cyan
             origin=(-0.5, 0.5),
@@ -389,7 +389,7 @@ class HelmetHUD3D:
         """Create bottom-left ability slots with background panel"""
         pos_x = -0.85
         pos_y = -0.30  # Aligned with combat log and minimap level
-        panel_width = 0.38  # More compact width
+        panel_width = 0.40  # Wider to fit slots properly
         panel_height = 0.16  # Smaller height
 
         # Background panel (matching other HUD sections)
@@ -425,11 +425,19 @@ class HelmetHUD3D:
             eternal=True
         )
 
-        # Create ability slots
-        start_x = pos_x + 0.02
+        # Create ability slots - properly centered within panel
+        slot_size = 0.09
+        num_slots = 3
+
+        # Calculate equal spacing around and between slots
+        total_slot_width = num_slots * slot_size
+        total_spacing = panel_width - total_slot_width
+        single_spacing = total_spacing / (num_slots + 1)  # Space before, between, and after slots
+
+        # First slot starts at panel left edge + one spacing + half slot size (for center)
+        start_x = pos_x + single_spacing + (slot_size / 2)
         start_y = pos_y - 0.08  # Adjusted for smaller panel
-        slot_size = 0.09  # Much more compact
-        slot_spacing = 0.11  # Tighter spacing
+        slot_spacing = slot_size + single_spacing  # Distance between slot centers
 
         for i in range(3):
             slot_x = start_x + (i * slot_spacing)
@@ -692,7 +700,7 @@ class HelmetHUD3D:
             self.combat_log_entries.remove(entry)
 
         # Update positions and fade
-        pos_x = -0.59
+        pos_x = -0.39
         pos_y = -0.36
         line_height = 0.030
 
@@ -728,7 +736,7 @@ class HelmetHUD3D:
         entry.text_entity = Text(
             text=f"• {message}",
             parent=self.parent,
-            position=(-0.59, -0.36, -10),  # Low z-level (in front), will be repositioned in update
+            position=(-0.39, -0.36, -10),  # Low z-level (in front), will be repositioned in update
             scale=0.9,
             color=color.rgba(*msg_color, 1.0),
             origin=(-0.5, 0.5),
