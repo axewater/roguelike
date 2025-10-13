@@ -124,31 +124,31 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     )
 
     # ========== HEAD & HELMET ==========
-    # Neck
+    # Neck (more visible, taller)
     neck = Entity(
         parent=warrior,
         model='cylinder',
         color=skin_tone,
-        scale=(0.13, 0.12, 0.13),
+        scale=(0.14, 0.18, 0.14),
         position=(0, 0.38, 0)
     )
 
-    # Head (slightly larger)
+    # Head (properly connected to neck)
     head = Entity(
         parent=warrior,
         model='sphere',
         color=skin_tone,
         scale=(0.26, 0.28, 0.26),
-        position=(0, 0.52, 0)
+        position=(0, 0.48, 0)
     )
 
-    # Gorget base (neck armor) - connects helmet to chest
+    # Gorget base (neck armor) - connects helmet to chest, lower position
     gorget_base = Entity(
         parent=warrior,
         model='cylinder',
         color=dark_steel,
-        scale=(0.22, 0.08, 0.22),
-        position=(0, 0.35, 0)
+        scale=(0.22, 0.10, 0.22),
+        position=(0, 0.30, 0)
     )
 
     # Gorget top layer
@@ -156,8 +156,8 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         parent=warrior,
         model='cylinder',
         color=polished_steel,
-        scale=(0.20, 0.09, 0.20),
-        position=(0, 0.36, 0)
+        scale=(0.20, 0.11, 0.20),
+        position=(0, 0.31, 0)
     )
 
     # Helmet base (rounded top instead of flat box)
@@ -166,7 +166,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='sphere',
         color=steel_gray,
         scale=(0.30, 0.24, 0.30),
-        position=(0, 0.60, 0)
+        position=(0, 0.56, 0)
     )
 
     # Helmet top cap (polished)
@@ -175,7 +175,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='sphere',
         color=polished_steel,
         scale=(0.29, 0.18, 0.29),
-        position=(0, 0.63, 0)
+        position=(0, 0.59, 0)
     )
 
     # Helmet brow guard (horizontal band)
@@ -184,7 +184,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='cube',
         color=dark_steel,
         scale=(0.30, 0.05, 0.30),
-        position=(0, 0.52, 0)
+        position=(0, 0.48, 0)
     )
 
     # Face plate (main visor)
@@ -193,7 +193,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='cube',
         color=steel_gray,
         scale=(0.26, 0.16, 0.08),
-        position=(0, 0.52, 0.17)
+        position=(0, 0.48, 0.17)
     )
 
     # Visor slit (darker for eyes)
@@ -202,7 +202,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='cube',
         color=color.rgb(0.1, 0.1, 0.1),
         scale=(0.20, 0.04, 0.01),
-        position=(0, 0.54, 0.22)
+        position=(0, 0.50, 0.22)
     )
 
     # Nose guard (vertical center piece)
@@ -211,7 +211,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='cube',
         color=polished_steel,
         scale=(0.04, 0.14, 0.10),
-        position=(0, 0.51, 0.18)
+        position=(0, 0.47, 0.18)
     )
 
     # Cheek guards (left and right)
@@ -220,7 +220,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='cube',
         color=steel_gray,
         scale=(0.08, 0.18, 0.10),
-        position=(-0.16, 0.48, 0.14)
+        position=(-0.16, 0.44, 0.14)
     )
 
     right_cheek = Entity(
@@ -228,7 +228,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='cube',
         color=steel_gray,
         scale=(0.08, 0.18, 0.10),
-        position=(0.16, 0.48, 0.14)
+        position=(0.16, 0.44, 0.14)
     )
 
     # Helmet crest base (ridge along top)
@@ -237,7 +237,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='cube',
         color=dark_bronze,
         scale=(0.32, 0.08, 0.08),
-        position=(0, 0.70, 0)
+        position=(0, 0.66, 0)
     )
 
     # Helmet crest (decorative plume holder)
@@ -246,7 +246,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='cube',
         color=bronze,
         scale=(0.30, 0.10, 0.06),
-        position=(0, 0.74, 0)
+        position=(0, 0.70, 0)
     )
 
     # Crest ornaments (front and back)
@@ -255,7 +255,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='sphere',
         color=gold,
         scale=(0.05, 0.05, 0.05),
-        position=(0, 0.74, 0.04)
+        position=(0, 0.70, 0.04)
     )
 
     crest_back = Entity(
@@ -263,7 +263,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='sphere',
         color=gold,
         scale=(0.05, 0.05, 0.05),
-        position=(0, 0.74, -0.04)
+        position=(0, 0.70, -0.04)
     )
 
     # ========== SHOULDERS ==========
@@ -580,13 +580,31 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         )
 
     # ========== LEGS & LOWER BODY ==========
-    # Belt
+    # Pelvis/Hip area (connects torso to legs)
+    pelvis = Entity(
+        parent=warrior,
+        model='cube',
+        color=dark_pants,
+        scale=(0.46, 0.22, 0.30),
+        position=(0, -0.38, 0)
+    )
+
+    # Hip padding (adds volume)
+    hip_padding = Entity(
+        parent=warrior,
+        model='cube',
+        color=red_tunic,
+        scale=(0.48, 0.18, 0.28),
+        position=(0, -0.36, 0)
+    )
+
+    # Belt (on top of hips)
     belt_base = Entity(
         parent=warrior,
         model='cube',
         color=leather_brown,
-        scale=(0.56, 0.12, 0.32),
-        position=(0, -0.32, 0)
+        scale=(0.52, 0.10, 0.32),
+        position=(0, -0.28, 0)
     )
 
     # Belt buckle
@@ -595,41 +613,50 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='cube',
         color=bronze,
         scale=(0.10, 0.10, 0.04),
-        position=(0, -0.32, 0.18)
+        position=(0, -0.28, 0.18)
     )
 
-    # Tassets (hip armor plates)
+    # Tassets (hip armor plates) - positioned lower
     left_tasset = Entity(
         parent=warrior,
         model='cube',
         color=steel_gray,
-        scale=(0.18, 0.20, 0.04),
-        position=(-0.18, -0.48, 0.16)
+        scale=(0.18, 0.22, 0.04),
+        position=(-0.18, -0.44, 0.16)
     )
 
     right_tasset = Entity(
         parent=warrior,
         model='cube',
         color=steel_gray,
-        scale=(0.18, 0.20, 0.04),
-        position=(0.18, -0.48, 0.16)
+        scale=(0.18, 0.22, 0.04),
+        position=(0.18, -0.44, 0.16)
     )
 
-    # Legs (thighs)
+    # Groin/codpiece armor (center protection)
+    codpiece = Entity(
+        parent=warrior,
+        model='cube',
+        color=polished_steel,
+        scale=(0.14, 0.16, 0.04),
+        position=(0, -0.46, 0.16)
+    )
+
+    # Legs (thighs) - positioned higher to connect with pelvis
     left_thigh = Entity(
         parent=warrior,
         model='cube',
         color=dark_pants,
-        scale=(0.22, 0.50, 0.22),
-        position=(-0.16, -0.70, 0)
+        scale=(0.22, 0.46, 0.22),
+        position=(-0.16, -0.68, 0)
     )
 
     right_thigh = Entity(
         parent=warrior,
         model='cube',
         color=dark_pants,
-        scale=(0.22, 0.50, 0.22),
-        position=(0.16, -0.70, 0)
+        scale=(0.22, 0.46, 0.22),
+        position=(0.16, -0.68, 0)
     )
 
     # Knee guards (main)
