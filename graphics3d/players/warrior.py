@@ -388,7 +388,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='cube',
         color=polished_steel,
         scale=(0.06, 0.78, 0.06),
-        position=(0.42, -0.05, 0.40),
+        position=(0.42, -0.24, 0.535),
         rotation=(55, 0, 0)  # Tilt forward 55 degrees
     )
 
@@ -398,7 +398,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='cube',
         color=color.rgb(0.55, 0.55, 0.60),
         scale=(0.02, 0.68, 0.01),
-        position=(0.42, -0.03, 0.435),
+        position=(0.42, -0.22, 0.570),
         rotation=(55, 0, 0)  # Match blade rotation
     )
 
@@ -408,7 +408,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='cube',
         color=bronze,
         scale=(0.28, 0.06, 0.10),
-        position=(0.38, -0.274, 0.081),
+        position=(0.38, -0.464, 0.216),
         rotation=(55, 0, 0)  # Match blade rotation
     )
 
@@ -419,7 +419,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
             model='sphere',
             color=bronze,
             scale=(0.05, 0.05, 0.08),
-            position=(0.38 + x_sign * 0.14, -0.274, 0.081),
+            position=(0.38 + x_sign * 0.14, -0.464, 0.216),
             rotation=(55, 0, 0)  # Match blade rotation
         )
 
@@ -429,12 +429,12 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='cube',
         color=leather_brown,
         scale=(0.08, 0.22, 0.08),
-        position=(0.38, -0.350, -0.035),
+        position=(0.38, -0.54, 0.10),
         rotation=(55, 0, 0)  # Match blade rotation
     )
 
     # Hilt wrapping detail (3 wire wraps)
-    for y, z in [(-0.304, 0.026), (-0.350, -0.035), (-0.396, -0.106)]:
+    for y, z in [(-0.494, 0.161), (-0.540, 0.100), (-0.586, 0.029)]:
         wrap = Entity(
             parent=warrior,
             model='cube',
@@ -450,7 +450,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='sphere',
         color=bronze,
         scale=(0.10, 0.10, 0.10),
-        position=(0.38, -0.470, -0.212),
+        position=(0.38, -0.66, -0.077),
         rotation=(55, 0, 0)  # Match blade rotation
     )
 
@@ -460,7 +460,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         model='sphere',
         color=color.rgb(0.8, 0.1, 0.1),  # Ruby red
         scale=(0.04, 0.04, 0.04),
-        position=(0.38, -0.519, -0.176),
+        position=(0.38, -0.709, -0.041),
         rotation=(55, 0, 0)  # Match blade rotation
     )
 
