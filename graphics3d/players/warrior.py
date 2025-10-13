@@ -231,39 +231,22 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         position=(0.16, 0.44, 0.14)
     )
 
-    # Helmet crest base (ridge along top)
-    crest_base = Entity(
-        parent=warrior,
-        model='cube',
-        color=dark_bronze,
-        scale=(0.32, 0.08, 0.08),
-        position=(0, 0.66, 0)
-    )
-
-    # Helmet crest (decorative plume holder)
+    # Helmet crest (subtle ridge on top - much smaller)
     crest = Entity(
         parent=warrior,
         model='cube',
-        color=bronze,
-        scale=(0.30, 0.10, 0.06),
-        position=(0, 0.70, 0)
+        color=dark_bronze,
+        scale=(0.20, 0.04, 0.04),
+        position=(0, 0.64, 0)
     )
 
-    # Crest ornaments (front and back)
+    # Crest front ornament (small gold accent)
     crest_front = Entity(
         parent=warrior,
         model='sphere',
         color=gold,
-        scale=(0.05, 0.05, 0.05),
-        position=(0, 0.70, 0.04)
-    )
-
-    crest_back = Entity(
-        parent=warrior,
-        model='sphere',
-        color=gold,
-        scale=(0.05, 0.05, 0.05),
-        position=(0, 0.70, -0.04)
+        scale=(0.03, 0.03, 0.03),
+        position=(0, 0.64, 0.12)
     )
 
     # ========== SHOULDERS ==========
