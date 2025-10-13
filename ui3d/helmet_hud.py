@@ -89,7 +89,6 @@ class HelmetHUD3D:
 
         # ===== TOP-RIGHT PANEL (Equipment) =====
         self.top_right_panel: Optional[Entity] = None
-        self.equipment_title: Optional[Text] = None
         self.weapon_text: Optional[Text] = None
         self.armor_text: Optional[Text] = None
         self.accessory_text: Optional[Text] = None
@@ -102,7 +101,6 @@ class HelmetHUD3D:
 
         # ===== BOTTOM-LEFT (Abilities) =====
         self.bottom_left_panel: Optional[Entity] = None
-        self.abilities_title: Optional[Text] = None
         self.ability_slots: List['AbilitySlot'] = []
 
         # ===== BOTTOM-RIGHT (Quick Stats) =====
@@ -284,26 +282,16 @@ class HelmetHUD3D:
             eternal=True
         )
 
-        # Title
-        self.equipment_title = Text(
-            text="[EQUIPMENT]",
-            parent=self.parent,
-            position=(pos_x + 0.01, pos_y - 0.03, -10),  # Low z-level (in front)
-            scale=1.0,
-            color=color.rgb(0.3, 1.0, 1.0),  # Cyan
-            origin=(-0.5, 0.5),
-            eternal=True
-        )
-
-        # Equipment slots (2x2 grid layout)
+        # Equipment slots (2x2 grid layout) - moved up since no title
         line_height = 0.055
         col_offset = 0.22
+        start_y = pos_y - 0.04  # Start higher without title
 
         # Column 1: Weapon & Armor
         self.weapon_text = Text(
             text="⚔ None",
             parent=self.parent,
-            position=(pos_x + 0.01, pos_y - 0.09, -10),  # Low z-level (in front)
+            position=(pos_x + 0.01, start_y, -10),  # Low z-level (in front)
             scale=0.9,
             color=color.white,
             origin=(-0.5, 0.5),
@@ -313,7 +301,7 @@ class HelmetHUD3D:
         self.armor_text = Text(
             text="🛡 None",
             parent=self.parent,
-            position=(pos_x + 0.01, pos_y - 0.09 - line_height, -10),  # Low z-level (in front)
+            position=(pos_x + 0.01, start_y - line_height, -10),  # Low z-level (in front)
             scale=0.9,
             color=color.white,
             origin=(-0.5, 0.5),
@@ -324,7 +312,7 @@ class HelmetHUD3D:
         self.accessory_text = Text(
             text="💍 None",
             parent=self.parent,
-            position=(pos_x + 0.01 + col_offset, pos_y - 0.09, -10),  # Low z-level (in front)
+            position=(pos_x + 0.01 + col_offset, start_y, -10),  # Low z-level (in front)
             scale=0.9,
             color=color.white,
             origin=(-0.5, 0.5),
@@ -334,7 +322,7 @@ class HelmetHUD3D:
         self.boots_text = Text(
             text="👢 None",
             parent=self.parent,
-            position=(pos_x + 0.01 + col_offset, pos_y - 0.09 - line_height, -10),  # Low z-level (in front)
+            position=(pos_x + 0.01 + col_offset, start_y - line_height, -10),  # Low z-level (in front)
             scale=0.9,
             color=color.white,
             origin=(-0.5, 0.5),
@@ -410,17 +398,6 @@ class HelmetHUD3D:
             color=color.rgba(0.2, 0.4, 0.6, 0.4),  # Slightly more visible
             position=(pos_x + 0.002, pos_y - 0.002, 9),  # In front of background
             scale=(panel_width - 0.01, panel_height - 0.01),
-            origin=(-0.5, 0.5),
-            eternal=True
-        )
-
-        # Title
-        self.abilities_title = Text(
-            text="[ABILITIES]",
-            parent=self.parent,
-            position=(pos_x + 0.01, pos_y - 0.02, -10),  # Low z-level (in front)
-            scale=0.75,  # Smaller title
-            color=color.rgb(0.3, 1.0, 1.0),  # Cyan
             origin=(-0.5, 0.5),
             eternal=True
         )

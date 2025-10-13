@@ -69,7 +69,6 @@ class MiniMap3D:
         self.background_panel: Optional[Entity] = None
         self.border_panel: Optional[Entity] = None
         self.map_entity: Optional[Entity] = None
-        self.title_text: Optional[Entity] = None
 
         # Texture for minimap rendering
         self.texture: Optional[Texture] = None
@@ -98,7 +97,7 @@ class MiniMap3D:
 
         # Calculate panel size in normalized screen coords
         panel_width = self.map_width * 0.001 + 0.04  # Add padding
-        panel_height = self.map_height * 0.001 + 0.08  # Add padding for title
+        panel_height = self.map_height * 0.001 + 0.04  # Add padding
 
         # Background panel
         self.background_panel = Entity(
@@ -123,26 +122,14 @@ class MiniMap3D:
             eternal=True
         )
 
-        # Title text
-        from ursina import Text
-        self.title_text = Text(
-            text="[MINIMAP]",
-            parent=self.parent,
-            position=(pos_x + 0.01, pos_y - 0.02, -10),  # In front
-            scale=0.8,
-            color=color.rgb(0.3, 1.0, 1.0),  # Cyan
-            origin=(-0.5, 0.5),
-            eternal=True
-        )
-
-        # Map entity (holds the texture)
+        # Map entity (holds the texture) - centered in panel without title
         map_scale_x = panel_width - 0.04  # Slightly smaller than panel
-        map_scale_y = (panel_height - 0.08) * 0.85  # Account for title and bottom padding
+        map_scale_y = (panel_height - 0.04) * 0.90  # Centered vertically with padding
 
         self.map_entity = Entity(
             parent=self.parent,
             model='quad',
-            position=(pos_x + 0.01, pos_y - 0.06, -5),  # Below title
+            position=(pos_x + 0.01, pos_y - 0.02, -5),  # Centered in panel
             scale=(map_scale_x, map_scale_y),
             origin=(-0.5, 0.5),
             eternal=True
@@ -340,7 +327,5 @@ class MiniMap3D:
             self.border_panel.disable()
         if self.map_entity:
             self.map_entity.disable()
-        if self.title_text:
-            self.title_text.disable()
 
         print("✓ MiniMap3D cleaned up")
