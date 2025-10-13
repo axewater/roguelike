@@ -26,7 +26,7 @@ def create_rivets(parent, positions, rivet_color, scale=0.02):
 
 def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     """
-    Create an enhanced 3D warrior character model.
+    Create an enhanced 3D warrior character model with improved proportions and detail.
 
     Args:
         position: Vec3 position for the model
@@ -37,109 +37,233 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     """
     warrior = Entity(position=position, scale=scale)
 
-    # Define colors
-    red_tunic = color.rgb(180/255, 60/255, 40/255)
-    steel_gray = color.rgb(140/255, 140/255, 150/255)
-    polished_steel = color.rgb(160/255, 160/255, 170/255)
-    bronze = color.rgb(120/255, 100/255, 60/255)
-    dark_bronze = color.rgb(100/255, 80/255, 50/255)
-    gold = color.rgb(180/255, 160/255, 50/255)
-    skin_tone = color.rgb(200/255, 160/255, 130/255)
-    blue_shield = color.rgb(60/255, 120/255, 180/255)
-    dark_pants = color.rgb(80/255, 70/255, 60/255)
-    leather_brown = color.rgb(100/255, 80/255, 50/255)
-    iron_gray = color.rgb(100/255, 100/255, 105/255)
+    # Enhanced color palette with more depth
+    red_tunic = color.rgb(190/255, 50/255, 35/255)
+    dark_red = color.rgb(150/255, 30/255, 20/255)
+    steel_gray = color.rgb(130/255, 135/255, 145/255)
+    polished_steel = color.rgb(180/255, 185/255, 195/255)
+    dark_steel = color.rgb(90/255, 95/255, 100/255)
+    bronze = color.rgb(140/255, 110/255, 55/255)
+    dark_bronze = color.rgb(100/255, 75/255, 40/255)
+    gold = color.rgb(200/255, 170/255, 40/255)
+    bright_gold = color.rgb(220/255, 190/255, 60/255)
+    skin_tone = color.rgb(210/255, 170/255, 140/255)
+    royal_blue = color.rgb(40/255, 90/255, 160/255)
+    deep_blue = color.rgb(25/255, 60/255, 120/255)
+    dark_pants = color.rgb(70/255, 60/255, 50/255)
+    leather_brown = color.rgb(110/255, 85/255, 50/255)
+    dark_leather = color.rgb(80/255, 60/255, 35/255)
+    iron_gray = color.rgb(95/255, 100/255, 110/255)
 
     # ========== TORSO & BODY ==========
-    # Body (main torso)
+    # Body (main torso) - slightly smaller
     body = Entity(
         parent=warrior,
         model='cube',
         color=red_tunic,
-        scale=(0.50, 0.60, 0.30),
+        scale=(0.45, 0.55, 0.28),
         position=(0, 0, 0)
     )
 
-    # Chest plate (main armor)
+    # Body shading (darker layer for depth)
+    body_shadow = Entity(
+        parent=warrior,
+        model='cube',
+        color=dark_red,
+        scale=(0.45, 0.55, 0.02),
+        position=(0, -0.05, -0.15)
+    )
+
+    # Chest plate base layer (darker)
+    chest_plate_base = Entity(
+        parent=warrior,
+        model='cube',
+        color=steel_gray,
+        scale=(0.50, 0.50, 0.05),
+        position=(0, 0.06, 0.15)
+    )
+
+    # Chest plate (main armor) - brighter top layer
     chest_plate = Entity(
         parent=warrior,
         model='cube',
         color=polished_steel,
-        scale=(0.54, 0.54, 0.04),
-        position=(0, 0.08, 0.16)
+        scale=(0.48, 0.48, 0.04),
+        position=(0, 0.08, 0.165)
     )
 
-    # Add decorative rivets to chest plate (8 rivets)
+    # Chest plate segments (4 horizontal plates for detail)
+    for i, y_pos in enumerate([0.22, 0.10, -0.02, -0.14]):
+        segment = Entity(
+            parent=warrior,
+            model='cube',
+            color=polished_steel if i % 2 == 0 else steel_gray,
+            scale=(0.46, 0.08, 0.015),
+            position=(0, y_pos, 0.18)
+        )
+
+    # Add decorative rivets to chest plate (improved pattern)
     rivet_positions = [
-        (-0.22, 0.28, 0.19), (0.22, 0.28, 0.19),  # Top corners
-        (-0.22, 0.08, 0.19), (0.22, 0.08, 0.19),  # Middle
-        (-0.22, -0.12, 0.19), (0.22, -0.12, 0.19),  # Bottom corners
-        (0, 0.32, 0.19), (0, -0.16, 0.19)  # Center top/bottom
+        # Top row
+        (-0.18, 0.26, 0.19), (-0.06, 0.26, 0.19), (0.06, 0.26, 0.19), (0.18, 0.26, 0.19),
+        # Middle rows
+        (-0.18, 0.06, 0.19), (0.18, 0.06, 0.19),
+        (-0.18, -0.10, 0.19), (0.18, -0.10, 0.19),
+        # Center ornament
+        (0, 0.24, 0.19), (0, -0.16, 0.19)
     ]
-    chest_rivets = create_rivets(warrior, rivet_positions, bronze, scale=0.022)
+    chest_rivets = create_rivets(warrior, rivet_positions, dark_bronze, scale=0.020)
 
     # Back plate
     back_plate = Entity(
         parent=warrior,
         model='cube',
         color=steel_gray,
-        scale=(0.50, 0.52, 0.04),
-        position=(0, 0.05, -0.16)
+        scale=(0.46, 0.48, 0.04),
+        position=(0, 0.04, -0.15)
     )
 
     # ========== HEAD & HELMET ==========
     # Neck
     neck = Entity(
         parent=warrior,
-        model='cube',
+        model='cylinder',
         color=skin_tone,
-        scale=(0.14, 0.14, 0.14),
-        position=(0, 0.42, 0)
+        scale=(0.13, 0.12, 0.13),
+        position=(0, 0.38, 0)
     )
 
-    # Head
+    # Head (slightly larger)
     head = Entity(
         parent=warrior,
         model='sphere',
         color=skin_tone,
-        scale=(0.24, 0.26, 0.24),
-        position=(0, 0.54, 0)
+        scale=(0.26, 0.28, 0.26),
+        position=(0, 0.52, 0)
     )
 
-    # Helmet base
+    # Gorget base (neck armor) - connects helmet to chest
+    gorget_base = Entity(
+        parent=warrior,
+        model='cylinder',
+        color=dark_steel,
+        scale=(0.22, 0.08, 0.22),
+        position=(0, 0.35, 0)
+    )
+
+    # Gorget top layer
+    gorget = Entity(
+        parent=warrior,
+        model='cylinder',
+        color=polished_steel,
+        scale=(0.20, 0.09, 0.20),
+        position=(0, 0.36, 0)
+    )
+
+    # Helmet base (rounded top instead of flat box)
     helmet_base = Entity(
         parent=warrior,
-        model='cube',
+        model='sphere',
         color=steel_gray,
-        scale=(0.28, 0.18, 0.28),
-        position=(0, 0.62, 0)
+        scale=(0.30, 0.24, 0.30),
+        position=(0, 0.60, 0)
     )
 
-    # Helmet visor guard
-    visor = Entity(
+    # Helmet top cap (polished)
+    helmet_top = Entity(
+        parent=warrior,
+        model='sphere',
+        color=polished_steel,
+        scale=(0.29, 0.18, 0.29),
+        position=(0, 0.63, 0)
+    )
+
+    # Helmet brow guard (horizontal band)
+    brow_guard = Entity(
+        parent=warrior,
+        model='cube',
+        color=dark_steel,
+        scale=(0.30, 0.05, 0.30),
+        position=(0, 0.52, 0)
+    )
+
+    # Face plate (main visor)
+    face_plate = Entity(
         parent=warrior,
         model='cube',
         color=steel_gray,
-        scale=(0.24, 0.08, 0.14),
-        position=(0, 0.54, 0.14)
+        scale=(0.26, 0.16, 0.08),
+        position=(0, 0.52, 0.17)
     )
 
-    # Helmet crest
+    # Visor slit (darker for eyes)
+    visor_slit = Entity(
+        parent=warrior,
+        model='cube',
+        color=color.rgb(0.1, 0.1, 0.1),
+        scale=(0.20, 0.04, 0.01),
+        position=(0, 0.54, 0.22)
+    )
+
+    # Nose guard (vertical center piece)
+    nose_guard = Entity(
+        parent=warrior,
+        model='cube',
+        color=polished_steel,
+        scale=(0.04, 0.14, 0.10),
+        position=(0, 0.51, 0.18)
+    )
+
+    # Cheek guards (left and right)
+    left_cheek = Entity(
+        parent=warrior,
+        model='cube',
+        color=steel_gray,
+        scale=(0.08, 0.18, 0.10),
+        position=(-0.16, 0.48, 0.14)
+    )
+
+    right_cheek = Entity(
+        parent=warrior,
+        model='cube',
+        color=steel_gray,
+        scale=(0.08, 0.18, 0.10),
+        position=(0.16, 0.48, 0.14)
+    )
+
+    # Helmet crest base (ridge along top)
+    crest_base = Entity(
+        parent=warrior,
+        model='cube',
+        color=dark_bronze,
+        scale=(0.32, 0.08, 0.08),
+        position=(0, 0.70, 0)
+    )
+
+    # Helmet crest (decorative plume holder)
     crest = Entity(
         parent=warrior,
         model='cube',
         color=bronze,
-        scale=(0.30, 0.06, 0.06),
-        position=(0, 0.70, 0)
+        scale=(0.30, 0.10, 0.06),
+        position=(0, 0.74, 0)
     )
 
-    # Gorget (neck armor)
-    gorget = Entity(
+    # Crest ornaments (front and back)
+    crest_front = Entity(
         parent=warrior,
-        model='cube',
-        color=polished_steel,
-        scale=(0.18, 0.10, 0.18),
-        position=(0, 0.38, 0)
+        model='sphere',
+        color=gold,
+        scale=(0.05, 0.05, 0.05),
+        position=(0, 0.74, 0.04)
+    )
+
+    crest_back = Entity(
+        parent=warrior,
+        model='sphere',
+        color=gold,
+        scale=(0.05, 0.05, 0.05),
+        position=(0, 0.74, -0.04)
     )
 
     # ========== SHOULDERS ==========
@@ -351,46 +475,108 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         position=(0.38, -0.62, 0.21)
     )
 
-    # ========== SHIELD (DETAILED) ==========
-    # Shield base
+    # ========== SHIELD (ENHANCED HERALDRY) ==========
+    # Shield base (main body)
     shield_base = Entity(
         parent=warrior,
         model='cube',
-        color=blue_shield,
-        scale=(0.38, 0.50, 0.08),
-        position=(-0.48, 0, 0.12),
-        rotation=(0, 20, -5)
+        color=royal_blue,
+        scale=(0.40, 0.54, 0.10),
+        position=(-0.48, -0.02, 0.10),
+        rotation=(0, 18, -8)
     )
 
-    # Shield rim (metal reinforcement)
-    shield_rim = Entity(
+    # Shield depth layer (darker for 3D effect)
+    shield_depth = Entity(
+        parent=warrior,
+        model='cube',
+        color=deep_blue,
+        scale=(0.38, 0.52, 0.06),
+        position=(-0.48, -0.04, 0.08),
+        rotation=(0, 18, -8)
+    )
+
+    # Shield rim (metal reinforcement) - outer frame
+    shield_rim_outer = Entity(
+        parent=warrior,
+        model='cube',
+        color=dark_steel,
+        scale=(0.42, 0.56, 0.03),
+        position=(-0.48, -0.02, 0.16),
+        rotation=(0, 18, -8)
+    )
+
+    # Shield rim inner (brighter metal)
+    shield_rim_inner = Entity(
         parent=warrior,
         model='cube',
         color=iron_gray,
-        scale=(0.40, 0.52, 0.02),
-        position=(-0.48, 0, 0.17),
-        rotation=(0, 20, -5)
+        scale=(0.40, 0.54, 0.025),
+        position=(-0.48, -0.02, 0.165),
+        rotation=(0, 18, -8)
     )
 
-    # Shield boss (large gold centerpiece)
-    shield_boss = Entity(
+    # Shield boss outer ring (large gold centerpiece)
+    shield_boss_ring = Entity(
         parent=warrior,
         model='sphere',
         color=gold,
-        scale=(0.12, 0.12, 0.08),
-        position=(-0.48, 0, 0.20),
-        rotation=(0, 20, -5)
+        scale=(0.15, 0.15, 0.06),
+        position=(-0.48, -0.02, 0.19),
+        rotation=(0, 18, -8)
     )
 
-    # Shield decorative bands (2 bands)
-    for y_off in [-0.15, 0.15]:
-        band = Entity(
+    # Shield boss center (brighter)
+    shield_boss = Entity(
+        parent=warrior,
+        model='sphere',
+        color=bright_gold,
+        scale=(0.10, 0.10, 0.05),
+        position=(-0.48, -0.02, 0.20),
+        rotation=(0, 18, -8)
+    )
+
+    # Heraldic cross design (4 arms)
+    # Vertical bar
+    cross_vertical = Entity(
+        parent=warrior,
+        model='cube',
+        color=gold,
+        scale=(0.06, 0.36, 0.015),
+        position=(-0.48, -0.02, 0.175),
+        rotation=(0, 18, -8)
+    )
+
+    # Horizontal bar
+    cross_horizontal = Entity(
+        parent=warrior,
+        model='cube',
+        color=gold,
+        scale=(0.28, 0.06, 0.015),
+        position=(-0.48, -0.02, 0.175),
+        rotation=(0, 18, -8)
+    )
+
+    # Decorative corner emblems (4 quadrants)
+    for x_sign, y_sign in [(-1, 1), (1, 1), (-1, -1), (1, -1)]:
+        emblem = Entity(
+            parent=warrior,
+            model='sphere',
+            color=bright_gold,
+            scale=(0.04, 0.04, 0.02),
+            position=(-0.48 + x_sign * 0.10, -0.02 + y_sign * 0.16, 0.178),
+            rotation=(0, 18, -8)
+        )
+
+    # Shield edge reinforcements (top and bottom)
+    for y_off in [-0.24, 0.24]:
+        reinforce = Entity(
             parent=warrior,
             model='cube',
-            color=gold,
-            scale=(0.36, 0.04, 0.02),
-            position=(-0.48, y_off, 0.18),
-            rotation=(0, 20, -5)
+            color=dark_bronze,
+            scale=(0.36, 0.03, 0.02),
+            position=(-0.48, y_off, 0.17),
+            rotation=(0, 18, -8)
         )
 
     # ========== LEGS & LOWER BODY ==========
@@ -500,22 +686,66 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
         position=(0.16, -1.16, 0)
     )
 
-    # Boots
+    # Boots (enhanced with details)
+    # Left boot base
     left_boot = Entity(
         parent=warrior,
         model='cube',
-        color=leather_brown,
-        scale=(0.14, 0.10, 0.18),
-        position=(-0.16, -1.42, 0.04)
+        color=dark_leather,
+        scale=(0.16, 0.12, 0.22),
+        position=(-0.16, -1.42, 0.05)
     )
 
-    right_boot = Entity(
+    # Left boot top (lighter leather)
+    left_boot_top = Entity(
         parent=warrior,
         model='cube',
         color=leather_brown,
-        scale=(0.14, 0.10, 0.18),
-        position=(0.16, -1.42, 0.04)
+        scale=(0.17, 0.04, 0.20),
+        position=(-0.16, -1.36, 0.04)
     )
+
+    # Left boot toe cap (steel)
+    left_toe_cap = Entity(
+        parent=warrior,
+        model='cube',
+        color=iron_gray,
+        scale=(0.16, 0.10, 0.04),
+        position=(-0.16, -1.42, 0.17)
+    )
+
+    # Right boot base
+    right_boot = Entity(
+        parent=warrior,
+        model='cube',
+        color=dark_leather,
+        scale=(0.16, 0.12, 0.22),
+        position=(0.16, -1.42, 0.05)
+    )
+
+    # Right boot top (lighter leather)
+    right_boot_top = Entity(
+        parent=warrior,
+        model='cube',
+        color=leather_brown,
+        scale=(0.17, 0.04, 0.20),
+        position=(0.16, -1.36, 0.04)
+    )
+
+    # Right boot toe cap (steel)
+    right_toe_cap = Entity(
+        parent=warrior,
+        model='cube',
+        color=iron_gray,
+        scale=(0.16, 0.10, 0.04),
+        position=(0.16, -1.42, 0.17)
+    )
+
+    # ========== HEROIC POSE ADJUSTMENTS ==========
+    # Apply slight rotations and position adjustments for dynamic stance
+    # (Optional: uncomment to add dynamic pose)
+    # warrior.rotation_y = -5  # Slight turn
+    # warrior.rotation_z = 2   # Slight tilt
 
     return warrior
 
