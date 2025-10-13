@@ -56,7 +56,7 @@ class PauseMenu3D(Entity):
             position=(0, 0.35),
             origin=(0, 0),
             scale=4.0,
-            color=color.rgb(220, 220, 230),
+            color=color.rgb(0.863, 0.863, 0.902),
             parent=camera.ui
         )
         self.ui_elements.append(title)
@@ -67,7 +67,7 @@ class PauseMenu3D(Entity):
             position=(0, 0.23),
             origin=(0, 0),
             scale=1.3,
-            color=color.rgb(150, 150, 170),
+            color=color.rgb(0.588, 0.588, 0.667),
             parent=camera.ui
         )
         self.ui_elements.append(hint)

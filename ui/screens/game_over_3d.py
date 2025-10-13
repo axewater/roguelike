@@ -72,7 +72,7 @@ class GameOverScreen3D(Entity):
             position=(0, 0.3),
             origin=(0, 0),
             scale=4.5,
-            color=color.rgb(200, 50, 50),
+            color=color.rgb(0.784, 0.196, 0.196),
             parent=camera.ui
         )
         self.ui_elements.append(self.title_text)
@@ -83,7 +83,7 @@ class GameOverScreen3D(Entity):
             position=(0, 0.18),
             origin=(0, 0),
             scale=1.8,
-            color=color.rgb(180, 100, 100),
+            color=color.rgb(0.706, 0.392, 0.392),
             parent=camera.ui
         )
         self.ui_elements.append(self.death_reason_text)
@@ -97,7 +97,7 @@ class GameOverScreen3D(Entity):
             position=(0, stats_y),
             origin=(0, 0),
             scale=1.5,
-            color=color.rgb(160, 160, 180),
+            color=color.rgb(0.627, 0.627, 0.706),
             parent=camera.ui
         )
         self.ui_elements.append(self.level_text)
@@ -107,7 +107,7 @@ class GameOverScreen3D(Entity):
             position=(0, stats_y - stats_spacing),
             origin=(0, 0),
             scale=1.5,
-            color=color.rgb(160, 160, 180),
+            color=color.rgb(0.627, 0.627, 0.706),
             parent=camera.ui
         )
         self.ui_elements.append(self.xp_text)
@@ -117,7 +117,7 @@ class GameOverScreen3D(Entity):
             position=(0, stats_y - stats_spacing * 2),
             origin=(0, 0),
             scale=1.5,
-            color=color.rgb(160, 160, 180),
+            color=color.rgb(0.627, 0.627, 0.706),
             parent=camera.ui
         )
         self.ui_elements.append(self.enemies_text)
@@ -130,7 +130,7 @@ class GameOverScreen3D(Entity):
             text="TRY AGAIN",
             scale=(0.25, 0.08),
             position=(0, button_y),
-            color=color.rgb(80, 100, 120),
+            color=color.rgb(0.314, 0.392, 0.471),
             parent=camera.ui,
             on_click=self._try_again
         )
@@ -140,7 +140,7 @@ class GameOverScreen3D(Entity):
             text="MAIN MENU",
             scale=(0.25, 0.08),
             position=(0, button_y - button_spacing),
-            color=color.rgb(80, 80, 100),
+            color=color.rgb(0.314, 0.314, 0.392),
             parent=camera.ui,
             on_click=self._main_menu
         )
@@ -150,7 +150,7 @@ class GameOverScreen3D(Entity):
             text="QUIT",
             scale=(0.25, 0.08),
             position=(0, button_y - button_spacing * 2),
-            color=color.rgb(120, 60, 60),
+            color=color.rgb(0.471, 0.235, 0.235),
             parent=camera.ui,
             on_click=self._quit
         )
@@ -162,7 +162,7 @@ class GameOverScreen3D(Entity):
             position=(0, -0.48),
             origin=(0, 0),
             scale=1.0,
-            color=color.rgb(100, 80, 80),
+            color=color.rgb(0.392, 0.314, 0.314),
             parent=camera.ui
         )
         self.ui_elements.append(hint)

@@ -35,10 +35,10 @@ class DungeonButton(Entity):
         self.press_offset = 0.0
 
         # Colors (dungeon theme) - use normalized 0-1 values
-        self.color_bg = color.rgb(50, 48, 45)  # Dark stone
-        self.color_border = color.rgb(65, 60, 55)  # Brown border
-        self.color_border_hover = color.rgb(120, 100, 180)  # Purple glow
-        self.color_text = color.rgb(220, 220, 230)  # Light text (more visible)
+        self.color_bg = color.rgb(0.196, 0.188, 0.176)  # Dark stone (50, 48, 45)
+        self.color_border = color.rgb(0.255, 0.235, 0.216)  # Brown border (65, 60, 55)
+        self.color_border_hover = color.rgb(0.471, 0.392, 0.706)  # Purple glow (120, 100, 180)
+        self.color_text = color.rgb(0.863, 0.863, 0.902)  # Light text (220, 220, 230)
 
         # Create button elements
         self._create_button_elements()
@@ -158,8 +158,8 @@ class DungeonButton(Entity):
         border_g = self.color_border.g + (self.color_border_hover.g - self.color_border.g) * t
         border_b = self.color_border.b + (self.color_border_hover.b - self.color_border.b) * t
 
-        # Apply color
-        self.border.color = color.rgb(int(border_r * 255), int(border_g * 255), int(border_b * 255))
+        # Apply color (values already in 0-1 range)
+        self.border.color = color.rgb(border_r, border_g, border_b)
 
         # Slight scale up on hover
         scale_mult = 1.0 + (0.05 * self.hover_progress)

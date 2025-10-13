@@ -64,7 +64,7 @@ class Settings3D(Entity):
             position=(0, 0.42),
             origin=(0, 0),
             scale=3.5,
-            color=color.rgb(220, 220, 230),
+            color=color.rgb(0.863, 0.863, 0.902),
             parent=camera.ui
         )
         self.ui_elements.append(title)
@@ -72,7 +72,7 @@ class Settings3D(Entity):
         # Settings panel background
         panel_bg = Entity(
             model='quad',
-            color=color.rgb(45, 45, 50),
+            color=color.rgb(0.176, 0.176, 0.196),
             scale=(1.2, 0.9),
             position=(0, 0.02, -0.8),
             parent=camera.ui
@@ -85,7 +85,7 @@ class Settings3D(Entity):
             position=(-0.48, 0.22),
             origin=(0, 0),
             scale=1.8,
-            color=color.rgb(220, 220, 230),
+            color=color.rgb(0.863, 0.863, 0.902),
             parent=camera.ui
         )
         self.ui_elements.append(music_label)
@@ -102,9 +102,9 @@ class Settings3D(Entity):
             on_value_changed=self._on_music_volume_changed
         )
         # Dungeon-styled slider colors
-        self.music_slider.knob.color = color.rgb(150, 100, 255)  # Purple knob
+        self.music_slider.knob.color = color.rgb(0.588, 0.392, 1.0)  # Purple knob
         self.music_slider.knob.scale *= 1.3  # Larger knob
-        self.music_slider.bg.color = color.rgb(40, 38, 35)  # Darker stone background
+        self.music_slider.bg.color = color.rgb(0.157, 0.149, 0.137)  # Darker stone background
         self.ui_elements.append(self.music_slider)
 
         # Music value display
@@ -113,7 +113,7 @@ class Settings3D(Entity):
             position=(0.35, 0.12),
             origin=(0, 0),
             scale=1.5,
-            color=color.rgb(200, 200, 200),
+            color=color.rgb(0.784, 0.784, 0.784),
             parent=camera.ui
         )
         self.ui_elements.append(self.music_value_text)
@@ -124,7 +124,7 @@ class Settings3D(Entity):
             position=(-0.48, -0.05),
             origin=(0, 0),
             scale=1.8,
-            color=color.rgb(220, 220, 230),
+            color=color.rgb(0.863, 0.863, 0.902),
             parent=camera.ui
         )
         self.ui_elements.append(sfx_label)
@@ -141,9 +141,9 @@ class Settings3D(Entity):
             on_value_changed=self._on_sfx_volume_changed
         )
         # Dungeon-styled slider colors
-        self.sfx_slider.knob.color = color.rgb(100, 200, 255)  # Blue knob
+        self.sfx_slider.knob.color = color.rgb(0.392, 0.784, 1.0)  # Blue knob
         self.sfx_slider.knob.scale *= 1.3  # Larger knob
-        self.sfx_slider.bg.color = color.rgb(40, 38, 35)  # Darker stone background
+        self.sfx_slider.bg.color = color.rgb(0.157, 0.149, 0.137)  # Darker stone background
         self.ui_elements.append(self.sfx_slider)
 
         # SFX value display
@@ -152,7 +152,7 @@ class Settings3D(Entity):
             position=(0.35, -0.15),
             origin=(0, 0),
             scale=1.5,
-            color=color.rgb(200, 200, 200),
+            color=color.rgb(0.784, 0.784, 0.784),
             parent=camera.ui
         )
         self.ui_elements.append(self.sfx_value_text)

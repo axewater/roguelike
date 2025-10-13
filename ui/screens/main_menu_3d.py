@@ -83,7 +83,7 @@ class MainMenu3D(Entity):
             position=(0, 0.38),
             origin=(0, 0),
             scale=3.5,
-            color=color.rgb(200, 180, 255),
+            color=color.rgb(0.784, 0.706, 1.0),  # (200, 180, 255)
             parent=camera.ui
         )
         self.ui_elements.append(title)
@@ -94,7 +94,7 @@ class MainMenu3D(Entity):
             position=(0, 0.28),
             origin=(0, 0),
             scale=1.5,
-            color=color.rgb(150, 150, 180),
+            color=color.rgb(0.588, 0.588, 0.706),  # (150, 150, 180)
             parent=camera.ui
         )
         self.ui_elements.append(subtitle)
@@ -183,7 +183,7 @@ class MainMenu3D(Entity):
         # Panel background
         panel_bg = Entity(
             model='quad',
-            color=color.rgb(40, 40, 45),
+            color=color.rgb(0.157, 0.157, 0.176),  # (40, 40, 45)
             scale=(1.4, 1.6),
             position=(0, 0, -0.4),
             parent=camera.ui
@@ -195,7 +195,7 @@ class MainMenu3D(Entity):
             position=(0, 0.68),
             origin=(0, 0),
             scale=2.5,
-            color=color.rgb(220, 220, 230),
+            color=color.rgb(0.863, 0.863, 0.902),  # (220, 220, 230)
             parent=camera.ui
         )
 
@@ -236,7 +236,7 @@ class MainMenu3D(Entity):
                 position=(-0.62, line_y),  # Left-aligned
                 origin=(0, 0),
                 scale=1.0,
-                color=color.rgb(200, 200, 210),
+                color=color.rgb(0.784, 0.784, 0.824),  # (200, 200, 210)
                 parent=camera.ui
             )
             instruction_entities.append(text_entity)

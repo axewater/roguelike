@@ -80,7 +80,7 @@ class ClassSelection3D(Entity):
         """Set up lighting for character display"""
         # Ambient light (general illumination)
         self.ambient_light = AmbientLight(
-            color=color.rgb(200, 200, 210),
+            color=color.rgb(0.784, 0.784, 0.824),
             intensity=0.4
         )
 
@@ -88,7 +88,7 @@ class ClassSelection3D(Entity):
         self.key_light = DirectionalLight(
             position=(3, 5, 2),
             rotation=(45, -30, 0),
-            color=color.rgb(255, 250, 240),  # Warm white
+            color=color.rgb(1.0, 0.98, 0.941),  # Warm white
             intensity=1.0
         )
 
@@ -96,7 +96,7 @@ class ClassSelection3D(Entity):
         self.rim_light = DirectionalLight(
             position=(-2, 3, -4),
             rotation=(135, 30, 0),
-            color=color.rgb(180, 200, 255),  # Cool blue
+            color=color.rgb(0.706, 0.784, 1.0),  # Cool blue
             intensity=0.6
         )
 
@@ -106,7 +106,7 @@ class ClassSelection3D(Entity):
         """Create a circular pedestal/platform under the character"""
         self.pedestal = Entity(
             model='cylinder',
-            color=color.rgb(40, 40, 50),  # Dark gray
+            color=color.rgb(0.157, 0.157, 0.196),  # Dark gray
             scale=(1.5, 0.1, 1.5),  # Wide, flat cylinder
             position=(0, -0.05, -self.camera_distance),  # Slightly below ground
             texture='white_cube',
@@ -116,7 +116,7 @@ class ClassSelection3D(Entity):
         # Add a glowing ring around the pedestal
         self.pedestal_ring = Entity(
             model='cylinder',
-            color=color.rgb(100, 150, 255),  # Blue glow
+            color=color.rgb(0.392, 0.588, 1.0),  # Blue glow
             scale=(1.7, 0.05, 1.7),
             position=(0, -0.02, -self.camera_distance),
             enabled=False
@@ -132,7 +132,7 @@ class ClassSelection3D(Entity):
             position=(0, 0.45),
             origin=(0, 0),
             scale=2.5,
-            color=color.rgb(220, 220, 220),
+            color=color.rgb(0.863, 0.863, 0.863),
             parent=camera.ui
         )
         self.ui_elements.append(title)
@@ -143,7 +143,7 @@ class ClassSelection3D(Entity):
             position=(0, 0.35),
             origin=(0, 0),
             scale=3.0,
-            color=color.rgb(180, 60, 40),
+            color=color.rgb(0.706, 0.235, 0.157),
             parent=camera.ui
         )
         self.ui_elements.append(self.class_name_text)
@@ -154,7 +154,7 @@ class ClassSelection3D(Entity):
             position=(0, 0.28),
             origin=(0, 0),
             scale=1.2,
-            color=color.rgb(180, 180, 200),
+            color=color.rgb(0.706, 0.706, 0.784),
             parent=camera.ui
         )
         self.ui_elements.append(self.class_desc_text)
@@ -169,7 +169,7 @@ class ClassSelection3D(Entity):
             position=(-0.45, stat_y_start),
             origin=(0, 0),
             scale=1.5,
-            color=color.rgb(220, 220, 220),
+            color=color.rgb(0.863, 0.863, 0.863),
             parent=camera.ui
         )
         self.ui_elements.append(hp_label)
@@ -178,7 +178,7 @@ class ClassSelection3D(Entity):
             position=(-0.35, stat_y_start),
             origin=(0, 0),
             scale=1.8,
-            color=color.rgb(100, 200, 120),
+            color=color.rgb(0.392, 0.784, 0.471),
             parent=camera.ui
         )
         self.ui_elements.append(self.stat_texts['hp'])
@@ -189,7 +189,7 @@ class ClassSelection3D(Entity):
             position=(-0.45, stat_y_start - stat_spacing),
             origin=(0, 0),
             scale=1.5,
-            color=color.rgb(220, 220, 220),
+            color=color.rgb(0.863, 0.863, 0.863),
             parent=camera.ui
         )
         self.ui_elements.append(attack_label)
@@ -198,7 +198,7 @@ class ClassSelection3D(Entity):
             position=(-0.35, stat_y_start - stat_spacing),
             origin=(0, 0),
             scale=1.8,
-            color=color.rgb(255, 100, 100),
+            color=color.rgb(1.0, 0.392, 0.392),
             parent=camera.ui
         )
         self.ui_elements.append(self.stat_texts['attack'])
@@ -209,7 +209,7 @@ class ClassSelection3D(Entity):
             position=(-0.45, stat_y_start - stat_spacing * 2),
             origin=(0, 0),
             scale=1.5,
-            color=color.rgb(220, 220, 220),
+            color=color.rgb(0.863, 0.863, 0.863),
             parent=camera.ui
         )
         self.ui_elements.append(defense_label)
@@ -218,7 +218,7 @@ class ClassSelection3D(Entity):
             position=(-0.35, stat_y_start - stat_spacing * 2),
             origin=(0, 0),
             scale=1.8,
-            color=color.rgb(100, 150, 255),
+            color=color.rgb(0.392, 0.588, 1.0),
             parent=camera.ui
         )
         self.ui_elements.append(self.stat_texts['defense'])
@@ -229,7 +229,7 @@ class ClassSelection3D(Entity):
             position=(0.25, stat_y_start),
             origin=(0, 0),
             scale=1.5,
-            color=color.rgb(220, 220, 220),
+            color=color.rgb(0.863, 0.863, 0.863),
             parent=camera.ui
         )
         self.ui_elements.append(abilities_label)
@@ -241,7 +241,7 @@ class ClassSelection3D(Entity):
                 position=(0.25, stat_y_start - stat_spacing * (i + 1)),
                 origin=(0, 0),
                 scale=1.3,
-                color=color.rgb(150, 180, 255),
+                color=color.rgb(0.588, 0.706, 1.0),
                 parent=camera.ui
             )
             self.ability_texts.append(ability_text)
@@ -282,7 +282,7 @@ class ClassSelection3D(Entity):
             position=(0, -0.48),
             origin=(0, 0),
             scale=1.0,
-            color=color.rgb(120, 120, 130),
+            color=color.rgb(0.471, 0.471, 0.51),
             parent=camera.ui
         )
         self.ui_elements.append(instructions)
@@ -339,10 +339,10 @@ class ClassSelection3D(Entity):
         # Get class data
         stats = c.CLASS_STATS.get(self.current_class, {})
         class_colors = {
-            c.CLASS_WARRIOR: color.rgb(180, 60, 40),
-            c.CLASS_MAGE: color.rgb(100, 150, 255),
-            c.CLASS_ROGUE: color.rgb(180, 100, 255),
-            c.CLASS_RANGER: color.rgb(100, 200, 100),
+            c.CLASS_WARRIOR: color.rgb(0.706, 0.235, 0.157),
+            c.CLASS_MAGE: color.rgb(0.392, 0.588, 1.0),
+            c.CLASS_ROGUE: color.rgb(0.706, 0.392, 1.0),
+            c.CLASS_RANGER: color.rgb(0.392, 0.784, 0.392),
         }
         class_names = {
             c.CLASS_WARRIOR: "WARRIOR",

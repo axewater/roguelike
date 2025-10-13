@@ -85,7 +85,7 @@ class VictoryScreen3D(Entity):
             position=(0, 0.18),
             origin=(0, 0),
             scale=1.8,
-            color=color.rgb(200, 180, 220),
+            color=color.rgb(0.784, 0.706, 0.863),
             parent=camera.ui
         )
         self.ui_elements.append(subtitle)
@@ -96,7 +96,7 @@ class VictoryScreen3D(Entity):
             position=(0, 0.05),
             origin=(0, 0),
             scale=1.5,
-            color=color.rgb(180, 180, 200),
+            color=color.rgb(0.706, 0.706, 0.784),
             parent=camera.ui
         )
         self.ui_elements.append(self.level_text)
@@ -106,7 +106,7 @@ class VictoryScreen3D(Entity):
             position=(0, -0.02),
             origin=(0, 0),
             scale=1.5,
-            color=color.rgb(180, 180, 200),
+            color=color.rgb(0.706, 0.706, 0.784),
             parent=camera.ui
         )
         self.ui_elements.append(self.xp_text)
@@ -116,7 +116,7 @@ class VictoryScreen3D(Entity):
             position=(0, -0.09),
             origin=(0, 0),
             scale=1.5,
-            color=color.rgb(180, 180, 200),
+            color=color.rgb(0.706, 0.706, 0.784),
             parent=camera.ui
         )
         self.ui_elements.append(self.enemies_text)
@@ -129,7 +129,7 @@ class VictoryScreen3D(Entity):
             text="PLAY AGAIN",
             scale=(0.25, 0.08),
             position=(0, button_y),
-            color=color.rgb(60, 120, 60),
+            color=color.rgb(0.235, 0.471, 0.235),
             parent=camera.ui,
             on_click=self._play_again
         )
@@ -139,7 +139,7 @@ class VictoryScreen3D(Entity):
             text="MAIN MENU",
             scale=(0.25, 0.08),
             position=(0, button_y - button_spacing),
-            color=color.rgb(80, 80, 100),
+            color=color.rgb(0.314, 0.314, 0.392),
             parent=camera.ui,
             on_click=self._main_menu
         )
@@ -149,7 +149,7 @@ class VictoryScreen3D(Entity):
             text="QUIT",
             scale=(0.25, 0.08),
             position=(0, button_y - button_spacing * 2),
-            color=color.rgb(120, 60, 60),
+            color=color.rgb(0.471, 0.235, 0.235),
             parent=camera.ui,
             on_click=self._quit
         )
@@ -161,7 +161,7 @@ class VictoryScreen3D(Entity):
             position=(0, -0.48),
             origin=(0, 0),
             scale=0.8,
-            color=color.rgb(100, 90, 110),
+            color=color.rgb(0.392, 0.353, 0.431),
             parent=camera.ui
         )
         self.ui_elements.append(credits)
