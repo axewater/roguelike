@@ -358,13 +358,13 @@ class Renderer3D:
 
     def create_fog_plane(self, x: int, y: int) -> Entity:
         """
-        Create a fog-of-war plane entity for an unexplored tile.
+        Create a fog-of-war wall entity for an unexplored tile.
 
         Args:
             x, y: Grid coordinates
 
         Returns:
-            Entity representing fog plane
+            Entity representing fog wall
         """
         # Lazy-load fog texture on first use
         if self.fog_texture is None:
@@ -372,22 +372,21 @@ class Renderer3D:
             self.fog_texture = get_fog_of_war_texture(size=512)
             print("✓ Fog texture generated")
 
-        # Position fog plane at floor level + slight offset
-        pos = world_to_3d_position(x, y, 0.05)
+        # Position fog wall at center height (like walls)
+        pos = world_to_3d_position(x, y, c.WALL_HEIGHT / 2)
 
-        # Create semi-transparent fog plane
-        fog_plane = Entity(
-            model='plane',
+        # Create semi-transparent vertical fog wall (cube)
+        fog_wall = Entity(
+            model='cube',
             texture=self.fog_texture,
             position=pos,
-            scale=(1, 1, 1),
+            scale=(1, c.WALL_HEIGHT, 1),  # Tall barrier
             color=ursina_color.white,
-            alpha=0.8,  # Semi-transparent for mystery effect
-            rotation_x=0,  # Flat on ground
+            alpha=0.85,  # Semi-transparent for mystery effect
             collider=None  # No collision
         )
 
-        return fog_plane
+        return fog_wall
 
     def update_tile_visibility(self):
         """
