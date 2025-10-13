@@ -52,15 +52,15 @@ class DungeonButton(Button):
         self.text_entity.color = self.color_text
         self.text_entity.scale = 1.8  # Larger text
 
-        # Create border (behind button)
+        # Create border (behind button) - parented to button so it hides automatically
         border_width = scale[0] + 0.016
         border_height = scale[1] + 0.016
 
         self.border = Entity(
-            parent=parent,
+            parent=self,
             model='quad',
             scale=(border_width, border_height),
-            position=(position[0], position[1], 0.02),  # Behind button
+            position=(0, 0, 0.01),  # Relative to button, slightly behind
             color=self.color_border,
             eternal=True
         )
