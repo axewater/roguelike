@@ -82,19 +82,20 @@ class UI3DManager:
 
         print(f"[UI3D] Visibility set to: {visible}")
 
-    def update(self, dt: float):
+    def update(self, dt: float, camera_yaw: float = 0.0):
         """
         Update UI state (called every frame)
 
         Args:
             dt: Delta time since last frame
+            camera_yaw: Camera yaw in degrees (for minimap orientation)
         """
         if not self.visible:
             return
 
-        # Update Helmet HUD
+        # Update Helmet HUD (with camera yaw for minimap)
         if self.helmet_hud:
-            self.helmet_hud.update(dt)
+            self.helmet_hud.update(dt, camera_yaw)
 
         # Update targeting system
         if self.targeting_system:

@@ -9,6 +9,7 @@ from typing import Optional, List
 from ursina import Entity, Text, color, Vec2
 from game import Game
 import constants as c
+from ui3d.minimap_3d import MiniMap3D
 
 
 class CombatLogEntry:
@@ -109,6 +110,9 @@ class HelmetHUD3D:
         self.exploration_text: Optional[Text] = None
         self.stealth_text: Optional[Text] = None
 
+        # ===== MINIMAP =====
+        self.minimap: Optional[MiniMap3D] = None
+
         # Cached values for conditional updates
         self._last_hp = 0
         self._last_max_hp = 0
@@ -137,6 +141,7 @@ class HelmetHUD3D:
         self._create_bottom_center_panel()
         self._create_bottom_left_abilities()
         self._create_bottom_right_stats()
+        self._create_minimap()
 
     # ========== TOP-LEFT PANEL (Player Stats) ==========
     def _create_top_left_panel(self):
@@ -457,9 +462,24 @@ class HelmetHUD3D:
             eternal=True
         )
 
+    # ========== MINIMAP ==========
+    def _create_minimap(self):
+        """Create minimap widget"""
+        if c.MINIMAP_ENABLED:
+            self.minimap = MiniMap3D(
+                game=self.game,
+                parent=self.parent,
+                mode=c.MINIMAP_MODE
+            )
+
     # ========== UPDATE METHODS ==========
-    def update(self, dt: float):
-        """Update all HUD elements"""
+    def update(self, dt: float, camera_yaw: float = 0.0):
+        """Update all HUD elements
+
+        Args:
+            dt: Delta time
+            camera_yaw: Camera yaw in degrees (for minimap orientation)
+        """
         if not self.game.player:
             return
 
@@ -469,6 +489,10 @@ class HelmetHUD3D:
         self._update_quick_stats()
         self._update_combat_log(dt)
         self._update_nearby_items()
+
+        # Update minimap
+        if self.minimap:
+            self.minimap.update(dt, camera_yaw)
 
     def _update_player_stats(self):
         """Update top-left player stats panel"""
@@ -736,6 +760,11 @@ class HelmetHUD3D:
         for slot in self.ability_slots:
             slot.cleanup()
         self.ability_slots.clear()
+
+        # Clean up minimap
+        if self.minimap:
+            self.minimap.cleanup()
+            self.minimap = None
 
         # All other entities will be cleaned up automatically
         # since they're parented to camera.ui

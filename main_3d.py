@@ -437,8 +437,8 @@ class GameController(Entity):
         # Update renderer
         self.renderer.update(dt)
 
-        # Update UI
-        self.ui_manager.update(dt)
+        # Update UI (with camera yaw for minimap)
+        self.ui_manager.update(dt, self.camera_yaw)
 
         # Debug output (every 120 frames = ~2 seconds at 60fps)
         if self.frame_count % 120 == 0:

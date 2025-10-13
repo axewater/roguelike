@@ -297,6 +297,17 @@ MAX_PARTICLES = 100  # Maximum active particles (performance limit)
 UI_UPDATE_THROTTLE = 0.05  # Minimum seconds between UI updates (20 FPS update rate)
 ENABLE_AMBIENT_PARTICLES_3D = False  # Disable fog/cloud particles in 3D mode (can't see outside dungeon in first-person)
 
+# Minimap settings
+MINIMAP_ENABLED = True  # Enable/disable minimap
+MINIMAP_MODE = "full"  # "full" (entire dungeon) or "radar" (nearby area only)
+MINIMAP_SIZE_FULL = (200, 120)  # Width x Height for full map view
+MINIMAP_SIZE_RADAR = (150, 150)  # Size for radar mode
+MINIMAP_RADAR_RANGE = 15  # Tiles visible in radar mode
+MINIMAP_POSITION = "top_right"  # "top_right" or "bottom_right"
+MINIMAP_OPACITY = 0.90  # Background panel opacity
+MINIMAP_BORDER_COLOR = (0.2, 0.4, 0.6, 0.4)  # Cyan border (matches HUD style)
+MINIMAP_PIXEL_SCALE = 2  # Pixels per tile (2 = 2x2 pixels per dungeon tile)
+
 # Voice taunts
 VOICE_TAUNTS = [
     "You will never get there",
