@@ -42,9 +42,10 @@ def create_item_model_3d(item_type: str, rarity: str, position: Vec3) -> Entity:
     else:
         # Fallback: generic cube
         from ursina import color as ursina_color
+        from graphics3d.utils import rgb_to_ursina_color
         return Entity(
             model='cube',
-            color=ursina_color.rgb(255, 215, 0),  # Gold
+            color=rgb_to_ursina_color(255, 215, 0),  # Gold
             scale=0.3,
             position=position
         )

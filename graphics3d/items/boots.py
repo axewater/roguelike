@@ -6,6 +6,7 @@ Procedurally generated 3D model using Ursina primitives.
 
 from ursina import Entity, Vec3, color as ursina_color
 import constants as c
+from graphics3d.utils import rgb_to_ursina_color
 
 
 def create_boots_3d(position: Vec3, rarity: str) -> Entity:
@@ -24,27 +25,27 @@ def create_boots_3d(position: Vec3, rarity: str) -> Entity:
 
     # Rarity-based colors and materials
     if rarity == c.RARITY_COMMON:
-        boot_color = ursina_color.rgb(100, 60, 30)  # Brown leather
-        accent_color = ursina_color.rgb(80, 50, 25)  # Dark brown
+        boot_color = rgb_to_ursina_color(100, 60, 30)  # Brown leather
+        accent_color = rgb_to_ursina_color(80, 50, 25)  # Dark brown
         has_glow = False
     elif rarity == c.RARITY_UNCOMMON:
-        boot_color = ursina_color.rgb(80, 80, 90)  # Gray leather
-        accent_color = ursina_color.rgb(120, 120, 130)  # Light gray
+        boot_color = rgb_to_ursina_color(80, 80, 90)  # Gray leather
+        accent_color = rgb_to_ursina_color(120, 120, 130)  # Light gray
         has_glow = False
     elif rarity == c.RARITY_RARE:
-        boot_color = ursina_color.rgb(100, 130, 200)  # Blue leather
-        accent_color = ursina_color.rgb(150, 150, 150)  # Silver buckles
+        boot_color = rgb_to_ursina_color(100, 130, 200)  # Blue leather
+        accent_color = rgb_to_ursina_color(150, 150, 150)  # Silver buckles
         has_glow = False
     elif rarity == c.RARITY_EPIC:
-        boot_color = ursina_color.rgb(150, 50, 200)  # Purple
-        accent_color = ursina_color.rgb(220, 180, 100)  # Gold buckles
+        boot_color = rgb_to_ursina_color(150, 50, 200)  # Purple
+        accent_color = rgb_to_ursina_color(220, 180, 100)  # Gold buckles
         has_glow = True
-        glow_color = ursina_color.rgb(200, 100, 255)
+        glow_color = rgb_to_ursina_color(200, 100, 255)
     else:  # LEGENDARY
-        boot_color = ursina_color.rgb(50, 50, 80)  # Dark mythic
-        accent_color = ursina_color.rgb(255, 215, 0)  # Bright gold
+        boot_color = rgb_to_ursina_color(50, 50, 80)  # Dark mythic
+        accent_color = rgb_to_ursina_color(255, 215, 0)  # Bright gold
         has_glow = True
-        glow_color = ursina_color.rgb(100, 200, 255)
+        glow_color = rgb_to_ursina_color(100, 200, 255)
 
     # Glow for epic/legendary
     if has_glow:

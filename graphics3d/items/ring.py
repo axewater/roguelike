@@ -6,6 +6,7 @@ Procedurally generated 3D model using Ursina primitives.
 
 from ursina import Entity, Vec3, color as ursina_color
 import constants as c
+from graphics3d.utils import rgb_to_ursina_color
 
 
 def create_ring_3d(position: Vec3, rarity: str) -> Entity:
@@ -24,27 +25,27 @@ def create_ring_3d(position: Vec3, rarity: str) -> Entity:
 
     # Rarity-based colors and gem types
     if rarity == c.RARITY_COMMON:
-        band_color = ursina_color.rgb(140, 140, 140)  # Iron/silver
+        band_color = rgb_to_ursina_color(140, 140, 140)  # Iron/silver
         gem_color = None  # No gem
         has_glow = False
     elif rarity == c.RARITY_UNCOMMON:
-        band_color = ursina_color.rgb(180, 140, 80)  # Brass/bronze
-        gem_color = ursina_color.rgb(100, 200, 100)  # Green gem
+        band_color = rgb_to_ursina_color(180, 140, 80)  # Brass/bronze
+        gem_color = rgb_to_ursina_color(100, 200, 100)  # Green gem
         has_glow = False
     elif rarity == c.RARITY_RARE:
-        band_color = ursina_color.rgb(192, 192, 192)  # Silver
-        gem_color = ursina_color.rgb(100, 150, 255)  # Blue gem
+        band_color = rgb_to_ursina_color(192, 192, 192)  # Silver
+        gem_color = rgb_to_ursina_color(100, 150, 255)  # Blue gem
         has_glow = False
     elif rarity == c.RARITY_EPIC:
-        band_color = ursina_color.rgb(220, 180, 100)  # Gold
-        gem_color = ursina_color.rgb(200, 50, 255)  # Purple gem
+        band_color = rgb_to_ursina_color(220, 180, 100)  # Gold
+        gem_color = rgb_to_ursina_color(200, 50, 255)  # Purple gem
         has_glow = True
-        glow_color = ursina_color.rgb(200, 100, 255)
+        glow_color = rgb_to_ursina_color(200, 100, 255)
     else:  # LEGENDARY
-        band_color = ursina_color.rgb(255, 215, 0)  # Bright gold
-        gem_color = ursina_color.rgb(100, 255, 255)  # Cyan gem
+        band_color = rgb_to_ursina_color(255, 215, 0)  # Bright gold
+        gem_color = rgb_to_ursina_color(100, 255, 255)  # Cyan gem
         has_glow = True
-        glow_color = ursina_color.rgb(100, 200, 255)
+        glow_color = rgb_to_ursina_color(100, 200, 255)
 
     # Glow for epic/legendary
     if has_glow:

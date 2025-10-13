@@ -6,6 +6,7 @@ Procedurally generated 3D model using Ursina primitives.
 
 from ursina import Entity, Vec3, color as ursina_color
 import constants as c
+from graphics3d.utils import rgb_to_ursina_color
 
 
 def create_health_potion_3d(position: Vec3) -> Entity:
@@ -22,9 +23,9 @@ def create_health_potion_3d(position: Vec3) -> Entity:
     potion = Entity(position=position)
 
     # Potion colors (red/magenta healing liquid)
-    liquid_color = ursina_color.rgb(255, 50, 100)  # Bright magenta/red
-    bottle_color = ursina_color.rgb(180, 220, 255)  # Light blue glass
-    cork_color = ursina_color.rgb(120, 80, 40)  # Brown cork
+    liquid_color = rgb_to_ursina_color(255, 50, 100)  # Bright magenta/red
+    bottle_color = rgb_to_ursina_color(180, 220, 255)  # Light blue glass
+    cork_color = rgb_to_ursina_color(120, 80, 40)  # Brown cork
 
     # Glowing aura around potion
     glow = Entity(
@@ -70,7 +71,7 @@ def create_health_potion_3d(position: Vec3) -> Entity:
     # Small sparkle particles for visual flair (tiny spheres)
     sparkle1 = Entity(
         model='sphere',
-        color=ursina_color.rgb(255, 255, 200),
+        color=rgb_to_ursina_color(255, 255, 200),
         scale=0.02,
         parent=liquid,
         position=(0.04, 0.06, 0.04),
@@ -79,7 +80,7 @@ def create_health_potion_3d(position: Vec3) -> Entity:
 
     sparkle2 = Entity(
         model='sphere',
-        color=ursina_color.rgb(255, 200, 255),
+        color=rgb_to_ursina_color(255, 200, 255),
         scale=0.015,
         parent=liquid,
         position=(-0.03, -0.04, 0.03),

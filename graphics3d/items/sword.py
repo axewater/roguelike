@@ -6,6 +6,7 @@ Procedurally generated 3D model using Ursina primitives.
 
 from ursina import Entity, Vec3, color as ursina_color
 import constants as c
+from graphics3d.utils import rgb_to_ursina_color
 
 
 def create_sword_3d(position: Vec3, rarity: str) -> Entity:
@@ -24,35 +25,35 @@ def create_sword_3d(position: Vec3, rarity: str) -> Entity:
 
     # Rarity-based colors
     if rarity == c.RARITY_COMMON:
-        blade_color = ursina_color.rgb(160, 160, 160)  # Iron gray
-        crossguard_color = ursina_color.rgb(100, 100, 100)  # Dark gray
-        handle_color = ursina_color.rgb(100, 60, 30)  # Brown leather
+        blade_color = rgb_to_ursina_color(160, 160, 160)  # Iron gray
+        crossguard_color = rgb_to_ursina_color(100, 100, 100)  # Dark gray
+        handle_color = rgb_to_ursina_color(100, 60, 30)  # Brown leather
         has_glow = False
         glow_color = None
     elif rarity == c.RARITY_UNCOMMON:
-        blade_color = ursina_color.rgb(180, 180, 180)  # Steel
-        crossguard_color = ursina_color.rgb(180, 140, 80)  # Brass
-        handle_color = ursina_color.rgb(80, 50, 30)  # Dark leather
+        blade_color = rgb_to_ursina_color(180, 180, 180)  # Steel
+        crossguard_color = rgb_to_ursina_color(180, 140, 80)  # Brass
+        handle_color = rgb_to_ursina_color(80, 50, 30)  # Dark leather
         has_glow = False
         glow_color = None
     elif rarity == c.RARITY_RARE:
-        blade_color = ursina_color.rgb(200, 200, 210)  # Silver steel
-        crossguard_color = ursina_color.rgb(192, 192, 192)  # Silver
-        handle_color = ursina_color.rgb(100, 50, 50)  # Red leather
+        blade_color = rgb_to_ursina_color(200, 200, 210)  # Silver steel
+        crossguard_color = rgb_to_ursina_color(192, 192, 192)  # Silver
+        handle_color = rgb_to_ursina_color(100, 50, 50)  # Red leather
         has_glow = False
         glow_color = None
     elif rarity == c.RARITY_EPIC:
-        blade_color = ursina_color.rgb(210, 210, 220)  # Bright steel
-        crossguard_color = ursina_color.rgb(220, 180, 100)  # Gold
-        handle_color = ursina_color.rgb(80, 40, 80)  # Purple
+        blade_color = rgb_to_ursina_color(210, 210, 220)  # Bright steel
+        crossguard_color = rgb_to_ursina_color(220, 180, 100)  # Gold
+        handle_color = rgb_to_ursina_color(80, 40, 80)  # Purple
         has_glow = True
-        glow_color = ursina_color.rgb(150, 100, 255)  # Purple glow
+        glow_color = rgb_to_ursina_color(150, 100, 255)  # Purple glow
     else:  # LEGENDARY
-        blade_color = ursina_color.rgb(220, 220, 240)  # Radiant steel
-        crossguard_color = ursina_color.rgb(255, 215, 0)  # Bright gold
-        handle_color = ursina_color.rgb(50, 20, 20)  # Black leather
+        blade_color = rgb_to_ursina_color(220, 220, 240)  # Radiant steel
+        crossguard_color = rgb_to_ursina_color(255, 215, 0)  # Bright gold
+        handle_color = rgb_to_ursina_color(50, 20, 20)  # Black leather
         has_glow = True
-        glow_color = ursina_color.rgb(100, 200, 255)  # Cyan glow
+        glow_color = rgb_to_ursina_color(100, 200, 255)  # Cyan glow
 
     # Blade glow for epic/legendary (outer sphere)
     if has_glow:
@@ -114,9 +115,9 @@ def create_sword_3d(position: Vec3, rarity: str) -> Entity:
     # Gem on pommel for rare+ (small colored sphere)
     if rarity in [c.RARITY_RARE, c.RARITY_EPIC, c.RARITY_LEGENDARY]:
         gem_colors = {
-            c.RARITY_RARE: ursina_color.rgb(100, 150, 255),  # Blue gem
-            c.RARITY_EPIC: ursina_color.rgb(200, 50, 255),   # Purple gem
-            c.RARITY_LEGENDARY: ursina_color.rgb(100, 255, 255),  # Cyan gem
+            c.RARITY_RARE: rgb_to_ursina_color(100, 150, 255),  # Blue gem
+            c.RARITY_EPIC: rgb_to_ursina_color(200, 50, 255),   # Purple gem
+            c.RARITY_LEGENDARY: rgb_to_ursina_color(100, 255, 255),  # Cyan gem
         }
         gem = Entity(
             model='sphere',
