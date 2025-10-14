@@ -67,14 +67,32 @@ COLOR_VALUE = ursina_color.rgb(0.9, 1.0, 0.9)         # Light green values
 COLOR_VALUE_HIGHLIGHT = ursina_color.rgb(0.8, 0.9, 1.0) # Light blue highlight
 COLOR_STATS = ursina_color.rgb(0.7, 0.7, 0.7)         # Gray stats text
 
-# Button colors
-COLOR_BUTTON_DEFAULT = ursina_color.rgb(0.3, 0.3, 0.4)  # Dark gray
-COLOR_BUTTON_ACTION = ursina_color.rgb(0.2, 0.5, 0.3)   # Green (NEW)
-COLOR_BUTTON_SPECIAL = ursina_color.rgb(0.5, 0.3, 0.5)  # Purple (RANDOM)
-COLOR_BUTTON_SAVE = ursina_color.rgb(0.2, 0.4, 0.6)     # Blue (SAVE)
-COLOR_BUTTON_MINUS = ursina_color.rgb(0.4, 0.2, 0.2)    # Red (-)
-COLOR_BUTTON_PLUS = ursina_color.rgb(0.2, 0.4, 0.2)     # Green (+)
-COLOR_BUTTON_TOGGLE = ursina_color.rgb(0.4, 0.4, 0.2)   # Olive (toggle)
+# Button colors (base)
+COLOR_BUTTON_DEFAULT = ursina_color.rgb(0.25, 0.28, 0.35)  # Richer blue-gray
+COLOR_BUTTON_ACTION = ursina_color.rgb(0.15, 0.55, 0.35)   # Vibrant green (NEW)
+COLOR_BUTTON_SPECIAL = ursina_color.rgb(0.55, 0.25, 0.65)  # Rich purple (RANDOM)
+COLOR_BUTTON_SAVE = ursina_color.rgb(0.2, 0.45, 0.7)       # Bright blue (SAVE)
+COLOR_BUTTON_MINUS = ursina_color.rgb(0.5, 0.2, 0.25)      # Deep red (-)
+COLOR_BUTTON_PLUS = ursina_color.rgb(0.2, 0.5, 0.25)       # Bright green (+)
+COLOR_BUTTON_TOGGLE = ursina_color.rgb(0.5, 0.5, 0.2)      # Golden (toggle)
+
+# Button hover colors (brightened for feedback)
+COLOR_BUTTON_DEFAULT_HOVER = ursina_color.rgb(0.35, 0.38, 0.5)
+COLOR_BUTTON_ACTION_HOVER = ursina_color.rgb(0.25, 0.7, 0.45)
+COLOR_BUTTON_SPECIAL_HOVER = ursina_color.rgb(0.7, 0.35, 0.8)
+COLOR_BUTTON_SAVE_HOVER = ursina_color.rgb(0.3, 0.6, 0.85)
+COLOR_BUTTON_MINUS_HOVER = ursina_color.rgb(0.65, 0.3, 0.35)
+COLOR_BUTTON_PLUS_HOVER = ursina_color.rgb(0.3, 0.65, 0.35)
+COLOR_BUTTON_TOGGLE_HOVER = ursina_color.rgb(0.65, 0.65, 0.3)
+
+# Button pressed colors (darkened for click feedback)
+COLOR_BUTTON_DEFAULT_PRESSED = ursina_color.rgb(0.15, 0.18, 0.25)
+COLOR_BUTTON_ACTION_PRESSED = ursina_color.rgb(0.1, 0.4, 0.25)
+COLOR_BUTTON_SPECIAL_PRESSED = ursina_color.rgb(0.4, 0.15, 0.5)
+COLOR_BUTTON_SAVE_PRESSED = ursina_color.rgb(0.1, 0.35, 0.55)
+COLOR_BUTTON_MINUS_PRESSED = ursina_color.rgb(0.35, 0.1, 0.15)
+COLOR_BUTTON_PLUS_PRESSED = ursina_color.rgb(0.1, 0.35, 0.15)
+COLOR_BUTTON_TOGGLE_PRESSED = ursina_color.rgb(0.35, 0.35, 0.1)
 
 # ============================================================================
 # PARAMETER DEFINITIONS

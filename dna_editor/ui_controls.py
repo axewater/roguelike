@@ -53,7 +53,7 @@ class ControlPanel(Entity):
         self.ui_elements.append(title)
 
         subtitle = Text(
-            text="Tentacle Horror Designer v1.0",
+            text="Tentacle Horror Designer v1.2",
             position=(UI_LEFT_MARGIN, UI_TOP_MARGIN - TITLE_SPACING),
             origin=(-0.5, 0.5),
             scale=SUBTITLE_SCALE,
@@ -93,7 +93,7 @@ class ControlPanel(Entity):
         button_y1 = preset_y - 0.10
         button_y2 = button_y1 - 0.06  # Increased vertical spacing
         button_x = UI_LEFT_MARGIN
-        button_gap = 0.18  # BIG GAP (button width 0.07 + 0.11 space = definitely no overlap!)
+        button_gap = 0.28  # MASSIVE GAP (button width 0.07 + 0.21 space = super spacious!)
 
         # Row 1: PREV, NEXT
         prev_button = Button(
@@ -102,7 +102,9 @@ class ControlPanel(Entity):
             position=(button_x, button_y1),
             parent=camera.ui,
             on_click=self._load_previous_preset,
-            color=COLOR_BUTTON_DEFAULT
+            color=COLOR_BUTTON_DEFAULT,
+            highlight_color=COLOR_BUTTON_DEFAULT_HOVER,
+            pressed_color=COLOR_BUTTON_DEFAULT_PRESSED
         )
         self.ui_elements.append(prev_button)
 
@@ -112,7 +114,9 @@ class ControlPanel(Entity):
             position=(button_x + button_gap, button_y1),
             parent=camera.ui,
             on_click=self._load_next_preset,
-            color=COLOR_BUTTON_DEFAULT
+            color=COLOR_BUTTON_DEFAULT,
+            highlight_color=COLOR_BUTTON_DEFAULT_HOVER,
+            pressed_color=COLOR_BUTTON_DEFAULT_PRESSED
         )
         self.ui_elements.append(next_button)
 
@@ -123,7 +127,9 @@ class ControlPanel(Entity):
             position=(button_x, button_y2),
             parent=camera.ui,
             on_click=self._new_preset,
-            color=COLOR_BUTTON_ACTION
+            color=COLOR_BUTTON_ACTION,
+            highlight_color=COLOR_BUTTON_ACTION_HOVER,
+            pressed_color=COLOR_BUTTON_ACTION_PRESSED
         )
         self.ui_elements.append(new_button)
 
@@ -133,7 +139,9 @@ class ControlPanel(Entity):
             position=(button_x + button_gap, button_y2),
             parent=camera.ui,
             on_click=self._randomize_creature,
-            color=COLOR_BUTTON_SPECIAL
+            color=COLOR_BUTTON_SPECIAL,
+            highlight_color=COLOR_BUTTON_SPECIAL_HOVER,
+            pressed_color=COLOR_BUTTON_SPECIAL_PRESSED
         )
         self.ui_elements.append(random_button)
 
@@ -144,7 +152,9 @@ class ControlPanel(Entity):
             position=(button_x + (button_gap * 2), button_y2),
             parent=camera.ui,
             on_click=self._show_save_dialog,
-            color=COLOR_BUTTON_SAVE
+            color=COLOR_BUTTON_SAVE,
+            highlight_color=COLOR_BUTTON_SAVE_HOVER,
+            pressed_color=COLOR_BUTTON_SAVE_PRESSED
         )
         self.ui_elements.append(save_button)
 
@@ -244,7 +254,9 @@ class ControlPanel(Entity):
             on_click=lambda: self._adjust_parameter(
                 param_key, -step, min_val, max_val
             ),
-            color=COLOR_BUTTON_MINUS
+            color=COLOR_BUTTON_MINUS,
+            highlight_color=COLOR_BUTTON_MINUS_HOVER,
+            pressed_color=COLOR_BUTTON_MINUS_PRESSED
         )
         self.ui_elements.append(minus_btn)
 
@@ -257,7 +269,9 @@ class ControlPanel(Entity):
             on_click=lambda: self._adjust_parameter(
                 param_key, step, min_val, max_val
             ),
-            color=COLOR_BUTTON_PLUS
+            color=COLOR_BUTTON_PLUS,
+            highlight_color=COLOR_BUTTON_PLUS_HOVER,
+            pressed_color=COLOR_BUTTON_PLUS_PRESSED
         )
         self.ui_elements.append(plus_btn)
 
@@ -289,7 +303,9 @@ class ControlPanel(Entity):
             position=(CYCLE_BUTTON_X, y_pos),
             parent=camera.ui,
             on_click=lambda: self._cycle_choice_parameter(param_key, choices),
-            color=COLOR_BUTTON_TOGGLE
+            color=COLOR_BUTTON_TOGGLE,
+            highlight_color=COLOR_BUTTON_TOGGLE_HOVER,
+            pressed_color=COLOR_BUTTON_TOGGLE_PRESSED
         )
         self.ui_elements.append(cycle_btn)
 
