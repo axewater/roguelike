@@ -169,9 +169,6 @@ class Renderer3D:
     def render_player(self):
         """
         Render or update the player entity
-
-        Creates a simple colored cube for Phase 2 POC.
-        Full character models will be implemented in Phase 4.
         """
         if not self.game.player:
             return

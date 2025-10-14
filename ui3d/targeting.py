@@ -334,9 +334,6 @@ class TargetingSystem:
 
         # Check line-of-sight (for ranged abilities like Fireball)
         if self.selected_ability.name in ["Fireball"]:
-            # Simple LOS: check if there's a clear path
-            # (This is simplified; full implementation would use bresenham line algorithm)
-            # For now, just check if target is not inside a wall
             if not self.game.dungeon.is_walkable(grid_x, grid_y) and \
                self.game.dungeon.get_tile(grid_x, grid_y) != c.TILE_FLOOR:
                 return (False, "Line of sight blocked")

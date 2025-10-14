@@ -1103,9 +1103,6 @@ class TitleScreen3D(QOpenGLWidget):
         alpha = self.prompt_fade
         glColor4f(0.8, 0.8, 0.9, alpha)
 
-        # Note: For proper text rendering, we'd use QPainter or texture-based text
-        # This is a simplified placeholder
-
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_LIGHTING)
 

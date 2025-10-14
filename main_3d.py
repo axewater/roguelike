@@ -119,7 +119,6 @@ class AnimationManager3DProxy:
         self.anim_3d.add_directional_impact(x, y, from_x, from_y, rgb, count, is_crit)
 
     def add_trail(self, x, y, color, trail_type="fade"):
-        # Not used in game.py, but for completeness
         from animations3d import TrailEffect3D
         rgb = self.qcolor_to_rgb(color)
         self.anim_3d.trails.append(TrailEffect3D(x, y, rgb, trail_type))
@@ -261,7 +260,6 @@ class GameController(Entity):
         dt = ursina_time.dt
         self.frame_count += 1
 
-        # DEBUG: Heartbeat every 60 frames (~1 second at 60fps)
         if self.frame_count % 60 == 0:
             print(f"[HEARTBEAT] Frame {self.frame_count} | dt={dt:.4f} | FPS={1/dt:.1f}")
 
@@ -390,7 +388,6 @@ class GameController(Entity):
                     moved = True
                     direction = "RIGHT"
 
-            # DEBUG: Print key press
             if moved:
                 print(f"[INPUT] {direction} | Yaw: {int(self.camera_yaw)}° | Target: ({new_x}, {new_y})")
 

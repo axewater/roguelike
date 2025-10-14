@@ -130,7 +130,6 @@ class VictoryScreen(QWidget):
         painter.drawText(0, congrats_y, self.width(), 30,
                         Qt.AlignmentFlag.AlignCenter, "The dungeon has been conquered!")
 
-        # Stats section (placeholder for now)
         stats_y = congrats_y + 80
         painter.setPen(QColor(160, 140, 180))
         painter.setFont(QFont("Arial", 16))

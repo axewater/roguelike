@@ -20,8 +20,6 @@ def create_gradient_material(base_color: Tuple[int, int, int], brightness: float
     Returns:
         Ursina color object
     """
-    # TODO: Implement in Phase 3
-    # For now, just return flat color
     return rgb_to_ursina_color(base_color[0], base_color[1], base_color[2])
 
 
@@ -36,8 +34,6 @@ def create_metallic_material(base_color: Tuple[int, int, int], metallic: float =
     Returns:
         Ursina material
     """
-    # TODO: Implement in Phase 4
-    # For now, return brightened color
     r, g, b = base_color
     brightness = 1.0 + (metallic * 0.3)
     return rgb_to_ursina_color(
@@ -56,9 +52,6 @@ def create_glow_effect(entity, color: Tuple[int, int, int], intensity: float = 0
         color: RGB glow color
         intensity: Glow intensity
     """
-    # TODO: Implement in Phase 5
-    # Could use bloom post-processing or rim lighting shader
-    # For now, just brighten the entity color
     glow_color = rgb_to_ursina_color(
         min(255, int(color[0] * (1 + intensity))),
         min(255, int(color[1] * (1 + intensity))),

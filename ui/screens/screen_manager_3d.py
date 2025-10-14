@@ -308,14 +308,6 @@ class ScreenManager3D:
     def start_game_with_class(self, class_type: str):
         """Start game with selected class (called from class selection)"""
         print(f"[ScreenManager] Starting game with class: {class_type}")
-
-        # This will be handled by main_3d.py - it needs to:
-        # 1. Create Game instance with selected class
-        # 2. Initialize renderer and UI
-        # 3. Set game_controller
-        # 4. Change to GAME state
-
-        # For now, store selected class for main_3d to access
         self.selected_class = class_type
 
     def quit_game(self):

@@ -2,8 +2,6 @@
 3D player class model renderers
 
 Each player class has a unique procedurally generated 3D model.
-Phase 2: Simple colored cubes
-Phase 4: Full detailed character models
 """
 
 from ursina import Entity, color as ursina_color
@@ -18,8 +16,8 @@ def draw_player_3d(player, position=None, facing_direction=None, idle_time=0):
     Args:
         player: Player entity
         position: (x, y, z) tuple (optional, will use player.x, player.y if not provided)
-        facing_direction: (dx, dy) facing direction (unused in Phase 2)
-        idle_time: Time for idle animations (unused in Phase 2)
+        facing_direction: (dx, dy) facing direction (unused)
+        idle_time: Time for idle animations (unused)
 
     Returns:
         Ursina Entity representing the player
@@ -32,7 +30,6 @@ def draw_player_3d(player, position=None, facing_direction=None, idle_time=0):
             c.PLAYER_HEIGHT / 2
         )
 
-    # Get class-specific color (Phase 2: simple color coding)
     class_colors = {
         c.CLASS_WARRIOR: (100, 200, 255),   # Blue - strong and reliable
         c.CLASS_MAGE: (150, 100, 255),      # Purple - magical
@@ -47,8 +44,6 @@ def draw_player_3d(player, position=None, facing_direction=None, idle_time=0):
         color_rgb[2] / 255.0
     )
 
-    # Phase 2: Simple cube model
-    # TODO Phase 4: Replace with detailed character models
     return Entity(
         model='cube',
         color=player_color,

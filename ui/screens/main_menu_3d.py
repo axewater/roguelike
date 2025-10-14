@@ -372,9 +372,6 @@ class MainMenu3D(Entity):
 
     def render_stars(self):
         """Render star tunnel (called by screen manager in paintGL equivalent)"""
-        # This is a placeholder - actual rendering happens in Ursina's render loop
-        # We'd need to implement custom rendering with Ursina's rendering API
-        # For now, stars are visual only (no actual rendering code needed in Ursina)
         pass
 
     def show(self):

@@ -401,8 +401,7 @@ class Game:
         if enemy_died:
             self.add_message(message, "kill")
         elif was_backstab:
-            self.add_message(message, "crit")  # Use crit styling for backstab
-            # TODO: Add backstab audio when available
+            self.add_message(message, "crit")
         elif is_crit:
             self.add_message(message, "crit")
             self.audio_manager.play_voice_critical()

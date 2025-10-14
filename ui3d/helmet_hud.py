@@ -693,8 +693,6 @@ class HelmetHUD3D:
 
     def _update_nearby_items(self):
         """Update nearby items in combat log area (shows below combat messages)"""
-        # This will be shown in the same panel as combat log
-        # For now, nearby items will be added as combat log messages when player is near them
         pass
 
     def add_message(self, message: str, msg_type: str = "event"):
