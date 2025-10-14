@@ -84,9 +84,9 @@ class Settings3D(Entity):
         # Music Volume Section
         music_label = Text(
             text="Music Volume",
-            position=(-0.48, 0.22, -0.1),  # Negative z = in front
+            position=(-0.48, 0.15, -0.1),  # Adjusted spacing
             origin=(0, 0),
-            scale=1.8,
+            scale=1.6,  # Slightly smaller to fit better
             color=color.rgb(0.863, 0.863, 0.902),
             parent=camera.ui
         )
@@ -99,7 +99,7 @@ class Settings3D(Entity):
             step=1,
             height=0.05,  # Thicker for better visibility
             width=0.7,
-            position=(-0.48, 0.12, -0.1),  # Negative z = in front
+            position=(-0.48, 0.05, -0.1),  # Adjusted spacing
             parent=camera.ui,
             on_value_changed=self._on_music_volume_changed
         )
@@ -112,7 +112,7 @@ class Settings3D(Entity):
         # Music value display
         self.music_value_text = Text(
             text=f"{int(self.audio.music_volume * 100)}%",
-            position=(0.35, 0.12, -0.1),  # Negative z = in front
+            position=(0.35, 0.05, -0.1),  # Adjusted to match slider
             origin=(0, 0),
             scale=1.5,
             color=color.rgb(0.784, 0.784, 0.784),
@@ -123,9 +123,9 @@ class Settings3D(Entity):
         # SFX Volume Section
         sfx_label = Text(
             text="Sound Effects Volume",
-            position=(-0.48, -0.05, -0.1),  # Negative z = in front
+            position=(-0.48, -0.12, -0.1),  # Adjusted spacing
             origin=(0, 0),
-            scale=1.8,
+            scale=1.6,  # Slightly smaller to fit better
             color=color.rgb(0.863, 0.863, 0.902),
             parent=camera.ui
         )
@@ -138,7 +138,7 @@ class Settings3D(Entity):
             step=1,
             height=0.05,  # Thicker for better visibility
             width=0.7,
-            position=(-0.48, -0.15, -0.1),  # Negative z = in front
+            position=(-0.48, -0.22, -0.1),  # Adjusted spacing
             parent=camera.ui,
             on_value_changed=self._on_sfx_volume_changed
         )
@@ -151,7 +151,7 @@ class Settings3D(Entity):
         # SFX value display
         self.sfx_value_text = Text(
             text=f"{int(self.audio.sfx_volume * 100)}%",
-            position=(0.35, -0.15, -0.1),  # Negative z = in front
+            position=(0.35, -0.22, -0.1),  # Adjusted to match slider
             origin=(0, 0),
             scale=1.5,
             color=color.rgb(0.784, 0.784, 0.784),
@@ -163,7 +163,7 @@ class Settings3D(Entity):
         self.back_button = DungeonButton(
             text="BACK",
             scale=(0.32, 0.09),
-            position=(0, -0.38, -0.1),  # Negative z = in front
+            position=(0, -0.45, -0.1),  # Moved down for better spacing
             parent=camera.ui,
             on_click=self._on_back
         )

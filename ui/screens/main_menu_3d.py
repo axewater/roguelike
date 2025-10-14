@@ -78,7 +78,7 @@ class MainMenu3D(Entity):
     def _create_ui(self):
         """Create UI overlay elements"""
         # Title
-        title = Text(
+        self.title = Text(
             text="CLAUDE-LIKE",
             position=(0, 0.38),
             origin=(0, 0),
@@ -86,10 +86,10 @@ class MainMenu3D(Entity):
             color=color.rgb(0.784, 0.706, 1.0),  # (200, 180, 255)
             parent=camera.ui
         )
-        self.ui_elements.append(title)
+        self.ui_elements.append(self.title)
 
         # Subtitle
-        subtitle = Text(
+        self.subtitle = Text(
             text="A Roguelike Adventure",
             position=(0, 0.28),
             origin=(0, 0),
@@ -97,7 +97,7 @@ class MainMenu3D(Entity):
             color=color.rgb(0.588, 0.588, 0.706),  # (150, 150, 180)
             parent=camera.ui
         )
-        self.ui_elements.append(subtitle)
+        self.ui_elements.append(self.subtitle)
 
         # Menu buttons (dungeon-styled)
         button_y_start = 0.08
@@ -172,6 +172,14 @@ class MainMenu3D(Entity):
         self.showing_how_to_play = True
         print("[MainMenu] Showing How to Play panel")
 
+        # Hide main menu buttons while panel is open
+        for button in self.buttons:
+            button.enabled = False
+
+        # Hide title and subtitle
+        self.title.enabled = False
+        self.subtitle.enabled = False
+
         # Dim background overlay (furthest back)
         self.how_to_play_bg = Entity(
             model='quad',
@@ -192,64 +200,98 @@ class MainMenu3D(Entity):
             collider=None  # Prevent blocking mouse input
         )
 
-        # Title (in front)
+        # Title (in front) - smaller and higher
         title = Text(
             text="HOW TO PLAY",
-            position=(0, 0.68, -0.2),  # Negative z = in front
+            position=(0, 0.42, -0.2),  # Moved down from 0.68
             origin=(0, 0),
-            scale=2.5,
+            scale=2.0,  # Reduced from 2.5
             color=color.rgb(0.863, 0.863, 0.902),  # (220, 220, 230)
             parent=camera.ui
         )
 
-        # Instructions (multi-line text)
-        instructions = [
-            "OBJECTIVE: Conquer all 25 levels of the dungeon!",
-            "",
-            "CONTROLS:",
-            "  WASD / Arrow Keys - Move",
-            "  1/2/3 - Use abilities (class-specific)",
-            "  Arrow Left/Right - Rotate camera",
-            "  ESC - Pause menu",
-            "",
-            "GAMEPLAY:",
-            "  • Fight enemies to gain XP and level up",
-            "  • Collect equipment to boost your stats",
-            "  • Find the stairs (purple) to descend",
-            "  • Health potions restore HP immediately",
-            "",
-            "TIPS:",
-            "  • Choose your class wisely",
-            "  • Environment changes every 5 levels",
-            "  • Higher levels = better loot + stronger enemies",
+        # Objective (centered, above columns)
+        objective = Text(
+            text="OBJECTIVE: Conquer all 25 levels!",
+            position=(0, 0.30, -0.2),
+            origin=(0, 0),
+            scale=0.9,
+            color=color.rgb(0.863, 0.784, 0.627),  # Golden color
+            parent=camera.ui
+        )
+
+        # Left column - CONTROLS & GAMEPLAY
+        left_column = [
+            ("CONTROLS:", True),
+            ("WASD / Arrows - Move", False),
+            ("1/2/3 - Use abilities", False),
+            ("Left/Right - Rotate camera", False),
+            ("ESC - Pause menu", False),
+            ("", False),
+            ("GAMEPLAY:", True),
+            ("• Fight enemies for XP", False),
+            ("• Collect equipment", False),
+            ("• Find purple stairs", False),
+            ("• Potions restore HP", False),
         ]
 
-        # Create text elements for each line
-        instruction_entities = []
-        line_y = 0.50
-        line_spacing = 0.085
+        # Right column - TIPS
+        right_column = [
+            ("TIPS:", True),
+            ("• Choose class wisely", False),
+            ("• Env changes every 5 levels", False),
+            ("• Higher level = better loot", False),
+            ("• Use abilities strategically", False),
+            ("• Watch your HP!", False),
+        ]
 
-        for line in instructions:
+        # Create left column text
+        instruction_entities = []
+        line_y = 0.18
+        line_spacing = 0.05
+        x_left = -0.50
+
+        for line, is_header in left_column:
             if line == "":
-                line_y -= line_spacing * 0.5  # Half spacing for empty lines
+                line_y -= line_spacing * 0.5
                 continue
 
             text_entity = Text(
                 text=line,
-                position=(-0.62, line_y, -0.1),  # Negative z = in front
+                position=(x_left, line_y, -0.2),
                 origin=(0, 0),
-                scale=1.0,
-                color=color.rgb(0.784, 0.784, 0.824),  # (200, 200, 210)
+                scale=1.0 if is_header else 0.85,
+                color=color.rgb(0.863, 0.863, 0.902) if is_header else color.rgb(0.784, 0.784, 0.824),
                 parent=camera.ui
             )
             instruction_entities.append(text_entity)
             line_y -= line_spacing
 
-        # Close button (dungeon-styled)
+        # Create right column text
+        line_y = 0.18
+        x_right = 0.02
+
+        for line, is_header in right_column:
+            if line == "":
+                line_y -= line_spacing * 0.5
+                continue
+
+            text_entity = Text(
+                text=line,
+                position=(x_right, line_y, -0.2),
+                origin=(0, 0),
+                scale=1.0 if is_header else 0.85,
+                color=color.rgb(0.863, 0.863, 0.902) if is_header else color.rgb(0.784, 0.784, 0.824),
+                parent=camera.ui
+            )
+            instruction_entities.append(text_entity)
+            line_y -= line_spacing
+
+        # Close button (dungeon-styled) - needs to be even more in front
         close_button = DungeonButton(
             text="CLOSE",
-            scale=(0.28, 0.09),
-            position=(0, -0.68, -0.1),  # Negative z = in front
+            scale=(0.30, 0.10),  # Slightly larger for visibility
+            position=(0, -0.45, -0.3),  # Moved up from -0.60
             parent=camera.ui,
             on_click=self._hide_how_to_play_panel
         )
@@ -259,6 +301,7 @@ class MainMenu3D(Entity):
             self.how_to_play_bg,
             panel_bg,
             title,
+            objective,
             close_button
         ] + instruction_entities
 
@@ -277,6 +320,14 @@ class MainMenu3D(Entity):
             self.how_to_play_panel = None
 
         self.showing_how_to_play = False
+
+        # Show main menu buttons again
+        for button in self.buttons:
+            button.enabled = True
+
+        # Show title and subtitle again
+        self.title.enabled = True
+        self.subtitle.enabled = True
 
     def _on_settings(self):
         """Handle Settings button click"""
