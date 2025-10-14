@@ -260,6 +260,9 @@ class ScreenManager3D:
         # Pause game controller if active
         if self.game_controller:
             self.game_controller.paused = True
+            # Hide game UI to prevent layering issues with pause menu
+            if hasattr(self.game_controller, 'ui_manager') and self.game_controller.ui_manager:
+                self.game_controller.ui_manager.set_visibility(False)
 
         print(f"[ScreenManager] Paused (previous state: {self.previous_state})")
 
@@ -274,6 +277,9 @@ class ScreenManager3D:
 
         # Resume game controller
         if self.game_controller:
+            # Show game UI again
+            if hasattr(self.game_controller, 'ui_manager') and self.game_controller.ui_manager:
+                self.game_controller.ui_manager.set_visibility(True)
             self.game_controller.paused = False
 
         # Restore previous state

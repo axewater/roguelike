@@ -184,6 +184,9 @@ class PauseMenu3D(Entity):
         for element in self.ui_elements:
             element.enabled = True
 
+        # Set ESC as pressed to prevent immediate closing from the same ESC press that opened the menu
+        self.esc_pressed = True
+
         # Play pause sound
         self.audio.play_ui_select()
 
