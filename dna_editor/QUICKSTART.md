@@ -78,7 +78,9 @@ python3 dna_editor/main.py
 - Reduce spike count to 10
 
 **Want to save your design?**
-- Presets auto-save in `dna_editor/presets/`
+- Click the **SAVE** button to save your creature
+- Enter a name when prompted in the console
+- Presets are saved in `dna_editor/presets/`
 - Copy preset JSON files to share
 - Edit JSON manually for fine control
 

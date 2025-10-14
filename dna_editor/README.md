@@ -7,10 +7,11 @@ A standalone visual tool for designing procedural tentacle-based creatures in re
 ## Features
 
 ✅ **Real-Time 3D Preview** - See your creature as you design it
-✅ **Parametric Design** - Control every aspect with sliders and buttons
+✅ **Parametric Design** - Control every aspect with intuitive buttons
 ✅ **Preset System** - Save, load, and share creature designs
 ✅ **Animation System** - Watch tentacles wave and undulate
 ✅ **Modular Architecture** - Easy to extend with new creature types
+✅ **Choice Parameters** - Eye patterns and body shapes with cycle buttons
 
 ## Quick Start
 
@@ -43,7 +44,9 @@ python3 dna_editor/main.py
 - **PREV/NEXT** - Browse through saved presets
 - **NEW** - Create new creature with default parameters
 - **RANDOM** - Generate random creature parameters
-- **+/- Buttons** - Adjust individual parameters
+- **SAVE** - Save current creature as a preset
+- **+/- Buttons** - Adjust numeric parameters
+- **CYCLE Buttons** - Cycle through choice parameters (eye pattern, body shape)
 
 ### General
 - **H** - Toggle help text overlay
@@ -54,6 +57,7 @@ python3 dna_editor/main.py
 ### Body Parameters
 - **Size** (0.3 - 1.2): Overall body size
 - **Hue** (0 - 360): Color hue in HSV space
+- **Shape**: Sphere or Ellipsoid (use CYCLE button)
 
 ### Tentacle Parameters
 - **Count** (4 - 12): Number of tentacles
@@ -66,6 +70,7 @@ python3 dna_editor/main.py
 
 ### Decorations
 - **Eyes** (0 - 8): Number of eyes
+- **Eye Pattern**: Dual, Spider, or Ring (use CYCLE button)
 - **Spikes** (0 - 30): Number of surface spikes
 
 ## Presets
@@ -81,6 +86,7 @@ The editor includes 5 example presets:
 ### Creating Custom Presets
 
 Presets are stored as JSON files in `dna_editor/presets/`. You can:
+- **Save from UI**: Click the SAVE button and enter a name
 - Manually edit JSON files
 - Create new presets by copying existing ones
 - Share presets with others
