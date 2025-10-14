@@ -84,9 +84,9 @@ class Settings3D(Entity):
         # Music Volume Section
         music_label = Text(
             text="Music Volume",
-            position=(-0.48, 0.15, -0.1),  # Adjusted spacing
-            origin=(0, 0),
-            scale=1.6,  # Slightly smaller to fit better
+            position=(-0.5, 0.18, -0.1),  # Left-aligned with proper spacing
+            origin=(-1, 0),  # Left-aligned origin
+            scale=1.8,
             color=color.rgb(0.863, 0.863, 0.902),
             parent=camera.ui
         )
@@ -98,8 +98,8 @@ class Settings3D(Entity):
             default=int(self.audio.music_volume * 100),
             step=1,
             height=0.05,  # Thicker for better visibility
-            width=0.7,
-            position=(-0.48, 0.05, -0.1),  # Adjusted spacing
+            width=0.65,  # Slightly narrower for better layout
+            position=(-0.5, 0.06, -0.1),  # Aligned under label
             parent=camera.ui,
             on_value_changed=self._on_music_volume_changed
         )
@@ -107,15 +107,18 @@ class Settings3D(Entity):
         self.music_slider.knob.color = color.rgb(0.588, 0.392, 1.0)  # Purple knob
         self.music_slider.knob.scale *= 1.3  # Larger knob
         self.music_slider.bg.color = color.rgb(0.157, 0.149, 0.137)  # Darker stone background
+        # Hide default slider text to avoid conflicts
+        if hasattr(self.music_slider, 'text'):
+            self.music_slider.text.enabled = False
         self.ui_elements.append(self.music_slider)
 
         # Music value display
         self.music_value_text = Text(
             text=f"{int(self.audio.music_volume * 100)}%",
-            position=(0.35, 0.05, -0.1),  # Adjusted to match slider
-            origin=(0, 0),
-            scale=1.5,
-            color=color.rgb(0.784, 0.784, 0.784),
+            position=(0.3, 0.06, -0.1),  # Right-aligned with slider
+            origin=(-1, 0),  # Left origin for consistent spacing
+            scale=2.0,  # Larger for better visibility
+            color=color.rgb(0.863, 0.863, 0.902),
             parent=camera.ui
         )
         self.ui_elements.append(self.music_value_text)
@@ -123,9 +126,9 @@ class Settings3D(Entity):
         # SFX Volume Section
         sfx_label = Text(
             text="Sound Effects Volume",
-            position=(-0.48, -0.12, -0.1),  # Adjusted spacing
-            origin=(0, 0),
-            scale=1.6,  # Slightly smaller to fit better
+            position=(-0.5, -0.08, -0.1),  # Consistent spacing with music section
+            origin=(-1, 0),  # Left-aligned origin
+            scale=1.8,
             color=color.rgb(0.863, 0.863, 0.902),
             parent=camera.ui
         )
@@ -137,8 +140,8 @@ class Settings3D(Entity):
             default=int(self.audio.sfx_volume * 100),
             step=1,
             height=0.05,  # Thicker for better visibility
-            width=0.7,
-            position=(-0.48, -0.22, -0.1),  # Adjusted spacing
+            width=0.65,  # Match music slider width
+            position=(-0.5, -0.20, -0.1),  # Aligned under label with consistent spacing
             parent=camera.ui,
             on_value_changed=self._on_sfx_volume_changed
         )
@@ -146,15 +149,18 @@ class Settings3D(Entity):
         self.sfx_slider.knob.color = color.rgb(0.392, 0.784, 1.0)  # Blue knob
         self.sfx_slider.knob.scale *= 1.3  # Larger knob
         self.sfx_slider.bg.color = color.rgb(0.157, 0.149, 0.137)  # Darker stone background
+        # Hide default slider text to avoid conflicts
+        if hasattr(self.sfx_slider, 'text'):
+            self.sfx_slider.text.enabled = False
         self.ui_elements.append(self.sfx_slider)
 
         # SFX value display
         self.sfx_value_text = Text(
             text=f"{int(self.audio.sfx_volume * 100)}%",
-            position=(0.35, -0.22, -0.1),  # Adjusted to match slider
-            origin=(0, 0),
-            scale=1.5,
-            color=color.rgb(0.784, 0.784, 0.784),
+            position=(0.3, -0.20, -0.1),  # Right-aligned with slider, consistent with music
+            origin=(-1, 0),  # Left origin for consistent spacing
+            scale=2.0,  # Match music value scale
+            color=color.rgb(0.863, 0.863, 0.902),
             parent=camera.ui
         )
         self.ui_elements.append(self.sfx_value_text)
@@ -162,8 +168,8 @@ class Settings3D(Entity):
         # Back button (dungeon-styled)
         self.back_button = DungeonButton(
             text="BACK",
-            scale=(0.32, 0.09),
-            position=(0, -0.45, -0.1),  # Moved down for better spacing
+            scale=(0.35, 0.10),  # Slightly larger for better visibility
+            position=(0, -0.40, -0.1),  # Centered with proper spacing from sliders
             parent=camera.ui,
             on_click=self._on_back
         )
