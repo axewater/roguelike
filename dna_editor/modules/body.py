@@ -3,10 +3,19 @@ Body Module - Create creature body (sphere or ellipsoid)
 
 Generates the central body that tentacles attach to.
 Supports different sizes, colors (HSV hue), and shapes.
+
+Updated with surface utility methods for constraint-based anatomy system.
 """
 
-from ursina import Entity, color as ursina_color
+from ursina import Entity, color as ursina_color, Vec3
 import colorsys
+import sys
+import os
+
+# Add parent directory for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from surface_math import BodyGeometry, get_surface_normal, project_to_sphere, project_to_ellipsoid
 
 
 def create_body(parent, size=0.6, hue=280, shape_type='sphere'):
@@ -50,7 +59,61 @@ def create_body(parent, size=0.6, hue=280, shape_type='sphere'):
     body.body_hue = hue
     body.shape_type = shape_type
 
+    # Store geometry for surface math
+    body.geometry = BodyGeometry(size, shape_type)
+
     return body
+
+
+def get_body_geometry(body):
+    """
+    Get BodyGeometry instance for surface calculations.
+
+    Args:
+        body: Body entity
+
+    Returns:
+        BodyGeometry: Geometry instance
+    """
+    if hasattr(body, 'geometry'):
+        return body.geometry
+    else:
+        # Fallback: create from stored properties
+        return BodyGeometry(body.base_scale, body.shape_type)
+
+
+def get_surface_point(body, position):
+    """
+    Project a point onto the body surface.
+
+    Args:
+        body: Body entity
+        position: Vec3 or tuple to project
+
+    Returns:
+        Vec3: Point on surface
+    """
+    geometry = get_body_geometry(body)
+
+    if geometry.is_sphere():
+        return project_to_sphere(position, (0, 0, 0), geometry.a)
+    else:
+        return project_to_ellipsoid(position, (0, 0, 0), geometry.get_axes())
+
+
+def get_body_surface_normal(body, position):
+    """
+    Get surface normal at a position on the body.
+
+    Args:
+        body: Body entity
+        position: Vec3 or tuple on surface
+
+    Returns:
+        Vec3: Normalized surface normal (pointing outward)
+    """
+    geometry = get_body_geometry(body)
+    return get_surface_normal(position, (0, 0, 0), geometry.get_axes())
 
 
 def update_body_animation(body, time_elapsed, pulse_speed=1.0):

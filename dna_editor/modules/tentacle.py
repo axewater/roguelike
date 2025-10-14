@@ -3,6 +3,8 @@ Tentacle Module - Create segmented articulated tentacles
 
 Generates flexible tentacle appendages using cylinder chains.
 Each segment is connected via parent-child hierarchy for wave animations.
+
+Updated to use attachment points from constraint solver for proper surface placement.
 """
 
 from ursina import Entity, Vec3, color as ursina_color
@@ -11,7 +13,8 @@ import colorsys
 
 
 def create_tentacle(parent, length=2.0, segments=10, base_thickness=0.1,
-                   angle=0, taper=50, hue=280, attach_height=-0.3):
+                   angle=0, taper=50, hue=280, attach_height=-0.3,
+                   attachment_point=None):
     """
     Create articulated tentacle with tapered segments.
 
@@ -20,16 +23,18 @@ def create_tentacle(parent, length=2.0, segments=10, base_thickness=0.1,
         length: Total tentacle length
         segments: Number of segments (5-15)
         base_thickness: Thickness at base
-        angle: Angle around body (0-360 degrees)
+        angle: Angle around body (0-360 degrees) - DEPRECATED if attachment_point provided
         taper: Taper percentage (0=no taper, 100=point at tip)
         hue: Color hue (should match body)
-        attach_height: Height on body to attach (-1 to 1)
+        attach_height: Height on body to attach (-1 to 1) - DEPRECATED if attachment_point provided
+        attachment_point: AttachmentPoint from constraint solver (preferred method)
 
     Returns:
         dict: {
             'root': root entity,
             'segments': list of segment entities,
-            'angle': attachment angle
+            'angle': attachment angle,
+            'attachment_point': AttachmentPoint if provided
         }
     """
     # Convert HSV to RGB (slightly darker than body)
@@ -39,17 +44,34 @@ def create_tentacle(parent, length=2.0, segments=10, base_thickness=0.1,
     # Calculate segment length
     segment_length = length / segments
 
-    # Calculate attachment position on body surface
-    angle_rad = math.radians(angle)
-    body_radius = parent.base_scale if hasattr(parent, 'base_scale') else parent.scale_x
-    attach_x = body_radius * math.cos(angle_rad)
-    attach_z = body_radius * math.sin(angle_rad)
+    # Determine attachment position and orientation
+    if attachment_point is not None:
+        # Use constraint-solved attachment point (NEW METHOD)
+        attach_pos = attachment_point.position
+        attach_normal = attachment_point.normal
 
-    # Create root container at attachment point
-    tentacle_root = Entity(
-        parent=parent,
-        position=(attach_x, attach_height, attach_z)
-    )
+        # Create root container at attachment point
+        tentacle_root = Entity(
+            parent=parent,
+            position=(attach_pos.x, attach_pos.y, attach_pos.z)
+        )
+
+        # Orient tentacle along surface normal (pointing outward)
+        # The first segment should point along the normal direction
+        tentacle_root.look_at(attach_pos + attach_normal * length)
+
+    else:
+        # Legacy method: Use angle and height (OLD METHOD - for backward compatibility)
+        angle_rad = math.radians(angle)
+        body_radius = parent.base_scale if hasattr(parent, 'base_scale') else parent.scale_x
+        attach_x = body_radius * math.cos(angle_rad)
+        attach_z = body_radius * math.sin(angle_rad)
+
+        # Create root container at attachment point
+        tentacle_root = Entity(
+            parent=parent,
+            position=(attach_x, attach_height, attach_z)
+        )
 
     # Create segments (each is child of previous)
     segment_entities = []
@@ -84,9 +106,10 @@ def create_tentacle(parent, length=2.0, segments=10, base_thickness=0.1,
     return {
         'root': tentacle_root,
         'segments': segment_entities,
-        'angle': angle,
+        'angle': angle if attachment_point is None else 0,
         'length': length,
-        'base_thickness': base_thickness
+        'base_thickness': base_thickness,
+        'attachment_point': attachment_point
     }
 
 

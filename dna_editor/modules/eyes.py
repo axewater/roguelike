@@ -2,21 +2,25 @@
 Eye Module - Create eye decorations
 
 Generates eye decorations on creature body using various placement patterns.
+
+Updated to use attachment points from constraint solver for intelligent placement.
+Eyes are partially embedded in the surface for a more organic look.
 """
 
-from ursina import Entity, color as ursina_color
+from ursina import Entity, color as ursina_color, Vec3
 import math
 
 
-def create_eyes(parent, count=2, pattern='dual', size=0.1):
+def create_eyes(parent, count=2, pattern='dual', size=0.1, attachment_points=None):
     """
     Create eyes on body surface.
 
     Args:
         parent: Parent body entity
         count: Number of eyes (0-8)
-        pattern: Placement pattern ('none', 'dual', 'spider', 'ring')
+        pattern: Placement pattern ('none', 'dual', 'spider', 'ring') - DEPRECATED if attachment_points provided
         size: Eye size
+        attachment_points: List of AttachmentPoint from constraint solver (preferred method)
 
     Returns:
         list: Eye entities
@@ -30,6 +34,38 @@ def create_eyes(parent, count=2, pattern='dual', size=0.1):
     # Eye color (dark)
     eye_color = ursina_color.rgb(0.1, 0.1, 0.15)
     pupil_color = ursina_color.rgb(0.8, 0.0, 0.0)  # Red pupils
+
+    # NEW METHOD: Use attachment points from constraint solver
+    if attachment_points is not None and len(attachment_points) > 0:
+        for i, attach_point in enumerate(attachment_points[:count]):
+            # Use the embedded position (already calculated by constraint solver)
+            pos = attach_point.position
+            normal = attach_point.normal
+
+            # Eye white
+            eye = Entity(
+                model='sphere',
+                color=eye_color,
+                scale=size,
+                parent=parent,
+                position=(pos.x, pos.y, pos.z)
+            )
+
+            # Pupil - positioned along surface normal
+            pupil_offset = normal * (size * 0.3)
+            pupil = Entity(
+                model='sphere',
+                color=pupil_color,
+                scale=size * 0.5,
+                parent=eye,
+                position=(pupil_offset.x, pupil_offset.y, pupil_offset.z)
+            )
+
+            eyes.append(eye)
+
+        return eyes
+
+    # LEGACY METHOD: Pattern-based placement (for backward compatibility)
 
     if pattern == 'dual':
         # Two eyes on front (forward-facing)

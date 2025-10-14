@@ -1,7 +1,10 @@
 """
 Spike Module - Create surface spike decorations
 
-Generates spikes randomly distributed on creature body surface.
+Generates spikes on creature body surface using constraint-aware placement.
+Avoids tentacle and eye attachment points for anatomically-correct placement.
+
+Updated to use attachment points from constraint solver.
 """
 
 from ursina import Entity, Vec3, color as ursina_color
@@ -10,7 +13,7 @@ import random
 import colorsys
 
 
-def create_spikes(parent, count=15, length=0.2, hue=280):
+def create_spikes(parent, count=15, length=0.2, hue=280, attachment_points=None):
     """
     Create spikes on body surface.
 
@@ -19,6 +22,7 @@ def create_spikes(parent, count=15, length=0.2, hue=280):
         count: Number of spikes (0-30)
         length: Spike length
         hue: Color hue (matches body)
+        attachment_points: List of AttachmentPoint from constraint solver (preferred method)
 
     Returns:
         list: Spike entities
@@ -33,6 +37,33 @@ def create_spikes(parent, count=15, length=0.2, hue=280):
     rgb = colorsys.hsv_to_rgb(hue / 360.0, 0.9, 0.5)
     spike_color = ursina_color.rgb(*rgb)
 
+    # NEW METHOD: Use attachment points from constraint solver
+    if attachment_points is not None and len(attachment_points) > 0:
+        for i, attach_point in enumerate(attachment_points[:count]):
+            # Use solved position and normal
+            pos = attach_point.position
+            normal = attach_point.normal
+
+            # Create spike (stretched cube to simulate cone)
+            spike = Entity(
+                model='cube',
+                color=spike_color,
+                scale=(length * 0.15, length, length * 0.15),  # Thin spike
+                parent=parent,
+                position=(pos.x, pos.y, pos.z)
+            )
+
+            # Point spike along surface normal (outward)
+            spike.look_at(pos + normal * length)
+
+            # Slight random rotation variance for organic look
+            spike.rotation_z += random.uniform(-15, 15)
+
+            spikes.append(spike)
+
+        return spikes
+
+    # LEGACY METHOD: Fibonacci sphere distribution (for backward compatibility)
     for i in range(count):
         # Random position on sphere surface using spherical coordinates
         # Use Fibonacci sphere distribution for even distribution

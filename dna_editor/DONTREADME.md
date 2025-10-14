@@ -1,4 +1,7 @@
-# DNA Creature Editor v1.0
+
+
+
+DO NOT READ THIS IT IS OUTDATED !!!! NOT RELEVANT !@!!!
 
 A standalone visual tool for designing procedural tentacle-based creatures in real-time. Built with Ursina Engine for 3D visualization.
 
