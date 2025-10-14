@@ -48,20 +48,21 @@ class Settings3D(Entity):
 
     def _create_ui(self):
         """Create UI overlay elements"""
-        # Background overlay (semi-transparent dark)
+        # Background overlay (semi-transparent dark) - furthest back
         bg = Entity(
             model='quad',
             color=(0.05, 0.05, 0.15, 0.95),
             scale=(100, 100),
-            position=(0, 0, -0.9),
-            parent=camera.ui
+            position=(0, 0, 0.9),  # Positive z = behind everything
+            parent=camera.ui,
+            collider=None  # Prevent blocking mouse input
         )
         self.ui_elements.append(bg)
 
-        # Title
+        # Title - in front
         title = Text(
             text="SETTINGS",
-            position=(0, 0.42),
+            position=(0, 0.42, -0.2),  # Negative z = in front
             origin=(0, 0),
             scale=3.5,
             color=color.rgb(0.863, 0.863, 0.902),
@@ -69,20 +70,21 @@ class Settings3D(Entity):
         )
         self.ui_elements.append(title)
 
-        # Settings panel background
+        # Settings panel background - middle layer
         panel_bg = Entity(
             model='quad',
             color=color.rgb(0.176, 0.176, 0.196),
             scale=(1.2, 0.9),
-            position=(0, 0.02, -0.8),
-            parent=camera.ui
+            position=(0, 0.02, 0.8),  # Positive z = behind text
+            parent=camera.ui,
+            collider=None  # Prevent blocking mouse input
         )
         self.ui_elements.append(panel_bg)
 
         # Music Volume Section
         music_label = Text(
             text="Music Volume",
-            position=(-0.48, 0.22),
+            position=(-0.48, 0.22, -0.1),  # Negative z = in front
             origin=(0, 0),
             scale=1.8,
             color=color.rgb(0.863, 0.863, 0.902),
@@ -97,7 +99,7 @@ class Settings3D(Entity):
             step=1,
             height=0.05,  # Thicker for better visibility
             width=0.7,
-            position=(-0.48, 0.12),
+            position=(-0.48, 0.12, -0.1),  # Negative z = in front
             parent=camera.ui,
             on_value_changed=self._on_music_volume_changed
         )
@@ -110,7 +112,7 @@ class Settings3D(Entity):
         # Music value display
         self.music_value_text = Text(
             text=f"{int(self.audio.music_volume * 100)}%",
-            position=(0.35, 0.12),
+            position=(0.35, 0.12, -0.1),  # Negative z = in front
             origin=(0, 0),
             scale=1.5,
             color=color.rgb(0.784, 0.784, 0.784),
@@ -121,7 +123,7 @@ class Settings3D(Entity):
         # SFX Volume Section
         sfx_label = Text(
             text="Sound Effects Volume",
-            position=(-0.48, -0.05),
+            position=(-0.48, -0.05, -0.1),  # Negative z = in front
             origin=(0, 0),
             scale=1.8,
             color=color.rgb(0.863, 0.863, 0.902),
@@ -136,7 +138,7 @@ class Settings3D(Entity):
             step=1,
             height=0.05,  # Thicker for better visibility
             width=0.7,
-            position=(-0.48, -0.15),
+            position=(-0.48, -0.15, -0.1),  # Negative z = in front
             parent=camera.ui,
             on_value_changed=self._on_sfx_volume_changed
         )
@@ -149,7 +151,7 @@ class Settings3D(Entity):
         # SFX value display
         self.sfx_value_text = Text(
             text=f"{int(self.audio.sfx_volume * 100)}%",
-            position=(0.35, -0.15),
+            position=(0.35, -0.15, -0.1),  # Negative z = in front
             origin=(0, 0),
             scale=1.5,
             color=color.rgb(0.784, 0.784, 0.784),
@@ -161,7 +163,7 @@ class Settings3D(Entity):
         self.back_button = DungeonButton(
             text="BACK",
             scale=(0.32, 0.09),
-            position=(0, -0.38),
+            position=(0, -0.38, -0.1),  # Negative z = in front
             parent=camera.ui,
             on_click=self._on_back
         )
@@ -227,6 +229,8 @@ class Settings3D(Entity):
         self.sfx_value_text.text = f"{int(self.audio.sfx_volume * 100)}%"
 
         print("[Settings] Settings screen shown")
+        print(f"[Settings] UI elements enabled: {len(self.ui_elements)}")
+        print(f"[Settings] Title position: {self.ui_elements[1].position if len(self.ui_elements) > 1 else 'N/A'}")
 
     def hide(self):
         """Hide the settings screen"""

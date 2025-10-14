@@ -170,29 +170,32 @@ class MainMenu3D(Entity):
     def _show_how_to_play_panel(self):
         """Show How to Play information panel"""
         self.showing_how_to_play = True
+        print("[MainMenu] Showing How to Play panel")
 
-        # Dim background overlay
+        # Dim background overlay (furthest back)
         self.how_to_play_bg = Entity(
             model='quad',
             color=(0, 0, 0, 200/255),
             scale=(100, 100),
-            position=(0, 0, -0.5),
-            parent=camera.ui
+            position=(0, 0, 0.5),  # Positive z = behind everything
+            parent=camera.ui,
+            collider=None  # Prevent blocking mouse input
         )
 
-        # Panel background
+        # Panel background (in middle)
         panel_bg = Entity(
             model='quad',
             color=color.rgb(0.157, 0.157, 0.176),  # (40, 40, 45)
             scale=(1.4, 1.6),
-            position=(0, 0, -0.4),
-            parent=camera.ui
+            position=(0, 0, 0.4),  # Positive z = behind text
+            parent=camera.ui,
+            collider=None  # Prevent blocking mouse input
         )
 
-        # Title
+        # Title (in front)
         title = Text(
             text="HOW TO PLAY",
-            position=(0, 0.68),
+            position=(0, 0.68, -0.2),  # Negative z = in front
             origin=(0, 0),
             scale=2.5,
             color=color.rgb(0.863, 0.863, 0.902),  # (220, 220, 230)
@@ -233,7 +236,7 @@ class MainMenu3D(Entity):
 
             text_entity = Text(
                 text=line,
-                position=(-0.62, line_y),  # Left-aligned
+                position=(-0.62, line_y, -0.1),  # Negative z = in front
                 origin=(0, 0),
                 scale=1.0,
                 color=color.rgb(0.784, 0.784, 0.824),  # (200, 200, 210)
@@ -246,7 +249,7 @@ class MainMenu3D(Entity):
         close_button = DungeonButton(
             text="CLOSE",
             scale=(0.28, 0.09),
-            position=(0, -0.68),
+            position=(0, -0.68, -0.1),  # Negative z = in front
             parent=camera.ui,
             on_click=self._hide_how_to_play_panel
         )
@@ -259,14 +262,18 @@ class MainMenu3D(Entity):
             close_button
         ] + instruction_entities
 
+        print(f"[MainMenu] How to Play panel created with {len(self.how_to_play_panel)} entities")
+        print(f"[MainMenu] Title position: {title.position}")
+
     def _hide_how_to_play_panel(self):
         """Hide How to Play panel"""
         if self.how_to_play_panel:
+            from ursina import destroy
+            print(f"[MainMenu] Hiding How to Play panel ({len(self.how_to_play_panel)} entities)")
             for entity in self.how_to_play_panel:
                 entity.enabled = False
                 # Destroy to prevent memory leak
-                if hasattr(entity, 'disable'):
-                    entity.disable()
+                destroy(entity)
             self.how_to_play_panel = None
 
         self.showing_how_to_play = False

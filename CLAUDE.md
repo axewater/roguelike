@@ -11,10 +11,10 @@ A Python roguelike game with both 2D (PyQt6) and 3D (Ursina Engine) rendering mo
 pip install -r requirements.txt
 
 # Run in 3D mode (first-person, recommended)
-python main.py --mode 3d
+python3 main.py --mode 3d
 
 # Run in 2D mode (classic version)
-python main.py --mode 2d
+python3 main.py --mode 2d
 ```
 
 ## Project Structure
@@ -65,10 +65,11 @@ python main.py --mode 2d
 - ✅ **Full UI overlay** (stats, abilities, combat log)
 - ✅ **Ability targeting system** (1/2/3 keys + mouse)
 - ✅ **Performance optimizations** (particle limits, conditional UI updates)
+- ✅ FOV/Fog of War in 3D 
+- ✅ Class selection screen 
 
 ### What's Missing in 3D (Optional Polish)
-- ❌ FOV/Fog of War in 3D (Phase 8 - optional)
-- ❌ Class selection screen (Phase 7 - currently hardcoded to Warrior)
+
 - ❌ Title/Victory/Menu screens (Phase 7)
 - ❌ 3D positional audio (Phase 8 - optional)
 
@@ -113,5 +114,7 @@ The `AnimationManager3DProxy` in `main_3d.py` converts 2D particle calls to 3D:
 
 **For detailed feature documentation:** See `README.md`
 **For migration progress:** See `MIGRATION.md`
+
+Notes:
 - You are working in a Linux shell on a headless server. You must ask the user to perform any testing (its done on windows)
- if you need to load libraries or test other stuff from the command line, activate the "venv_linux"
+- If you need to load libraries or test other stuff from the command line, activate the "venv_linux"
