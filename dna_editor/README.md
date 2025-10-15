@@ -105,14 +105,41 @@ Wave composition formula: `P(t) = base_curve(t) + Σ(Aₙ sin(nωt + φₙ))`
 - Ursina Engine
 - Math (standard library)
 
-## File Structure
+## Architecture
+
+The DNA Editor follows clean **separation of concerns** with a modular architecture:
+
+### File Structure
 
 ```
 dna_editor/
-├── main.py           # Main application and all logic
-├── README.md         # This file
-└── screenshot.png    # Screenshot of the editor
+├── main.py                      # Entry point (60 lines)
+├── core/                        # Mathematical & configuration
+│   ├── curves.py               # Bezier & Fourier curve generators
+│   └── constants.py            # All configuration constants
+├── models/                      # 3D entity models
+│   ├── tentacle.py             # Single tentacle with segments
+│   └── creature.py             # Creature with body & tentacles
+├── ui/                          # User interface components
+│   ├── info_panel.py           # Top info display & algorithm buttons
+│   ├── parameters_panel.py     # Algorithm-specific sliders
+│   ├── thickness_panel.py      # Thickness & taper controls
+│   ├── presets_panel.py        # Preset buttons
+│   └── help_overlay.py         # Help screen overlay
+├── controllers/                 # Application logic
+│   ├── state_manager.py        # Undo/redo history system
+│   ├── camera_controller.py    # Camera orbit & zoom logic
+│   └── editor_controller.py    # Main orchestration controller
+└── README.md                    # This file
 ```
+
+### Design Principles
+
+1. **Single Responsibility**: Each module has one clear purpose
+2. **Separation of Concerns**: Math, models, UI, and logic are isolated
+3. **Testability**: Pure functions and clear interfaces for testing
+4. **Maintainability**: ~100-200 lines per file (vs. 1000 lines monolithic)
+5. **Reusability**: Curve generators can be used independently
 
 ## Future Enhancements
 
@@ -128,4 +155,5 @@ Potential additions for future versions:
 
 - All graphics are procedurally generated (no external assets)
 - Designed for integration with the roguelike game's creature system
-- Clean, single-file architecture for easy portability
+- Modular architecture with clean separation of concerns
+- Original monolithic version backed up as `main.py.backup`
