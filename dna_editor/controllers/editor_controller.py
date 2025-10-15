@@ -4,7 +4,7 @@ Editor controller - main application orchestrator.
 Coordinates all components: models, UI, camera, and state.
 """
 
-from ursina import Entity, Sky, color, held_keys, time as ursina_time
+from ursina import Entity, Sky, color, held_keys, time as ursina_time, AmbientLight, DirectionalLight, PointLight
 from ..models import TentacleCreature
 from ..ui import InfoPanel, ParametersPanel, ThicknessPanel, PresetsPanel, HelpOverlay
 from .state_manager import StateManager
@@ -51,24 +51,80 @@ class EditorController:
         self._print_startup_info()
 
     def _create_scene(self):
-        """Create scene elements (ground, sky, debug marker)."""
+        """Create scene elements (ground, sky, lighting, debug marker)."""
         self.ground = Entity(
             model='plane',
             scale=20,
             color=color.rgb(*GROUND_COLOR),
-            position=(0, -1, 0)
+            position=(0, -1, 0),
+            shader='basic_lighting_shader'  # Enable lighting on ground
         )
 
         self.sky = Sky(color=color.rgb(*SKY_COLOR))
+
+        # Set up lighting for depth and shadows
+        self._setup_lighting()
 
         # DEBUG: Add a bright marker at origin to verify rendering works
         self.debug_marker = Entity(
             model='sphere',
             color=color.rgb(*DEBUG_MARKER_COLOR),
             scale=0.3,
-            position=(0, 0, 0)
+            position=(0, 0, 0),
+            shader='basic_lighting_shader'  # Use lighting on debug marker too
         )
         print("DEBUG: Yellow marker created at origin (0, 0, 0)")
+
+    def _setup_lighting(self):
+        """Set up advanced 3-point lighting system for dramatic depth."""
+        # Ambient light (reduced for more dramatic contrast)
+        self.ambient_light = AmbientLight(
+            color=color.rgb(0.2, 0.2, 0.25),
+            intensity=0.2
+        )
+
+        # KEY LIGHT - Main directional light (primary light source)
+        self.key_light = DirectionalLight(
+            position=(5, 8, 3),
+            rotation=(50, -35, 0),
+            color=color.rgb(1.0, 0.98, 0.94),  # Warm white
+            intensity=1.5
+        )
+
+        # FILL LIGHT - Softer light from opposite side (reduces harsh shadows)
+        self.fill_light = DirectionalLight(
+            position=(-3, 4, -2),
+            rotation=(120, 45, 0),
+            color=color.rgb(0.7, 0.75, 0.85),  # Cool blue-white
+            intensity=0.6
+        )
+
+        # RIM LIGHT - Backlight for edge highlights (separates from background)
+        self.rim_light = DirectionalLight(
+            position=(-2, 3, -5),
+            rotation=(150, 20, 0),
+            color=color.rgb(0.6, 0.7, 1.0),  # Cool blue accent
+            intensity=0.8
+        )
+
+        # POINT LIGHT - Local highlight near creature
+        self.point_light = PointLight(
+            position=(0, 2, 0),
+            color=color.rgb(1.0, 0.95, 0.9),  # Warm accent
+            intensity=0.4
+        )
+
+        # Fake shadow plane under creature
+        self.shadow_plane = Entity(
+            model='plane',
+            scale=(3, 1, 3),
+            color=color.rgba(0, 0, 0, 80),  # Semi-transparent black
+            position=(0, -0.95, 0),
+            rotation_x=90,
+            unlit=True  # Don't apply lighting to shadow
+        )
+
+        print("Advanced Lighting setup: 3-point system (Key + Fill + Rim) + Point light + Shadow")
 
     def _create_ui(self):
         """Create all UI panels."""
