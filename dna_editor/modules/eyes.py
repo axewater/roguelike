@@ -9,6 +9,7 @@ Eyes are partially embedded in the surface for a more organic look.
 
 from ursina import Entity, color as ursina_color, Vec3
 import math
+from modules.body import world_to_local_position
 
 
 def create_eyes(parent, count=2, pattern='dual', size=0.1, attachment_points=None):
@@ -42,16 +43,19 @@ def create_eyes(parent, count=2, pattern='dual', size=0.1, attachment_points=Non
             pos = attach_point.position
             normal = attach_point.normal
 
+            # Convert world-space position to local-space coordinates
+            local_pos = world_to_local_position(parent, pos)
+
             # Eye white
             eye = Entity(
                 model='sphere',
                 color=eye_color,
                 scale=size,
                 parent=parent,
-                position=(pos.x, pos.y, pos.z)
+                position=(local_pos.x, local_pos.y, local_pos.z)
             )
 
-            # Pupil - positioned along surface normal
+            # Pupil - positioned along surface normal (relative to eye, not parent)
             pupil_offset = normal * (size * 0.3)
             pupil = Entity(
                 model='sphere',

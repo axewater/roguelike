@@ -116,6 +116,37 @@ def get_body_surface_normal(body, position):
     return get_surface_normal(position, (0, 0, 0), geometry.get_axes())
 
 
+def world_to_local_position(body, world_pos):
+    """
+    Convert a world-space position to local-space coordinates relative to the body.
+
+    This is necessary because Ursina/Panda3D interpret child positions in the parent's
+    scaled coordinate system. When the body has scale=0.6, a child at local position
+    (1, 0, 0) appears at world offset (0.6, 0, 0) from the parent.
+
+    Args:
+        body: Body entity (with scale information)
+        world_pos: Vec3 or tuple - position in world space
+
+    Returns:
+        Vec3: Position in body's local coordinate space
+    """
+    if isinstance(world_pos, (tuple, list)):
+        world_pos = Vec3(*world_pos)
+
+    # Handle both sphere (uniform scale) and ellipsoid (non-uniform scale)
+    if body.shape_type == 'ellipsoid':
+        # Ellipsoid has different scales per axis
+        local_x = world_pos.x / body.base_scale
+        local_y = world_pos.y / (body.base_scale * 0.7)
+        local_z = world_pos.z / body.base_scale
+        return Vec3(local_x, local_y, local_z)
+    else:
+        # Sphere has uniform scale
+        scale = body.base_scale
+        return Vec3(world_pos.x / scale, world_pos.y / scale, world_pos.z / scale)
+
+
 def update_body_animation(body, time_elapsed, pulse_speed=1.0):
     """
     Update body idle animation (subtle pulsing).

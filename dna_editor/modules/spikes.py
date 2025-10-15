@@ -11,6 +11,7 @@ from ursina import Entity, Vec3, color as ursina_color
 import math
 import random
 import colorsys
+from modules.body import world_to_local_position
 
 
 def create_spikes(parent, count=15, length=0.2, hue=280, attachment_points=None):
@@ -44,17 +45,23 @@ def create_spikes(parent, count=15, length=0.2, hue=280, attachment_points=None)
             pos = attach_point.position
             normal = attach_point.normal
 
+            # Convert world-space position to local-space coordinates
+            local_pos = world_to_local_position(parent, pos)
+
             # Create spike (stretched cube to simulate cone)
             spike = Entity(
                 model='cube',
                 color=spike_color,
                 scale=(length * 0.15, length, length * 0.15),  # Thin spike
                 parent=parent,
-                position=(pos.x, pos.y, pos.z)
+                position=(local_pos.x, local_pos.y, local_pos.z)
             )
 
             # Point spike along surface normal (outward)
-            spike.look_at(pos + normal * length)
+            # Convert look_at target to local space as well
+            world_target = pos + normal * length
+            local_target = world_to_local_position(parent, world_target)
+            spike.look_at(local_target)
 
             # Slight random rotation variance for organic look
             spike.rotation_z += random.uniform(-15, 15)

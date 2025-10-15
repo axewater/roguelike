@@ -10,6 +10,7 @@ Updated to use attachment points from constraint solver for proper surface place
 from ursina import Entity, Vec3, color as ursina_color
 import math
 import colorsys
+from modules.body import world_to_local_position
 
 
 def create_tentacle(parent, length=2.0, segments=10, base_thickness=0.1,
@@ -41,8 +42,12 @@ def create_tentacle(parent, length=2.0, segments=10, base_thickness=0.1,
     rgb = colorsys.hsv_to_rgb(hue / 360.0, 0.7, 0.4)
     tentacle_color = ursina_color.rgb(*rgb)
 
-    # Calculate segment length
-    segment_length = length / segments
+    # Use requested segment count (no doubling - keep it simple)
+    actual_segments = segments
+
+    # Fixed spacing for sphere chain (simple and reliable)
+    # Spacing as fraction of base thickness for consistent overlap
+    sphere_spacing = base_thickness * 0.3  # 70% overlap
 
     # Determine attachment position and orientation
     if attachment_point is not None:
@@ -50,15 +55,20 @@ def create_tentacle(parent, length=2.0, segments=10, base_thickness=0.1,
         attach_pos = attachment_point.position
         attach_normal = attachment_point.normal
 
+        # Convert world-space position to local-space coordinates
+        # (parent body has scale applied, so we need to account for it)
+        local_pos = world_to_local_position(parent, attach_pos)
+
         # Create root container at attachment point
         tentacle_root = Entity(
             parent=parent,
-            position=(attach_pos.x, attach_pos.y, attach_pos.z)
+            position=(local_pos.x, local_pos.y, local_pos.z)
         )
 
         # Orient tentacle along surface normal (pointing outward)
-        # The first segment should point along the normal direction
-        tentacle_root.look_at(attach_pos + attach_normal * length)
+        # look_at() in Ursina expects world coordinates, NOT local!
+        world_target = attach_pos + attach_normal * length
+        tentacle_root.look_at(world_target)
 
     else:
         # Legacy method: Use angle and height (OLD METHOD - for backward compatibility)
@@ -73,33 +83,44 @@ def create_tentacle(parent, length=2.0, segments=10, base_thickness=0.1,
             position=(attach_x, attach_height, attach_z)
         )
 
-    # Create segments (each is child of previous)
+    # Create segments as overlapping spheres (ultra-simple fixed spacing)
     segment_entities = []
     current_parent = tentacle_root
 
-    for i in range(segments):
-        # Calculate thickness for this segment (taper from base to tip)
-        taper_factor = 1.0 - (i / segments) * (taper / 100.0)
-        segment_thickness = base_thickness * taper_factor
+    for i in range(actual_segments):
+        # SIMPLE: All spheres same size (no tapering for now - get it working first!)
+        segment_thickness = base_thickness
 
-        # Create segment (cube stretched to look like cylinder)
+        # Convert diameter to radius for positioning (CRITICAL FIX!)
+        # Ursina sphere scale is diameter, but position needs radius-based math
+        sphere_radius = segment_thickness / 2.0
+
+        # SIMPLE: Fixed position along parent's local X-axis
+        # First sphere: half-embedded in body (radius offset)
+        # Other spheres: fixed spacing for overlap
+        if i == 0:
+            sphere_position = (sphere_radius, 0, 0)
+        else:
+            sphere_position = (sphere_spacing, 0, 0)
+
+        # Create segment as sphere (smooth organic look)
         segment = Entity(
-            model='cube',
+            model='sphere',
             color=tentacle_color,
-            scale=(segment_length, segment_thickness, segment_thickness),
+            scale=segment_thickness,  # This is diameter
             rotation=(0, 0, 0),
             parent=current_parent,
-            position=(segment_length / 2, 0, 0) if i > 0 else (0, 0, 0)
+            position=sphere_position
         )
 
         # Store segment properties for animation
         segment.segment_index = i
         segment.base_thickness = segment_thickness
-        segment.segment_length = segment_length
+        segment.segment_radius = sphere_radius
 
         segment_entities.append(segment)
 
-        # Next segment attaches to end of this one
+        # Next segment attaches to this one
         current_parent = segment
 
     # Return tentacle data structure
