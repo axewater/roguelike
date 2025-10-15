@@ -41,7 +41,7 @@ if __name__ == "__main__":
     if parent_dir not in sys.path:
         sys.path.insert(0, parent_dir)
 
-from ursina import Ursina, camera, color, window
+from ursina import Ursina, Entity, camera, color, window
 from dna_editor.controllers import EditorController
 
 
@@ -62,8 +62,17 @@ def main():
     # Create editor controller
     editor = EditorController()
 
-    # Assign update function
-    app.update = editor.update
+    # Create Entity wrapper to ensure update() is called every frame
+    class EditorUpdater(Entity):
+        def __init__(self, editor_controller):
+            super().__init__()
+            self.editor = editor_controller
+
+        def update(self):
+            self.editor.update()
+
+    # Instantiate the updater
+    updater = EditorUpdater(editor)
 
     app.run()
 
