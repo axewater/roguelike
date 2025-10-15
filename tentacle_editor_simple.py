@@ -514,11 +514,13 @@ class TentacleEditor:
 
         # Algorithm buttons
         y_pos = 0.40
+
         self.btn_catenary = Button(
             text='CATENARY',
             color=color.rgb(0.3, 0.3, 0.4),
             scale=(0.13, 0.04),
-            position=(-0.85, y_pos),
+            position=(-0.65, y_pos),
+
             on_click=lambda: self.set_algorithm('catenary')
         )
         self.ui_elements.append(self.btn_catenary)
@@ -527,7 +529,7 @@ class TentacleEditor:
             text='BEZIER',
             color=color.rgb(0.3, 0.3, 0.4),
             scale=(0.13, 0.04),
-            position=(-0.69, y_pos),
+            position=(-0.35, y_pos),
             on_click=lambda: self.set_algorithm('bezier')
         )
         self.ui_elements.append(self.btn_bezier)
@@ -536,7 +538,7 @@ class TentacleEditor:
             text='FOURIER',
             color=color.rgb(0.3, 0.3, 0.4),
             scale=(0.13, 0.04),
-            position=(-0.53, y_pos),
+            position=(-0.05, y_pos),
             on_click=lambda: self.set_algorithm('fourier')
         )
         self.ui_elements.append(self.btn_fourier)
@@ -571,7 +573,6 @@ class TentacleEditor:
             on_value_changed=self.on_param_changed,
             visible=False
         )
-        self.catenary_sag_slider.param_name = 'sag_factor'
         self.ui_elements.append(self.catenary_sag_slider)
 
         self.catenary_sag_value = Text(
@@ -603,7 +604,6 @@ class TentacleEditor:
             on_value_changed=self.on_param_changed,
             visible=False
         )
-        self.bezier_strength_slider.param_name = 'control_strength'
         self.ui_elements.append(self.bezier_strength_slider)
 
         self.bezier_strength_value = Text(
@@ -635,7 +635,6 @@ class TentacleEditor:
             on_value_changed=self.on_param_changed,
             visible=False
         )
-        self.fourier_waves_slider.param_name = 'num_waves'
         self.ui_elements.append(self.fourier_waves_slider)
 
         self.fourier_waves_value = Text(
@@ -666,7 +665,6 @@ class TentacleEditor:
             on_value_changed=self.on_param_changed,
             visible=False
         )
-        self.fourier_amp_slider.param_name = 'amplitude'
         self.ui_elements.append(self.fourier_amp_slider)
 
         self.fourier_amp_value = Text(
@@ -775,7 +773,7 @@ class TentacleEditor:
             )
             self.preset_buttons.append(btn)
             self.ui_elements.append(btn)
-            x_offset += 0.14
+            x_offset += 0.30
 
         # Help text (bottom corner)
         self.help_text = Text(
