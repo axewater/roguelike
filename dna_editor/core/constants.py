@@ -11,7 +11,6 @@ DEFAULT_PARAMS = {
 # Preset configurations (name, algorithm, params)
 PRESETS = [
     ('Default', 'bezier', {'control_strength': 0.4}),
-    ('Wavy', 'fourier', {'num_waves': 4, 'amplitude': 0.25}),
     ('Tight', 'bezier', {'control_strength': 0.2}),
 ]
 

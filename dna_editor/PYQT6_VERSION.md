@@ -80,7 +80,7 @@ The DNA Editor uses PyQt6 for UI controls with Ursina for 3D rendering in a sepa
 - Taper: QSlider (0.0-1.0)
 
 **Presets:**
-- Default, Wavy, Tight QPushButtons
+- Default, Tight QPushButtons
 
 **Actions:**
 - Undo/Redo QPushButtons

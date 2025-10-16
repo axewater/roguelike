@@ -25,7 +25,7 @@ python3 main_qt.py
 - **Real-time Editing**: Adjust parameters with sliders and see instant results
 - **Two Algorithms**: Switch between Bezier and Fourier curve generators
 - **Thickness Controls**: Customize base thickness and taper factor
-- **Preset System**: 3 built-in presets (Default, Wavy, Tight)
+- **Preset System**: 2 built-in presets (Default, Tight)
 - **Undo/Redo**: Full history system (up to 50 steps)
 - **Interactive Camera**: Orbit, zoom, and navigate the 3D scene
 - **Export JSON**: Save creature configurations for use in the roguelike game
@@ -93,8 +93,7 @@ The editor consists of two windows:
 ## Presets
 
 1. **Default**: Smooth Bezier curves with moderate control
-2. **Wavy**: Fourier series with high wave count for organic look
-3. **Tight**: Bezier curves with low control for more direct tentacles
+2. **Tight**: Bezier curves with low control for more direct tentacles
 
 ## Export Format
 
