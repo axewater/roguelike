@@ -1,0 +1,52 @@
+"""
+Constants and configuration for DNA Editor.
+"""
+
+# Default algorithm parameters
+DEFAULT_PARAMS = {
+    'bezier': {'control_strength': 0.4},
+    'fourier': {'num_waves': 3, 'amplitude': 0.15}
+}
+
+# Preset configurations (name, algorithm, params)
+PRESETS = [
+    ('Default', 'bezier', {'control_strength': 0.4}),
+    ('Wavy', 'fourier', {'num_waves': 4, 'amplitude': 0.25}),
+    ('Tight', 'bezier', {'control_strength': 0.2}),
+]
+
+# Default values
+DEFAULT_NUM_TENTACLES = 2
+DEFAULT_SEGMENTS = 12
+DEFAULT_THICKNESS_BASE = 0.25
+DEFAULT_TAPER_FACTOR = 0.6
+DEFAULT_ALGORITHM = 'bezier'
+
+# Limits
+MIN_TENTACLES = 1
+MAX_TENTACLES = 3
+MIN_SEGMENTS = 5
+MAX_SEGMENTS = 20
+
+# History
+MAX_HISTORY_SIZE = 50
+
+# Camera defaults
+DEFAULT_CAMERA_DISTANCE = 6
+DEFAULT_CAMERA_HEIGHT = 2
+DEFAULT_CAMERA_ANGLE = 0
+MIN_CAMERA_DISTANCE = 2
+MAX_CAMERA_DISTANCE = 15
+MIN_CAMERA_HEIGHT = 0.5
+MAX_CAMERA_HEIGHT = 5
+
+# Colors
+BODY_COLOR = (0.6, 0.3, 0.7)  # Purple
+GROUND_COLOR = (0.1, 0.1, 0.15)
+SKY_COLOR = (0.05, 0.05, 0.1)
+DEBUG_MARKER_COLOR = (1, 1, 0)  # Yellow
+
+# Body
+BODY_SCALE = 1.2
+BODY_PULSE_AMOUNT = 0.05
+BODY_PULSE_SPEED = 1.5

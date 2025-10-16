@@ -11,14 +11,27 @@ This tool allows you to create and customize tentacle creatures in real-time usi
 
 ## Quick Start
 
-```bash
-# From project root
-python3 dna_editor/main_qt.py
+**Two versions available:**
 
-# Or directly from the folder
-cd dna_editor
-python3 main_qt.py
+```bash
+# PyQt6 Version (RECOMMENDED - better UI control)
+python3 dna_editor_copy/main_qt.py
+
+# Original Ursina UI Version
+python3 dna_editor_copy/main.py
 ```
+
+### PyQt6 Version (New!)
+- **Native controls**: Standard sliders, spinboxes, dropdowns
+- **Precise layout**: No coordinate positioning issues
+- **Familiar UX**: OS-native look and feel
+- **Menu bar**: File → Export, Edit → Undo/Redo
+- **Separate 3D viewport**: Ursina window for 3D preview
+
+### Ursina UI Version (Original)
+- **Fully 3D interface**: All controls in Ursina
+- **Single window**: UI overlay on 3D scene
+- **Keyboard shortcuts**: For all parameters
 
 ## Features
 
@@ -28,46 +41,32 @@ python3 main_qt.py
 - **Preset System**: 3 built-in presets (Default, Wavy, Tight)
 - **Undo/Redo**: Full history system (up to 50 steps)
 - **Interactive Camera**: Orbit, zoom, and navigate the 3D scene
-- **Export JSON**: Save creature configurations for use in the roguelike game
-- **PyQt6 UI**: Native OS controls with familiar look and feel
-
-## UI Layout
-
-The editor consists of two windows:
-
-1. **Control Panel** (PyQt6 window):
-   - Tentacle count spinbox (1-3)
-   - Segment count spinbox (5-20)
-   - Algorithm dropdown (Bezier/Fourier)
-   - Algorithm-specific parameter sliders
-   - Thickness and taper sliders
-   - Preset buttons
-   - Undo/Redo buttons
-   - Export JSON button
-
-2. **3D Viewport** (separate Ursina window):
-   - Real-time creature preview
-   - Camera controls
+- **Help System**: Press H for in-app controls reference
 
 ## Controls
 
-### Camera (in 3D Viewport Window)
+### Camera
 - **Mouse Drag**: Orbit around creature
 - **Scroll Wheel**: Zoom in/out
 - **R**: Reset camera to default position
 
-### Keyboard Shortcuts
+### Tentacles
+- **1/2/3**: Set tentacle count (1, 2, or 3)
+- **+/-**: Adjust segment count (5-20 segments)
+
+### Algorithms
+- **Q**: Switch to Bezier algorithm
+- **W**: Switch to Fourier algorithm
+- **Sliders**: Adjust algorithm-specific parameters
+
+### Editing
 - **Ctrl+Z**: Undo last change
 - **Ctrl+Y**: Redo
-- **Ctrl+E**: Export to JSON
-- **Ctrl+Q**: Quit application
-
-### UI Controls (in Control Panel)
-- **Spinboxes**: Set tentacle count and segment count
-- **Dropdown**: Select algorithm (Bezier or Fourier)
-- **Sliders**: Adjust all parameters in real-time
 - **Preset Buttons**: Load predefined configurations
-- **Undo/Redo Buttons**: Navigate change history
+
+### Other
+- **H**: Toggle help overlay
+- **ESC**: Quit application
 
 ## Algorithm Parameters
 
@@ -96,25 +95,6 @@ The editor consists of two windows:
 2. **Wavy**: Fourier series with high wave count for organic look
 3. **Tight**: Bezier curves with low control for more direct tentacles
 
-## Export Format
-
-The "Export JSON" feature saves configurations in this format:
-
-```json
-{
-  "num_tentacles": 2,
-  "segments_per_tentacle": 12,
-  "algorithm": "bezier",
-  "algorithm_params": {
-    "control_strength": 0.4
-  },
-  "thickness_base": 0.25,
-  "taper_factor": 0.6
-}
-```
-
-This JSON can be imported into the roguelike game to create the same creature!
-
 ## Technical Details
 
 ### Mathematical Curve Generators
@@ -139,8 +119,8 @@ Wave composition formula: `P(t) = base_curve(t) + Σ(Aₙ sin(nωt + φₙ))`
 ## Requirements
 
 - Python 3.8+
-- **PyQt6** - UI framework
-- **Ursina Engine** - 3D rendering (built on Panda3D)
+- **PyQt6** (for PyQt6 version)
+- **Ursina Engine** (for 3D rendering)
 - Math (standard library)
 
 ## Architecture
@@ -150,25 +130,34 @@ The DNA Editor follows clean **separation of concerns** with a modular architect
 ### File Structure
 
 ```
-dna_editor/
-├── main_qt.py                   # Entry point
+dna_editor_copy/
+├── main.py                      # Ursina UI version entry point
+├── main_qt.py                   # PyQt6 version entry point (NEW!)
 │
-├── core/                        # Mathematical & configuration
+├── core/                        # Mathematical & configuration (shared)
 │   ├── curves.py               # Bezier & Fourier curve generators
 │   └── constants.py            # All configuration constants
 │
-├── models/                      # 3D entity models
+├── models/                      # 3D entity models (shared)
 │   ├── tentacle.py             # Single tentacle with segments
 │   └── creature.py             # Creature with body & tentacles
 │
-├── qt_ui/                       # PyQt6 UI components
-│   ├── editor_window.py        # Main window orchestrator
-│   ├── control_panel.py        # Control panel with all UI widgets
-│   ├── viewport_widget.py      # Ursina 3D viewport wrapper
-│   └── ursina_renderer.py      # Alternative renderer (experimental)
+├── ui/                          # Ursina UI components (original version)
+│   ├── info_panel.py           # Top info display & algorithm buttons
+│   ├── parameters_panel.py     # Algorithm-specific sliders
+│   ├── thickness_panel.py      # Thickness & taper controls
+│   ├── presets_panel.py        # Preset buttons
+│   └── help_overlay.py         # Help screen overlay
 │
-├── controllers/                 # Application logic
-│   └── state_manager.py        # Undo/redo history system
+├── qt_ui/                       # PyQt6 UI components (NEW!)
+│   ├── editor_window.py        # Main window orchestrator
+│   ├── control_panel.py        # Left panel with all controls
+│   └── viewport_widget.py      # Ursina 3D viewport wrapper
+│
+├── controllers/                 # Application logic (shared)
+│   ├── state_manager.py        # Undo/redo history system
+│   ├── camera_controller.py    # Camera orbit & zoom (Ursina version)
+│   └── editor_controller.py    # Main orchestration (Ursina version)
 │
 └── README.md                    # This file
 ```
@@ -178,18 +167,15 @@ dna_editor/
 1. **Single Responsibility**: Each module has one clear purpose
 2. **Separation of Concerns**: Math, models, UI, and logic are isolated
 3. **Testability**: Pure functions and clear interfaces for testing
-4. **Maintainability**: ~100-200 lines per file
+4. **Maintainability**: ~100-200 lines per file (vs. 1000 lines monolithic)
 5. **Reusability**: Curve generators can be used independently
-
-## Integration with Roguelike
-
-This tool is designed to generate tentacle DNA for creatures in the main roguelike game. Use the "Export JSON" feature to save configurations, which can be imported into `entities.py` to create procedural enemies or NPCs.
 
 ## Future Enhancements
 
 Potential additions for future versions:
+- Export tentacle DNA as JSON
 - Import/save custom presets
-- Multi-creature scene editor
+- Multi-creature scene
 - Texture/material customization
 - Eye/spike/limb attachments
 - Animation pattern editor
@@ -199,8 +185,4 @@ Potential additions for future versions:
 - All graphics are procedurally generated (no external assets)
 - Designed for integration with the roguelike game's creature system
 - Modular architecture with clean separation of concerns
-
----
-
-**For developer documentation:** See `CLAUDE.md`
-**For PyQt6 technical details:** See `PYQT6_VERSION.md`
+- Original monolithic version backed up as `main.py.backup`
