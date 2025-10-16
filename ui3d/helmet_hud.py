@@ -28,8 +28,8 @@ class HelmetHUD3D:
 
     Layout:
     ╭─ TOP-LEFT ────╮                    ╭─ TOP-RIGHT ──────╮
-    │ Warrior Lv5   │                    │ ⚔Sword  🛡Armor  │
-    │ ████ 120/150HP│                    │ 💍Ring  👢Boots  │
+    │ Warrior Lv5   │                    │ ATK Sword  DEF Armor  │
+    │ ████ 120/150HP│                    │ ACC Ring  BOT Boots  │
     │ ███ 450/1000XP│                    │                  │
     ╰───────────────╯                    ╰──────────────────╯
 
@@ -40,7 +40,7 @@ class HelmetHUD3D:
     │ • Iron Sword nearby (2 tiles) +5 ATK               │
     ╰─────────────────────────────────────────────────────╯
 
-    [Fire][Heal][Dash]           ⚔12 🛡5 📍D:12 🗺30%
+    [Fire][Heal][Dash]           ATK 12 DEF 5 D:12 MAP 30%
      [1]   [2]   [3]
     """
 
@@ -289,7 +289,7 @@ class HelmetHUD3D:
 
         # Column 1: Weapon & Armor
         self.weapon_text = Text(
-            text="⚔ None",
+            text="ATK None",
             parent=self.parent,
             position=(pos_x + 0.01, start_y, -10),  # Low z-level (in front)
             scale=0.9,
@@ -299,7 +299,7 @@ class HelmetHUD3D:
         )
 
         self.armor_text = Text(
-            text="🛡 None",
+            text="DEF None",
             parent=self.parent,
             position=(pos_x + 0.01, start_y - line_height, -10),  # Low z-level (in front)
             scale=0.9,
@@ -310,7 +310,7 @@ class HelmetHUD3D:
 
         # Column 2: Accessory & Boots
         self.accessory_text = Text(
-            text="💍 None",
+            text="ACC None",
             parent=self.parent,
             position=(pos_x + 0.01 + col_offset, start_y, -10),  # Low z-level (in front)
             scale=0.9,
@@ -320,7 +320,7 @@ class HelmetHUD3D:
         )
 
         self.boots_text = Text(
-            text="👢 None",
+            text="BOT None",
             parent=self.parent,
             position=(pos_x + 0.01 + col_offset, start_y - line_height, -10),  # Low z-level (in front)
             scale=0.9,
@@ -435,7 +435,7 @@ class HelmetHUD3D:
 
         # Attack
         self.attack_text = Text(
-            text="⚔ 10",
+            text="ATK 10",
             parent=self.parent,
             position=(pos_x, pos_y, -10),  # Low z-level (in front)
             scale=1.1,
@@ -446,7 +446,7 @@ class HelmetHUD3D:
 
         # Defense
         self.defense_text = Text(
-            text="🛡 5",
+            text="DEF 5",
             parent=self.parent,
             position=(pos_x + 0.12, pos_y, -10),  # Low z-level (in front)
             scale=1.1,
@@ -457,7 +457,7 @@ class HelmetHUD3D:
 
         # Depth
         self.depth_text = Text(
-            text="📍 D:1",
+            text="D:1",
             parent=self.parent,
             position=(pos_x + 0.24, pos_y, -10),  # Low z-level (in front)
             scale=1.1,
@@ -468,7 +468,7 @@ class HelmetHUD3D:
 
         # Exploration
         self.exploration_text = Text(
-            text="🗺 0%",
+            text="MAP 0%",
             parent=self.parent,
             position=(pos_x + 0.40, pos_y, -10),  # Low z-level (in front)
             scale=1.1,
@@ -565,10 +565,10 @@ class HelmetHUD3D:
             if weapon:
                 name = weapon.get_name()
                 item_color = self.RARITY_COLORS.get(weapon.rarity, (1, 1, 1))
-                self.weapon_text.text = f"⚔ {name}"
+                self.weapon_text.text = f"ATK {name}"
                 self.weapon_text.color = color.rgb(*item_color)
             else:
-                self.weapon_text.text = "⚔ None"
+                self.weapon_text.text = "ATK None"
                 self.weapon_text.color = color.rgba(0.5, 0.5, 0.5, 1)
             self._last_weapon = weapon
 
@@ -578,10 +578,10 @@ class HelmetHUD3D:
             if armor:
                 name = armor.get_name()
                 item_color = self.RARITY_COLORS.get(armor.rarity, (1, 1, 1))
-                self.armor_text.text = f"🛡 {name}"
+                self.armor_text.text = f"DEF {name}"
                 self.armor_text.color = color.rgb(*item_color)
             else:
-                self.armor_text.text = "🛡 None"
+                self.armor_text.text = "DEF None"
                 self.armor_text.color = color.rgba(0.5, 0.5, 0.5, 1)
             self._last_armor = armor
 
@@ -591,10 +591,10 @@ class HelmetHUD3D:
             if accessory:
                 name = accessory.get_name()
                 item_color = self.RARITY_COLORS.get(accessory.rarity, (1, 1, 1))
-                self.accessory_text.text = f"💍 {name}"
+                self.accessory_text.text = f"ACC {name}"
                 self.accessory_text.color = color.rgb(*item_color)
             else:
-                self.accessory_text.text = "💍 None"
+                self.accessory_text.text = "ACC None"
                 self.accessory_text.color = color.rgba(0.5, 0.5, 0.5, 1)
             self._last_accessory = accessory
 
@@ -604,10 +604,10 @@ class HelmetHUD3D:
             if boots:
                 name = boots.get_name()
                 item_color = self.RARITY_COLORS.get(boots.rarity, (1, 1, 1))
-                self.boots_text.text = f"👢 {name}"
+                self.boots_text.text = f"BOT {name}"
                 self.boots_text.color = color.rgb(*item_color)
             else:
-                self.boots_text.text = "👢 None"
+                self.boots_text.text = "BOT None"
                 self.boots_text.color = color.rgba(0.5, 0.5, 0.5, 1)
             self._last_boots = boots
 
@@ -629,23 +629,23 @@ class HelmetHUD3D:
 
         # Attack
         if player.attack != self._last_attack:
-            self.attack_text.text = f"⚔ {player.attack}"
+            self.attack_text.text = f"ATK {player.attack}"
             self._last_attack = player.attack
 
         # Defense
         if player.defense != self._last_defense:
-            self.defense_text.text = f"🛡 {player.defense}"
+            self.defense_text.text = f"DEF {player.defense}"
             self._last_defense = player.defense
 
         # Depth
         if self.game.current_level != self._last_depth:
-            self.depth_text.text = f"📍 D:{self.game.current_level}"
+            self.depth_text.text = f"D:{self.game.current_level}"
             self._last_depth = self.game.current_level
 
         # Exploration
         exploration_percent = self._calculate_exploration_percentage()
         if abs(exploration_percent - self._last_exploration) > 0.1:
-            self.exploration_text.text = f"🗺 {exploration_percent:.0f}%"
+            self.exploration_text.text = f"MAP {exploration_percent:.0f}%"
             self._last_exploration = exploration_percent
 
         # Stealth (Rogue only)

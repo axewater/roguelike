@@ -76,6 +76,7 @@ class ModernControlPanel(QWidget):
     undo_requested = pyqtSignal()
     redo_requested = pyqtSignal()
     export_requested = pyqtSignal()
+    attack_requested = pyqtSignal()
 
     SPINBOX_STYLE = """
         QSpinBox {
@@ -95,29 +96,47 @@ class ModernControlPanel(QWidget):
             border: 2px solid #a78bfa;
             background-color: #353535;
         }
-        QSpinBox::up-button, QSpinBox::down-button {
+        QSpinBox::up-button {
             background-color: #3a3a3a;
             border-radius: 3px;
-            width: 20px;
+            border: none;
+            width: 24px;
+            subcontrol-origin: border;
+            subcontrol-position: top right;
         }
-        QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+        QSpinBox::down-button {
+            background-color: #3a3a3a;
+            border-radius: 3px;
+            border: none;
+            width: 24px;
+            subcontrol-origin: border;
+            subcontrol-position: bottom right;
+        }
+        QSpinBox::up-button:hover {
+            background-color: #8b5cf6;
+        }
+        QSpinBox::down-button:hover {
             background-color: #8b5cf6;
         }
         QSpinBox::up-arrow {
-            image: none;
+            width: 0;
+            height: 0;
             border-left: 5px solid transparent;
             border-right: 5px solid transparent;
-            border-bottom: 5px solid #e0e0e0;
-            width: 0px;
-            height: 0px;
+            border-bottom: 6px solid #e0e0e0;
         }
         QSpinBox::down-arrow {
-            image: none;
+            width: 0;
+            height: 0;
             border-left: 5px solid transparent;
             border-right: 5px solid transparent;
-            border-top: 5px solid #e0e0e0;
-            width: 0px;
-            height: 0px;
+            border-top: 6px solid #e0e0e0;
+        }
+        QSpinBox::up-arrow:hover {
+            border-bottom-color: #ffffff;
+        }
+        QSpinBox::down-arrow:hover {
+            border-top-color: #ffffff;
         }
     """
 
@@ -128,6 +147,7 @@ class ModernControlPanel(QWidget):
             border: 2px solid #4a4a4a;
             border-radius: 6px;
             padding: 5px 10px;
+            padding-right: 30px;
             font-size: 11pt;
             font-weight: bold;
         }
@@ -140,16 +160,25 @@ class ModernControlPanel(QWidget):
             background-color: #353535;
         }
         QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 28px;
+            background-color: #3a3a3a;
+            border-radius: 3px;
             border: none;
-            width: 25px;
+        }
+        QComboBox::drop-down:hover {
+            background-color: #8b5cf6;
         }
         QComboBox::down-arrow {
-            image: none;
+            width: 0;
+            height: 0;
             border-left: 5px solid transparent;
             border-right: 5px solid transparent;
-            border-top: 5px solid #e0e0e0;
-            width: 0px;
-            height: 0px;
+            border-top: 6px solid #e0e0e0;
+        }
+        QComboBox::down-arrow:hover {
+            border-top-color: #ffffff;
         }
         QComboBox QAbstractItemView {
             background-color: #2a2a2a;
@@ -245,6 +274,7 @@ class ModernControlPanel(QWidget):
         self.tentacles_spin.setRange(1, 12)
         self.tentacles_spin.setValue(self._num_tentacles)
         self.tentacles_spin.setMinimumHeight(35)
+        self.tentacles_spin.setButtonSymbols(QSpinBox.ButtonSymbols.UpDownArrows)
         self.tentacles_spin.setStyleSheet(self.SPINBOX_STYLE)
         self.tentacles_spin.valueChanged.connect(self._on_tentacles_changed)
         layout.addWidget(self.tentacles_spin)
@@ -256,6 +286,7 @@ class ModernControlPanel(QWidget):
         self.segments_spin.setRange(5, 20)
         self.segments_spin.setValue(self._segments)
         self.segments_spin.setMinimumHeight(35)
+        self.segments_spin.setButtonSymbols(QSpinBox.ButtonSymbols.UpDownArrows)
         self.segments_spin.setStyleSheet(self.SPINBOX_STYLE)
         self.segments_spin.valueChanged.connect(self._on_segments_changed)
         layout.addWidget(self.segments_spin)
@@ -298,6 +329,7 @@ class ModernControlPanel(QWidget):
         self.fourier_waves_spin.setRange(1, 7)
         self.fourier_waves_spin.setValue(3)
         self.fourier_waves_spin.setMinimumHeight(35)
+        self.fourier_waves_spin.setButtonSymbols(QSpinBox.ButtonSymbols.UpDownArrows)
         self.fourier_waves_spin.setStyleSheet(self.SPINBOX_STYLE)
         self.fourier_waves_spin.valueChanged.connect(self._on_fourier_changed)
         fourier_layout.addWidget(self.fourier_waves_spin)
@@ -405,6 +437,7 @@ class ModernControlPanel(QWidget):
         self.branch_depth_spin.setRange(0, 3)
         self.branch_depth_spin.setValue(self._branch_depth)
         self.branch_depth_spin.setMinimumHeight(35)
+        self.branch_depth_spin.setButtonSymbols(QSpinBox.ButtonSymbols.UpDownArrows)
         self.branch_depth_spin.setStyleSheet(self.SPINBOX_STYLE)
         self.branch_depth_spin.valueChanged.connect(self._on_branching_changed)
         layout.addWidget(self.branch_depth_spin)
@@ -416,6 +449,7 @@ class ModernControlPanel(QWidget):
         self.branch_count_spin.setRange(1, 3)
         self.branch_count_spin.setValue(self._branch_count)
         self.branch_count_spin.setMinimumHeight(35)
+        self.branch_count_spin.setButtonSymbols(QSpinBox.ButtonSymbols.UpDownArrows)
         self.branch_count_spin.setStyleSheet(self.SPINBOX_STYLE)
         self.branch_count_spin.valueChanged.connect(self._on_branching_changed)
         layout.addWidget(self.branch_count_spin)
@@ -515,6 +549,32 @@ class ModernControlPanel(QWidget):
             layout.addWidget(btn)
 
         layout.addStretch()
+
+        # Attack button (prominent)
+        self.attack_btn = QPushButton("⚡ ATTACK! ⚡")
+        self.attack_btn.setMinimumHeight(55)
+        self.attack_btn.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #dc2626, stop:1 #ea580c);
+                border: 2px solid #f97316;
+                font-weight: bold;
+                font-size: 14pt;
+                letter-spacing: 1px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #ef4444, stop:1 #f97316);
+                border: 2px solid #fb923c;
+            }
+            QPushButton:pressed {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #b91c1c, stop:1 #c2410c);
+                border: 2px solid #ea580c;
+            }
+        """)
+        self.attack_btn.clicked.connect(self.attack_requested.emit)
+        layout.addWidget(self.attack_btn)
 
         # Actions
         self.undo_btn = QPushButton("Undo")

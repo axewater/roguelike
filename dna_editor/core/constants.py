@@ -101,3 +101,33 @@ SHADOW_OPACITY_STEP = 4  # Opacity reduction per layer - small steps to prevent 
 BODY_SCALE = 1.2
 BODY_PULSE_AMOUNT = 0.05
 BODY_PULSE_SPEED = 1.5
+
+# Toon Shader / Cel-Shading
+TOON_CONTACT_SHADOW_SIZE = 0.6  # Shadow sphere size as fraction of segment (0.6 = 60%)
+TOON_CONTACT_SHADOW_OPACITY = 60  # Shadow opacity 0-255 (60 = semi-transparent)
+TOON_LIGHTING_BANDS = 4  # Number of discrete lighting bands (4 = full, medium, dark, shadow)
+
+# Attack Animation (Whip Physics)
+ATTACK_DURATION = 1.2  # Total attack cycle duration in seconds
+ATTACK_WIND_UP_END = 0.2  # Wind-up phase ends at this time (pull back)
+ATTACK_STRIKE_END = 0.5  # Strike phase ends at this time (forward lash)
+ATTACK_FOLLOW_END = 0.8  # Follow-through phase ends at this time (continue motion)
+ATTACK_RETURN_END = 1.2  # Return phase ends (ease back to idle)
+
+# Whip wave propagation (exponential traveling wave)
+WHIP_SPEED = 8.0  # Angular frequency (higher = faster wave travel)
+WHIP_ACCELERATION = 3.5  # Exponential growth factor (higher = more tip acceleration)
+WHIP_AMPLITUDE = 0.8  # Base amplitude of whip wave motion
+
+# Dynamic stretching (distance-based extension)
+STRETCH_THRESHOLD = 3.0  # Distance to camera before stretching kicks in
+STRETCH_MULTIPLIER = 0.5  # How much to extend (0.5 = 50% of excess distance)
+STRETCH_MAX = 2.0  # Maximum stretch factor (2.0 = can extend to 200% original length)
+
+# Helical curl (spiral slash motion at tips)
+CURL_INTENSITY = 0.3  # Spiral radius multiplier
+CURL_SPEED = 10.0  # Spiral rotation speed (radians per second)
+CURL_TWIST_FACTOR = 0.5  # How much twist increases per segment
+
+# Wind-up motion (pull back before strike)
+WIND_UP_DISTANCE = 0.3  # How far to pull back during wind-up phase

@@ -34,7 +34,7 @@ class EditorWindow(QMainWindow):
 
         # Apply modern dark theme stylesheet with enhanced visuals
         self.setStyleSheet("""
-            QMainWindow {
+            QMainWindow, QWidget {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                                            stop:0 #1a1a1a, stop:1 #1e1e1e);
             }
@@ -63,12 +63,24 @@ class EditorWindow(QMainWindow):
                 color: #e5e5e5;
                 font-size: 11pt;
             }
-            QSpinBox, QComboBox {
+            QSpinBox {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                                            stop:0 #3a3a3a, stop:1 #323232);
                 border: 2px solid #4a4a4a;
                 border-radius: 8px;
                 padding: 10px;
+                color: #e5e5e5;
+                font-size: 12pt;
+                min-height: 45px;
+                selection-background-color: #6366f1;
+            }
+            QComboBox {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #3a3a3a, stop:1 #323232);
+                border: 2px solid #4a4a4a;
+                border-radius: 8px;
+                padding: 10px;
+                padding-right: 35px;
                 color: #e5e5e5;
                 font-size: 12pt;
                 min-height: 45px;
@@ -82,24 +94,68 @@ class EditorWindow(QMainWindow):
             QSpinBox:hover, QComboBox:hover {
                 border: 2px solid #8b5cf6;
             }
-            QSpinBox::up-button, QSpinBox::down-button {
-                width: 20px;
-                border-radius: 4px;
+            QSpinBox::up-button {
                 background: #4a4a4a;
+                border-radius: 4px;
+                border: none;
+                width: 24px;
+                subcontrol-origin: border;
+                subcontrol-position: top right;
             }
-            QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+            QSpinBox::down-button {
+                background: #4a4a4a;
+                border-radius: 4px;
+                border: none;
+                width: 24px;
+                subcontrol-origin: border;
+                subcontrol-position: bottom right;
+            }
+            QSpinBox::up-button:hover {
                 background: #6366f1;
             }
-            QComboBox::drop-down {
-                border: none;
-                width: 30px;
+            QSpinBox::down-button:hover {
+                background: #6366f1;
             }
-            QComboBox::down-arrow {
-                image: none;
+            QSpinBox::up-arrow {
+                width: 0;
+                height: 0;
                 border-left: 5px solid transparent;
                 border-right: 5px solid transparent;
-                border-top: 5px solid #8b5cf6;
-                margin-right: 8px;
+                border-bottom: 6px solid #e0e0e0;
+            }
+            QSpinBox::down-arrow {
+                width: 0;
+                height: 0;
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 6px solid #e0e0e0;
+            }
+            QSpinBox::up-arrow:hover {
+                border-bottom-color: #ffffff;
+            }
+            QSpinBox::down-arrow:hover {
+                border-top-color: #ffffff;
+            }
+            QComboBox::drop-down {
+                subcontrol-origin: padding;
+                subcontrol-position: top right;
+                width: 28px;
+                background-color: #3a3a3a;
+                border-radius: 3px;
+                border: none;
+            }
+            QComboBox::drop-down:hover {
+                background-color: #8b5cf6;
+            }
+            QComboBox::down-arrow {
+                width: 0;
+                height: 0;
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 6px solid #e0e0e0;
+            }
+            QComboBox::down-arrow:hover {
+                border-top-color: #ffffff;
             }
             QPushButton {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
@@ -176,6 +232,7 @@ class EditorWindow(QMainWindow):
         self.control_panel.undo_requested.connect(self._on_undo)
         self.control_panel.redo_requested.connect(self._on_redo)
         self.control_panel.export_requested.connect(self._on_export)
+        self.control_panel.attack_requested.connect(self._on_attack)
 
         # Wrap control panel in scroll area
         scroll_area = QScrollArea()
@@ -341,6 +398,10 @@ class EditorWindow(QMainWindow):
         # Update menu actions
         self.undo_action.setEnabled(can_undo)
         self.redo_action.setEnabled(can_redo)
+
+    def _on_attack(self):
+        """Handle attack button press."""
+        self.renderer.trigger_attack()
 
     def _on_export(self):
         """Handle export to JSON."""

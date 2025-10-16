@@ -191,38 +191,45 @@ class UrsinaRenderer:
             unlit=True
         )
 
-        # 3-point lighting system
+        # Enhanced lighting system for toon/cel-shading
+        # Key: Lower ambient + stronger directional = clearer lighting bands
         self.lighting = {}
+
+        # Reduced ambient for darker shadows and more pronounced bands
         self.lighting['ambient'] = self.AmbientLight(
-            color=self.color.rgb(0.2, 0.2, 0.25),
-            intensity=0.2
+            color=self.color.rgb(0.15, 0.15, 0.18),
+            intensity=0.15  # Reduced from 0.2 to 0.15
         )
 
+        # Stronger key light from top-right for clear main lighting band
         self.lighting['key'] = self.DirectionalLight(
-            position=(5, 8, 3),
-            rotation=(50, -35, 0),
-            color=self.color.rgb(1.0, 0.98, 0.94),
-            intensity=1.5
+            position=(6, 10, 4),
+            rotation=(55, -30, 0),
+            color=self.color.rgb(1.0, 0.98, 0.95),
+            intensity=2.2  # Increased from 1.5 to 2.2 for stronger bands
         )
 
+        # Subtle fill light to soften shadows slightly
         self.lighting['fill'] = self.DirectionalLight(
-            position=(-3, 4, -2),
-            rotation=(120, 45, 0),
-            color=self.color.rgb(0.7, 0.75, 0.85),
-            intensity=0.6
+            position=(-4, 5, -3),
+            rotation=(125, 40, 0),
+            color=self.color.rgb(0.6, 0.65, 0.75),
+            intensity=0.4  # Reduced from 0.6 to 0.4
         )
 
+        # Rim light for edge definition (helps separate overlapping spheres)
         self.lighting['rim'] = self.DirectionalLight(
-            position=(-2, 3, -5),
-            rotation=(150, 20, 0),
-            color=self.color.rgb(0.6, 0.7, 1.0),
-            intensity=0.8
+            position=(-3, 4, -6),
+            rotation=(145, 25, 0),
+            color=self.color.rgb(0.5, 0.6, 0.9),
+            intensity=0.6  # Reduced from 0.8 to 0.6
         )
 
+        # Point light near creature center for interior depth
         self.lighting['point'] = self.PointLight(
-            position=(0, 2, 0),
-            color=self.color.rgb(1.0, 0.95, 0.9),
-            intensity=0.4
+            position=(0, 1, 0),
+            color=self.color.rgb(1.0, 0.96, 0.92),
+            intensity=0.3  # Reduced from 0.4 to 0.3
         )
 
         # Layered circle shadow for soft shadow effect
@@ -302,6 +309,13 @@ class UrsinaRenderer:
             import traceback
             traceback.print_exc()
 
+    def trigger_attack(self):
+        """Trigger attack animation on creature."""
+        if self.creature:
+            # Get camera position and pass it to creature
+            camera_pos = self.camera.position
+            self.creature.start_attack(camera_pos)
+
     def _update_animation(self):
         """Update creature animation and handle rendering."""
         if self.ursina_app:
@@ -313,9 +327,9 @@ class UrsinaRenderer:
                 from ursina import time as ursina_time
                 self.animation_time += ursina_time.dt
 
-                # Update creature animation
+                # Update creature animation (pass camera position for attack targeting)
                 if self.creature:
-                    self.creature.update_animation(self.animation_time)
+                    self.creature.update_animation(self.animation_time, self.camera.position)
 
                 # Handle camera controls
                 self._handle_camera_controls()
