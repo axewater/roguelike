@@ -40,11 +40,21 @@ MAX_CAMERA_DISTANCE = 15
 MIN_CAMERA_HEIGHT = 0.5
 MAX_CAMERA_HEIGHT = 5
 
+# Scene positioning
+GROUND_Y = -3.5  # Floor position (below tentacles at y=-2.5)
+SHADOW_Y = -3.45  # Shadow plane just above floor
+
 # Colors
 BODY_COLOR = (0.6, 0.3, 0.7)  # Purple
 GROUND_COLOR = (0.1, 0.1, 0.15)
-SKY_COLOR = (0.05, 0.05, 0.1)
+SKY_COLOR = (0.05, 0.05, 0.1)  # Legacy single color (not used with gradient)
+SKY_GRADIENT_BOTTOM = (0.02, 0.02, 0.08)  # Dark blue-purple at horizon
+SKY_GRADIENT_TOP = (0.08, 0.08, 0.15)  # Lighter blue at top
 DEBUG_MARKER_COLOR = (1, 1, 0)  # Yellow
+
+# Shadow
+SHADOW_SIZE = 8  # Shadow plane scale
+SHADOW_OPACITY = 100  # 0-255
 
 # Body
 BODY_SCALE = 1.2

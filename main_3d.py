@@ -236,6 +236,10 @@ class GameController(Entity):
         self.camera_yaw = 0.0  # Current yaw in degrees (0 = North, 90 = East, 180 = South, 270 = West)
         self.target_camera_yaw = 0.0  # Target yaw for smooth interpolation
 
+        # First-person camera pitch (vertical tilt)
+        self.camera_pitch = c.DEFAULT_CAMERA_PITCH  # Current pitch in degrees (negative = looking down)
+        self.target_camera_pitch = c.DEFAULT_CAMERA_PITCH  # Target pitch for smooth interpolation
+
         # Track if game is over
         self.game_over_displayed = False
 
@@ -268,6 +272,9 @@ class GameController(Entity):
 
         # Update camera rotation (smooth interpolation)
         self._update_camera_rotation(dt)
+
+        # Update camera pitch (smooth interpolation)
+        self._update_camera_pitch(dt)
 
         # Handle camera rotation input (arrow keys)
         self._handle_camera_rotation()
@@ -562,6 +569,32 @@ class GameController(Entity):
 
             # Update renderer camera
             self.renderer.camera_yaw = self.camera_yaw
+
+    def _update_camera_pitch(self, dt):
+        """Smoothly interpolate camera pitch to focus on enemy directly in front"""
+        # Check if there's an enemy in the tile directly ahead
+        enemy_pos = self.renderer.find_enemy_in_front(self.camera_yaw)
+
+        # Set target pitch
+        if enemy_pos:
+            # Enemy directly in front - tilt down to focus on it
+            self.target_camera_pitch = c.ENEMY_FOCUS_PITCH
+        else:
+            # No enemy - look straight ahead
+            self.target_camera_pitch = c.DEFAULT_CAMERA_PITCH
+
+        # Smooth interpolation
+        if abs(self.camera_pitch - self.target_camera_pitch) > 0.1:
+            pitch_diff = self.target_camera_pitch - self.camera_pitch
+            pitch_step = c.CAMERA_PITCH_SPEED * dt * 60  # Scale by dt and normalize for 60fps
+
+            if abs(pitch_diff) < pitch_step:
+                self.camera_pitch = self.target_camera_pitch
+            else:
+                self.camera_pitch += pitch_step * (1 if pitch_diff > 0 else -1)
+
+            # Update renderer camera pitch
+            self.renderer.camera_pitch = self.camera_pitch
 
     def _handle_camera_rotation(self):
         """Handle arrow key camera rotation input"""

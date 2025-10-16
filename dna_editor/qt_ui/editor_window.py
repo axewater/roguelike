@@ -16,14 +16,7 @@ import os
 
 from .control_panel import ControlPanel
 from .ursina_renderer import UrsinaRenderer
-
-# Add parent directory to path for imports
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if parent_dir not in sys.path:
-    sys.path.insert(0, parent_dir)
-
-# Import state manager from parent
-from dna_editor_copy.controllers.state_manager import StateManager
+from ..controllers.state_manager import StateManager
 
 
 class EditorWindow(QMainWindow):

@@ -30,7 +30,13 @@ class ViewportWidget(QWidget):
         # Scene components
         self.ground = None
         self.sky = None
+        self.sky_top = None
         self.camera_pivot = None
+
+        # Camera orbit state
+        self.camera_angle = 0
+        self.camera_height = 2
+        self.camera_distance = 6
 
         self._init_ui()
         self._init_ursina()
@@ -98,9 +104,9 @@ class ViewportWidget(QWidget):
             # Create scene
             self._create_scene()
 
-            # Set up camera
-            camera.position = (0, 2, -6)
-            camera.rotation_x = 10
+            # Set up camera with orbit position
+            camera.position = (0, self.camera_height, -self.camera_distance)
+            camera.look_at((0, 0, 0))
             camera.fov = 60
 
             # Animation timer
@@ -117,6 +123,22 @@ class ViewportWidget(QWidget):
 
     def _create_scene(self):
         """Create scene elements (ground, sky, lighting)."""
+        # Import constants
+        try:
+            from ..core.constants import (
+                GROUND_Y, SHADOW_Y, GROUND_COLOR, SHADOW_SIZE, SHADOW_OPACITY,
+                SKY_GRADIENT_BOTTOM, SKY_GRADIENT_TOP
+            )
+        except ImportError:
+            # Fallback values
+            GROUND_Y = -3.5
+            SHADOW_Y = -3.45
+            GROUND_COLOR = (0.1, 0.1, 0.15)
+            SHADOW_SIZE = 8
+            SHADOW_OPACITY = 100
+            SKY_GRADIENT_BOTTOM = (0.02, 0.02, 0.08)
+            SKY_GRADIENT_TOP = (0.08, 0.08, 0.15)
+
         Entity = self.ursina_modules['Entity']
         Sky = self.ursina_modules['Sky']
         color = self.ursina_modules['color']
@@ -124,17 +146,34 @@ class ViewportWidget(QWidget):
         DirectionalLight = self.ursina_modules['DirectionalLight']
         PointLight = self.ursina_modules['PointLight']
 
-        # Ground
+        # Ground (positioned below tentacles)
         self.ground = Entity(
             model='plane',
             scale=20,
-            color=color.rgb(0.1, 0.1, 0.15),
-            position=(0, -1, 0),
+            color=color.rgb(*GROUND_COLOR),
+            position=(0, GROUND_Y, 0),
             shader='basic_lighting_shader'
         )
 
-        # Sky
-        self.sky = Sky(color=color.rgb(0.05, 0.05, 0.1))
+        # Gradient sky (dark at horizon, lighter at top)
+        # Create a large inverted sphere with gradient from bottom to top
+        self.sky = Entity(
+            model='sphere',
+            scale=500,
+            color=color.rgb(*SKY_GRADIENT_BOTTOM),
+            double_sided=True,
+            unlit=True
+        )
+        # Add gradient effect using top hemisphere color
+        self.sky_top = Entity(
+            model='sphere',
+            scale=499,
+            position=(0, 250, 0),
+            color=color.rgb(*SKY_GRADIENT_TOP),
+            double_sided=True,
+            unlit=True,
+            alpha=0.5
+        )
 
         # Lighting setup (3-point lighting)
         self.ambient_light = AmbientLight(
@@ -169,12 +208,12 @@ class ViewportWidget(QWidget):
             intensity=0.4
         )
 
-        # Shadow plane
+        # Improved shadow plane (larger, positioned on new floor)
         self.shadow_plane = Entity(
             model='plane',
-            scale=(3, 1, 3),
-            color=color.rgba(0, 0, 0, 80),
-            position=(0, -0.95, 0),
+            scale=(SHADOW_SIZE, 1, SHADOW_SIZE),
+            color=color.rgba(0, 0, 0, SHADOW_OPACITY),
+            position=(0, SHADOW_Y, 0),
             rotation_x=90,
             unlit=True
         )
@@ -192,14 +231,8 @@ class ViewportWidget(QWidget):
             taper_factor: Taper factor
         """
         try:
-            # Import creature model (use absolute import for PyQt6 version)
-            import sys
-            import os
-            parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            if parent_dir not in sys.path:
-                sys.path.insert(0, parent_dir)
-
-            from dna_editor_copy.models.creature import TentacleCreature
+            # Import creature model (use relative import)
+            from ..models.creature import TentacleCreature
 
             # Destroy old creature
             if self.creature:
@@ -249,25 +282,52 @@ class ViewportWidget(QWidget):
                 pass
 
     def _handle_camera_controls(self):
-        """Handle mouse camera controls."""
+        """Handle mouse camera controls with orbit system."""
         try:
             camera = self.ursina_modules['camera']
             held_keys = self.ursina_modules['held_keys']
             mouse = self.ursina_modules['mouse']
+            math = self.ursina_modules['math']
 
-            # Mouse drag to rotate
+            # Import constants for limits
+            try:
+                from ..core.constants import (
+                    MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE,
+                    MIN_CAMERA_HEIGHT, MAX_CAMERA_HEIGHT
+                )
+            except ImportError:
+                MIN_CAMERA_DISTANCE = 2
+                MAX_CAMERA_DISTANCE = 15
+                MIN_CAMERA_HEIGHT = 0.5
+                MAX_CAMERA_HEIGHT = 5
+
+            # Mouse drag to orbit
             if mouse.left:
-                camera.rotation_y += mouse.velocity[0] * 50
-                camera.rotation_x -= mouse.velocity[1] * 50
-                camera.rotation_x = max(-80, min(80, camera.rotation_x))
+                self.camera_angle += mouse.velocity[0] * 200
+                self.camera_height += mouse.velocity[1] * 5
+
+            # Clamp camera height
+            self.camera_height = max(MIN_CAMERA_HEIGHT, min(MAX_CAMERA_HEIGHT, self.camera_height))
 
             # Scroll to zoom
-            camera.position += camera.forward * mouse.scroll * 0.5
+            if mouse.scroll != 0:
+                self.camera_distance -= mouse.scroll * 0.5
+                self.camera_distance = max(MIN_CAMERA_DISTANCE, min(MAX_CAMERA_DISTANCE, self.camera_distance))
+
+            # Calculate camera position using orbit math
+            angle_rad = math.radians(self.camera_angle)
+            cam_x = self.camera_distance * math.sin(angle_rad)
+            cam_z = -self.camera_distance * math.cos(angle_rad)
+
+            # Update camera position and look at creature center
+            camera.position = (cam_x, self.camera_height, cam_z)
+            camera.look_at((0, 0, 0))
 
             # Reset camera (R key)
             if held_keys['r']:
-                camera.position = (0, 2, -6)
-                camera.rotation = (10, 0, 0)
+                self.camera_angle = 0
+                self.camera_height = 2
+                self.camera_distance = 6
                 held_keys['r'] = False
 
         except Exception as e:

@@ -4,7 +4,8 @@ DNA Editor - PyQt6 Version
 Interactive 3D editor for creating tentacle creatures using mathematical curves.
 
 Usage:
-    python3 dna_editor_copy/main_qt.py
+    cd dna_editor
+    python3 main_qt.py
 
 Features:
 - PyQt6 controls with precise layout
@@ -17,15 +18,20 @@ Features:
 import sys
 import os
 
-# Add parent directory to path for imports
+# Add current directory to path so package imports work
 if __name__ == "__main__":
-    parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(current_dir)
+    if current_dir not in sys.path:
+        sys.path.insert(0, current_dir)
     if parent_dir not in sys.path:
         sys.path.insert(0, parent_dir)
 
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import Qt
-from dna_editor_copy.qt_ui import EditorWindow
+
+# Import using package name
+from dna_editor.qt_ui import EditorWindow
 
 
 def main():

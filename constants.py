@@ -20,6 +20,11 @@ EYE_HEIGHT = 1.4        # Camera height at eye level (first-person)
 CAMERA_ROTATION_SPEED = 8.0  # Rotation interpolation speed (higher = snappier)
 CAMERA_FOV_FPS = 90     # Field of view for first-person (wider than third-person)
 
+# Camera pitch (vertical tilt) settings
+DEFAULT_CAMERA_PITCH = 0.0    # Default pitch: look straight ahead
+CAMERA_PITCH_SPEED = 8.0      # Pitch interpolation speed (fast for responsive feel)
+ENEMY_FOCUS_PITCH = 20.0      # Degrees to tilt down when focusing on adjacent enemy
+
 # World settings
 WALL_HEIGHT = 2.0       # 3D wall height in world units
 PLAYER_HEIGHT = 1.5     # Player model height

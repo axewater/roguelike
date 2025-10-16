@@ -2,12 +2,7 @@
 State manager - handles undo/redo history.
 """
 
-try:
-    # Try relative import (for Ursina version)
-    from ..core.constants import MAX_HISTORY_SIZE
-except ImportError:
-    # Fall back to absolute import (for PyQt6 version)
-    from dna_editor_copy.core.constants import MAX_HISTORY_SIZE
+from ..core.constants import MAX_HISTORY_SIZE
 
 
 class StateManager:

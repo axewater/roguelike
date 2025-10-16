@@ -48,6 +48,7 @@ class Renderer3D:
 
         # Camera state
         self.camera_yaw = 0.0  # Camera yaw (set by GameController)
+        self.camera_pitch = c.DEFAULT_CAMERA_PITCH  # Camera pitch (vertical tilt)
         self.camera_initialized = False  # Track if camera has been positioned initially
         self.base_camera_pos = Vec3(0, 0, 0)  # Store base camera position for shake
 
@@ -440,6 +441,52 @@ class Renderer3D:
                 if (x, y) in self.fog_entities:
                     self.fog_entities[(x, y)].visible = False
 
+    def find_enemy_in_front(self, camera_yaw: float) -> Optional[Tuple[float, float, float]]:
+        """
+        Check if there's an enemy in the tile directly in front of the player
+
+        Args:
+            camera_yaw: Current camera yaw angle in degrees
+
+        Returns:
+            Tuple of (x, y, z) 3D position of enemy in front, or None
+        """
+        if not self.game.player or not self.game.enemies:
+            return None
+
+        # Get player position
+        player_x = self.game.player.x
+        player_y = self.game.player.y
+
+        # Calculate the tile directly in front based on camera yaw
+        # Round yaw to nearest 90° for grid-aligned directions
+        yaw = round(camera_yaw / 90) * 90 % 360
+
+        # Map yaw to grid offsets (same as movement system)
+        direction_map = {
+            0: (0, 1),     # South (+Y grid)
+            90: (1, 0),    # East (+X grid)
+            180: (0, -1),  # North (-Y grid)
+            270: (-1, 0),  # West (-X grid)
+        }
+
+        offset_x, offset_y = direction_map.get(yaw, (0, 1))
+        target_x = player_x + offset_x
+        target_y = player_y + offset_y
+
+        # Check if any enemy is at that position
+        for enemy in self.game.enemies:
+            if enemy.x == target_x and enemy.y == target_y:
+                # Check if enemy is visible (fog of war)
+                if self.game.visibility_map and not self.game.visibility_map.is_visible(enemy.x, enemy.y):
+                    continue
+
+                # Enemy found! Return its 3D position
+                from graphics3d.utils import world_to_3d_position
+                return world_to_3d_position(enemy.x, enemy.y, 0.5)
+
+        return None
+
     def update_camera(self):
         """
         Update camera position and rotation
@@ -473,8 +520,8 @@ class Renderer3D:
             shake_offset = self.animation_manager.get_screen_shake_offset()
             camera.position = self.base_camera_pos + shake_offset
 
-            # Set rotation based on yaw (horizontal rotation only)
-            camera.rotation = (0, self.camera_yaw, 0)
+            # Set rotation based on yaw and pitch
+            camera.rotation = (self.camera_pitch, self.camera_yaw, 0)
 
         else:
             # Third-person: Camera follows behind player
