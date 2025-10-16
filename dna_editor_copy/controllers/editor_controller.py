@@ -37,9 +37,6 @@ class EditorController:
         self.state_manager = StateManager()
         self.camera_controller = CameraController()
 
-        # Flag to prevent circular UI updates
-        self._updating_ui = False
-
         # Create creature
         self.creature = None
         self.rebuild_creature()
@@ -76,6 +73,7 @@ class EditorController:
             position=(0, 0, 0),
             shader='basic_lighting_shader'  # Use lighting on debug marker too
         )
+        print("DEBUG: Yellow marker created at origin (0, 0, 0)")
 
     def _setup_lighting(self):
         """Set up advanced 3-point lighting system for dramatic depth."""
@@ -126,6 +124,8 @@ class EditorController:
             unlit=True  # Don't apply lighting to shadow
         )
 
+        print("Advanced Lighting setup: 3-point system (Key + Fill + Rim) + Point light + Shadow")
+
     def _create_ui(self):
         """Create all UI panels."""
         self.info_panel = InfoPanel(on_algorithm_changed=self.set_algorithm)
@@ -159,34 +159,27 @@ class EditorController:
     def rebuild_creature(self):
         """Rebuild creature with current parameters."""
         if self.creature:
-            # Use the creature's rebuild method instead of destroy+recreate
-            self.creature.rebuild(
-                num_tentacles=self.num_tentacles,
-                segments_per_tentacle=self.segments,
-                algorithm=self.algorithm,
-                algorithm_params=self.params[self.algorithm],
-                thickness_base=self.thickness_base,
-                taper_factor=self.taper_factor
-            )
-        else:
-            # Initial creation
-            self.creature = TentacleCreature(
-                num_tentacles=self.num_tentacles,
-                segments_per_tentacle=self.segments,
-                algorithm=self.algorithm,
-                algorithm_params=self.params[self.algorithm],
-                thickness_base=self.thickness_base,
-                taper_factor=self.taper_factor
-            )
+            self.creature.destroy()
+
+        self.creature = TentacleCreature(
+            num_tentacles=self.num_tentacles,
+            segments_per_tentacle=self.segments,
+            algorithm=self.algorithm,
+            algorithm_params=self.params[self.algorithm],
+            thickness_base=self.thickness_base,
+            taper_factor=self.taper_factor
+        )
+
+        print(f"Built: {self.num_tentacles} tentacles, {self.segments} segments, {self.algorithm}")
+        print(f"Params: {self.params[self.algorithm]}")
+        print(f"Thickness: base={self.thickness_base}, taper={self.taper_factor}")
+        print(f"Creature root parent: {self.creature.root.parent}")
 
     def update_ui(self):
         """Update all UI panels with current state."""
-        # Prevent circular updates (UI update triggering callbacks)
-        self._updating_ui = True
         self.info_panel.update(self.num_tentacles, self.segments, self.algorithm)
         self.parameters_panel.update(self.algorithm, self.params[self.algorithm])
         self.thickness_panel.update(self.thickness_base, self.taper_factor)
-        self._updating_ui = False
 
     def set_algorithm(self, algo):
         """
@@ -195,11 +188,10 @@ class EditorController:
         Args:
             algo: 'bezier' or 'fourier'
         """
-        if self.algorithm != algo:  # Only save state if actually changing
-            self._save_state()
-            self.algorithm = algo
-            self.rebuild_creature()
-            self.update_ui()
+        self._save_state()
+        self.algorithm = algo
+        self.rebuild_creature()
+        self.update_ui()
 
     def set_tentacles(self, count):
         """
@@ -208,12 +200,10 @@ class EditorController:
         Args:
             count: Number of tentacles (1-3)
         """
-        new_count = max(MIN_TENTACLES, min(MAX_TENTACLES, count))
-        if self.num_tentacles != new_count:  # Only save state if actually changing
-            self._save_state()
-            self.num_tentacles = new_count
-            self.rebuild_creature()
-            self.update_ui()
+        self._save_state()
+        self.num_tentacles = max(MIN_TENTACLES, min(MAX_TENTACLES, count))
+        self.rebuild_creature()
+        self.update_ui()
 
     def adjust_segments(self, delta):
         """
@@ -222,19 +212,13 @@ class EditorController:
         Args:
             delta: Change in segments (+/- 1)
         """
-        new_segments = max(MIN_SEGMENTS, min(MAX_SEGMENTS, self.segments + delta))
-        if self.segments != new_segments:  # Only save state if actually changing
-            self._save_state()
-            self.segments = new_segments
-            self.rebuild_creature()
-            self.update_ui()
+        self._save_state()
+        self.segments = max(MIN_SEGMENTS, min(MAX_SEGMENTS, self.segments + delta))
+        self.rebuild_creature()
+        self.update_ui()
 
     def on_param_changed(self):
         """Callback when algorithm parameter slider changes."""
-        # Ignore if this is a programmatic UI update (not user action)
-        if self._updating_ui:
-            return
-
         self._save_state()
 
         # Update the parameter based on which algorithm is active
@@ -249,10 +233,6 @@ class EditorController:
 
     def on_thickness_changed(self):
         """Callback when thickness slider changes."""
-        # Ignore if this is a programmatic UI update (not user action)
-        if self._updating_ui:
-            return
-
         self._save_state()
 
         values = self.thickness_panel.get_values()
@@ -277,6 +257,8 @@ class EditorController:
 
         self.rebuild_creature()
         self.update_ui()
+
+        print(f"Loaded preset: {algo} with params {params}")
 
     def _save_state(self):
         """Save current state for undo/redo."""

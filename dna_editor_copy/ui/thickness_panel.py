@@ -105,3 +105,7 @@ class ThicknessPanel:
             'thickness_base': self.thickness_base_slider.value,
             'taper_factor': self.taper_slider.value
         }
+
+    def get_elements(self):
+        """Return all UI elements for cleanup."""
+        return self.elements

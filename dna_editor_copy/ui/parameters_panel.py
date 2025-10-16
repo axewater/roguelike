@@ -178,3 +178,7 @@ class ParametersPanel:
             'num_waves': int(self.fourier_waves_slider.value),
             'amplitude': self.fourier_amp_slider.value
         }
+
+    def get_elements(self):
+        """Return all UI elements for cleanup."""
+        return self.elements

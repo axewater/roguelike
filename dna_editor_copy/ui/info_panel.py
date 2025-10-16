@@ -74,3 +74,7 @@ class InfoPanel:
             color.rgb(0.5, 0.7, 0.5) if algorithm == 'fourier'
             else color.rgb(0.3, 0.3, 0.4)
         )
+
+    def get_elements(self):
+        """Return all UI elements for cleanup."""
+        return self.elements

@@ -2,7 +2,7 @@
 Help overlay - displays keyboard controls and usage instructions.
 """
 
-from ursina import Text, color
+from ursina import Text, color, Panel
 
 
 class HelpOverlay:
@@ -38,13 +38,22 @@ OTHER:
   H - Toggle this help
   ESC - Quit"""
 
+        # Semi-transparent background panel
+        self.background = Panel(
+            scale=(2, 2),
+            color=color.rgba(0, 0, 0, 0.8),
+            position=(0, 0),
+            visible=False
+        )
+        self.elements.append(self.background)
+
         self.overlay = Text(
             text=help_text,
             position=(0, 0),
             origin=(0, 0),
-            scale=0.8,
+            scale=1.2,
             color=color.white,
-            background=True,
+            background=False,
             visible=False
         )
         self.elements.append(self.overlay)
@@ -52,5 +61,10 @@ OTHER:
     def toggle(self):
         """Toggle help overlay visibility."""
         self.visible = not self.visible
+        self.background.visible = self.visible
         self.overlay.visible = self.visible
         return self.visible
+
+    def get_elements(self):
+        """Return all UI elements for cleanup."""
+        return self.elements

@@ -23,6 +23,7 @@ class CameraController:
         # Set initial camera position
         camera.position = Vec3(0, self.camera_height, -self.camera_distance)
         camera.look_at(Vec3(0, 0, 0))
+        print(f"Camera initialized at: {camera.position}, looking at origin")
 
     def update(self):
         """Update camera position based on input."""
@@ -53,6 +54,7 @@ class CameraController:
         self.camera_angle = DEFAULT_CAMERA_ANGLE
         self.camera_height = DEFAULT_CAMERA_HEIGHT
         self.camera_distance = DEFAULT_CAMERA_DISTANCE
+        print("Camera reset")
 
     def handle_reset_key(self):
         """Check for reset key press."""

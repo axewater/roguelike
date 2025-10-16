@@ -57,3 +57,7 @@ class PresetsPanel:
             color=color.rgb(0.5, 0.5, 0.6)
         )
         self.elements.append(self.help_text)
+
+    def get_elements(self):
+        """Return all UI elements for cleanup."""
+        return self.elements
