@@ -7,6 +7,7 @@ into a 3D visualization while keeping all game logic unchanged.
 
 from typing import Dict, List, Optional, Tuple
 from ursina import Entity, camera, Vec3, color as ursina_color, DirectionalLight, AmbientLight, PointLight, scene
+import random
 import constants as c
 from game import Game
 from graphics3d.tiles import create_floor_mesh, create_wall_mesh, create_stairs_mesh, create_ceiling_mesh
@@ -366,6 +367,9 @@ class Renderer3D:
         """
         Create a fog-of-war wall entity for an unexplored tile.
 
+        Fog cubes are oversized (1.15-1.25x) to create natural bleeding
+        into adjacent tiles, combined with the radial alpha gradient texture.
+
         Args:
             x, y: Grid coordinates
 
@@ -374,19 +378,23 @@ class Renderer3D:
         """
         # Lazy-load fog texture on first use
         if self.fog_texture is None:
-            print("Generating fog-of-war texture (512x512)...")
+            print("Generating fog-of-war texture (512x512 with radial alpha gradient)...")
             self.fog_texture = get_fog_of_war_texture(size=512)
             print("✓ Fog texture generated")
 
         # Position fog wall at center height (like walls)
         pos = world_to_3d_position(x, y, c.WALL_HEIGHT / 2)
 
-        # Create semi-transparent vertical fog wall (cube)
+        # Random scale variation for natural fog variation (1.15-1.25x)
+        # This makes fog extend 15-25% beyond its grid square (7.5-12.5% per side)
+        random_scale = random.uniform(1.15, 1.25)
+
+        # Create semi-transparent vertical fog wall (oversized cube)
         fog_wall = Entity(
             model='cube',
             texture=self.fog_texture,
             position=pos,
-            scale=(1, c.WALL_HEIGHT, 1),  # Tall barrier
+            scale=(random_scale, c.WALL_HEIGHT, random_scale),  # Oversized for fog bleeding
             color=ursina_color.white,
             alpha=0.85,  # Semi-transparent for mystery effect
             collider=None  # No collision

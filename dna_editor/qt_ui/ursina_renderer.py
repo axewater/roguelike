@@ -210,7 +210,8 @@ class UrsinaRenderer:
             self.shadow_layers.append(shadow_layer)
 
     def rebuild_creature(self, num_tentacles, segments, algorithm, params, thickness_base, taper_factor,
-                        branch_depth=0, branch_count=1):
+                        branch_depth=0, branch_count=1, body_scale=1.2, tentacle_color=(0.6, 0.3, 0.7),
+                        hue_shift=0.1, anim_speed=2.0, wave_amplitude=0.05, pulse_speed=1.5, pulse_amount=0.05):
         """
         Rebuild creature with new parameters.
 
@@ -223,6 +224,13 @@ class UrsinaRenderer:
             taper_factor: Taper factor
             branch_depth: Maximum branching depth
             branch_count: Number of child branches per tentacle
+            body_scale: Body sphere scale
+            tentacle_color: Base tentacle color (RGB tuple 0-1)
+            hue_shift: Color variation between tentacles
+            anim_speed: Animation wave speed
+            wave_amplitude: Wave motion intensity
+            pulse_speed: Body pulse breathing speed
+            pulse_amount: Body pulse expansion amount
         """
         try:
             # Import creature model (use relative import)
@@ -241,7 +249,14 @@ class UrsinaRenderer:
                 thickness_base=thickness_base,
                 taper_factor=taper_factor,
                 branch_depth=branch_depth,
-                branch_count=branch_count
+                branch_count=branch_count,
+                body_scale=body_scale,
+                tentacle_color=tentacle_color,
+                hue_shift=hue_shift,
+                anim_speed=anim_speed,
+                wave_amplitude=wave_amplitude,
+                pulse_speed=pulse_speed,
+                pulse_amount=pulse_amount
             )
 
             # Calculate total tentacles for logging

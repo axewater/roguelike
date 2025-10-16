@@ -1,0 +1,663 @@
+"""
+Modern 3-column control panel with card-based design.
+"""
+
+from PyQt6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QGroupBox, QLabel, QSlider,
+    QSpinBox, QComboBox, QPushButton, QColorDialog
+)
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QFont, QColor
+from ..core.constants import PRESETS
+
+
+class ColorButton(QPushButton):
+    """Custom button that opens a color picker."""
+    colorChanged = pyqtSignal(tuple)  # Emits RGB tuple (0-1 range)
+
+    def __init__(self, initial_color=(0.6, 0.3, 0.7), parent=None):
+        super().__init__(parent)
+        self.color = initial_color
+        self.setMinimumHeight(45)
+        self.setMinimumWidth(100)
+        self.clicked.connect(self._pick_color)
+        self._update_display()
+
+    def _update_display(self):
+        """Update button appearance to show current color."""
+        r, g, b = [int(c * 255) for c in self.color]
+        self.setStyleSheet(f"""
+            QPushButton {{
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 rgb({r}, {g}, {b}),
+                                           stop:1 rgb({max(0, r-30)}, {max(0, g-30)}, {max(0, b-30)}));
+                border: 2px solid #4a4a4a;
+                border-radius: 8px;
+                min-height: 45px;
+                color: white;
+                font-weight: bold;
+                font-size: 11pt;
+                text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5);
+            }}
+            QPushButton:hover {{
+                border: 2px solid #8b5cf6;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 rgb({min(255, r+20)}, {min(255, g+20)}, {min(255, b+20)}),
+                                           stop:1 rgb({r}, {g}, {b}));
+            }}
+            QPushButton:pressed {{
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 rgb({max(0, r-40)}, {max(0, g-40)}, {max(0, b-40)}),
+                                           stop:1 rgb({max(0, r-20)}, {max(0, g-20)}, {max(0, b-20)}));
+            }}
+        """)
+        self.setText(f"RGB({r}, {g}, {b})")
+
+    def _pick_color(self):
+        """Open color picker dialog."""
+        r, g, b = [int(c * 255) for c in self.color]
+        initial = QColor(r, g, b)
+        color = QColorDialog.getColor(initial, self, "Choose Color")
+
+        if color.isValid():
+            self.color = (color.red() / 255.0, color.green() / 255.0, color.blue() / 255.0)
+            self._update_display()
+            self.colorChanged.emit(self.color)
+
+    def set_color(self, rgb_tuple):
+        """Set color programmatically."""
+        self.color = rgb_tuple
+        self._update_display()
+
+
+class ModernControlPanel(QWidget):
+    """Modern 3-column control panel."""
+
+    creature_changed = pyqtSignal()
+    undo_requested = pyqtSignal()
+    redo_requested = pyqtSignal()
+    export_requested = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        # Initialize all state variables
+        self._num_tentacles = 2
+        self._segments = 12
+        self._algorithm = 'bezier'
+        self._bezier_control_strength = 0.4
+        self._fourier_waves = 3
+        self._fourier_amplitude = 0.15
+        self._thickness_base = 0.25
+        self._taper_factor = 0.6
+        self._branch_depth = 0
+        self._branch_count = 1
+
+        # New appearance parameters
+        self._body_scale = 1.2
+        self._tentacle_color = (0.6, 0.3, 0.7)
+        self._hue_shift = 0.1
+
+        # New animation parameters
+        self._anim_speed = 2.0
+        self._wave_amplitude = 0.05
+        self._pulse_speed = 1.5
+        self._pulse_amount = 0.05
+
+        self._updating = False
+        self._init_ui()
+
+    def _init_ui(self):
+        """Initialize UI with 3-column grid layout."""
+        main_layout = QVBoxLayout()
+        main_layout.setSpacing(20)
+        main_layout.setContentsMargins(20, 20, 20, 20)
+
+        # Title
+        title = QLabel("CREATURE DESIGNER")
+        title.setFont(QFont("Arial", 22, QFont.Weight.Bold))
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setStyleSheet("""
+            color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                  stop:0 #8b5cf6, stop:0.5 #a78bfa, stop:1 #06b6d4);
+            padding: 15px;
+            letter-spacing: 2px;
+        """)
+        main_layout.addWidget(title)
+
+        # 3-column grid
+        grid = QGridLayout()
+        grid.setSpacing(20)
+
+        # Column 1: Shape & Algorithm
+        grid.addWidget(self._create_shape_section(), 0, 0)
+
+        # Column 2: Appearance
+        grid.addWidget(self._create_appearance_section(), 0, 1)
+
+        # Column 3: Branching
+        grid.addWidget(self._create_branching_section(), 0, 2)
+
+        main_layout.addLayout(grid)
+
+        # Full-width Animation section
+        main_layout.addWidget(self._create_animation_section())
+
+        # Full-width Actions
+        main_layout.addWidget(self._create_actions_section())
+
+        main_layout.addStretch()
+        self.setLayout(main_layout)
+
+    def _create_shape_section(self):
+        """Create Shape & Algorithm card."""
+        group = QGroupBox("SHAPE & ALGORITHM")
+        layout = QVBoxLayout()
+        layout.setSpacing(18)
+        layout.setContentsMargins(15, 15, 15, 15)
+
+        # Tentacles
+        layout.addWidget(self._create_label("Tentacles"))
+        self.tentacles_spin = QSpinBox()
+        self.tentacles_spin.setRange(1, 12)
+        self.tentacles_spin.setValue(self._num_tentacles)
+        self.tentacles_spin.valueChanged.connect(self._on_tentacles_changed)
+        layout.addWidget(self.tentacles_spin)
+
+        # Segments
+        layout.addWidget(self._create_label("Segments"))
+        self.segments_spin = QSpinBox()
+        self.segments_spin.setRange(5, 20)
+        self.segments_spin.setValue(self._segments)
+        self.segments_spin.valueChanged.connect(self._on_segments_changed)
+        layout.addWidget(self.segments_spin)
+
+        # Algorithm
+        layout.addWidget(self._create_label("Algorithm"))
+        self.algorithm_combo = QComboBox()
+        self.algorithm_combo.addItems(["Bezier", "Fourier"])
+        self.algorithm_combo.currentTextChanged.connect(self._on_algorithm_changed)
+        layout.addWidget(self.algorithm_combo)
+
+        # Bezier controls
+        self.bezier_widget = QWidget()
+        bezier_layout = QVBoxLayout()
+        bezier_layout.setContentsMargins(0, 10, 0, 0)
+        bezier_layout.addWidget(self._create_label("Control Strength"))
+        self.bezier_slider = QSlider(Qt.Orientation.Horizontal)
+        self.bezier_slider.setRange(10, 80)
+        self.bezier_slider.setValue(40)
+        self.bezier_slider.setMinimumHeight(30)
+        self.bezier_slider.valueChanged.connect(self._on_bezier_changed)
+        bezier_layout.addWidget(self.bezier_slider)
+        self.bezier_value_label = QLabel("0.40")
+        self.bezier_value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.bezier_value_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        bezier_layout.addWidget(self.bezier_value_label)
+        self.bezier_widget.setLayout(bezier_layout)
+        layout.addWidget(self.bezier_widget)
+
+        # Fourier controls
+        self.fourier_widget = QWidget()
+        fourier_layout = QVBoxLayout()
+        fourier_layout.setContentsMargins(0, 10, 0, 0)
+        fourier_layout.addWidget(self._create_label("Wave Count"))
+        self.fourier_waves_spin = QSpinBox()
+        self.fourier_waves_spin.setRange(1, 7)
+        self.fourier_waves_spin.setValue(3)
+        self.fourier_waves_spin.valueChanged.connect(self._on_fourier_changed)
+        fourier_layout.addWidget(self.fourier_waves_spin)
+        fourier_layout.addWidget(self._create_label("Amplitude"))
+        self.fourier_amp_slider = QSlider(Qt.Orientation.Horizontal)
+        self.fourier_amp_slider.setRange(5, 40)
+        self.fourier_amp_slider.setValue(15)
+        self.fourier_amp_slider.setMinimumHeight(30)
+        self.fourier_amp_slider.valueChanged.connect(self._on_fourier_changed)
+        fourier_layout.addWidget(self.fourier_amp_slider)
+        self.fourier_amp_label = QLabel("0.15")
+        self.fourier_amp_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.fourier_amp_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        fourier_layout.addWidget(self.fourier_amp_label)
+        self.fourier_widget.setLayout(fourier_layout)
+        self.fourier_widget.setVisible(False)
+        layout.addWidget(self.fourier_widget)
+
+        layout.addStretch()
+        group.setLayout(layout)
+        return group
+
+    def _create_appearance_section(self):
+        """Create Appearance card."""
+        group = QGroupBox("APPEARANCE")
+        layout = QVBoxLayout()
+        layout.setSpacing(18)
+        layout.setContentsMargins(15, 15, 15, 15)
+
+        # Tentacle Color
+        layout.addWidget(self._create_label("Base Color"))
+        self.color_button = ColorButton(self._tentacle_color)
+        self.color_button.colorChanged.connect(self._on_color_changed)
+        layout.addWidget(self.color_button)
+
+        # Hue Shift
+        layout.addWidget(self._create_label("Color Variation"))
+        self.hue_slider = QSlider(Qt.Orientation.Horizontal)
+        self.hue_slider.setRange(0, 30)
+        self.hue_slider.setValue(int(self._hue_shift * 100))
+        self.hue_slider.setMinimumHeight(30)
+        self.hue_slider.valueChanged.connect(self._on_hue_changed)
+        layout.addWidget(self.hue_slider)
+        self.hue_label = QLabel("0.10")
+        self.hue_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.hue_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.hue_label)
+
+        # Thickness
+        layout.addWidget(self._create_label("Base Thickness"))
+        self.thickness_slider = QSlider(Qt.Orientation.Horizontal)
+        self.thickness_slider.setRange(10, 50)
+        self.thickness_slider.setValue(25)
+        self.thickness_slider.setMinimumHeight(30)
+        self.thickness_slider.valueChanged.connect(self._on_thickness_changed)
+        layout.addWidget(self.thickness_slider)
+        self.thickness_label = QLabel("0.25")
+        self.thickness_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.thickness_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.thickness_label)
+
+        # Taper
+        layout.addWidget(self._create_label("Taper"))
+        self.taper_slider = QSlider(Qt.Orientation.Horizontal)
+        self.taper_slider.setRange(0, 100)
+        self.taper_slider.setValue(60)
+        self.taper_slider.setMinimumHeight(30)
+        self.taper_slider.valueChanged.connect(self._on_taper_changed)
+        layout.addWidget(self.taper_slider)
+        self.taper_label = QLabel("0.60")
+        self.taper_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.taper_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.taper_label)
+
+        # Body Scale
+        layout.addWidget(self._create_label("Body Size"))
+        self.body_scale_slider = QSlider(Qt.Orientation.Horizontal)
+        self.body_scale_slider.setRange(50, 200)
+        self.body_scale_slider.setValue(120)
+        self.body_scale_slider.setMinimumHeight(30)
+        self.body_scale_slider.valueChanged.connect(self._on_body_scale_changed)
+        layout.addWidget(self.body_scale_slider)
+        self.body_scale_label = QLabel("1.20")
+        self.body_scale_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.body_scale_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.body_scale_label)
+
+        layout.addStretch()
+        group.setLayout(layout)
+        return group
+
+    def _create_branching_section(self):
+        """Create Branching card."""
+        group = QGroupBox("BRANCHING")
+        layout = QVBoxLayout()
+        layout.setSpacing(18)
+        layout.setContentsMargins(15, 15, 15, 15)
+
+        # Depth
+        layout.addWidget(self._create_label("Depth"))
+        self.branch_depth_spin = QSpinBox()
+        self.branch_depth_spin.setRange(0, 3)
+        self.branch_depth_spin.setValue(self._branch_depth)
+        self.branch_depth_spin.valueChanged.connect(self._on_branching_changed)
+        layout.addWidget(self.branch_depth_spin)
+
+        # Count
+        layout.addWidget(self._create_label("Count Per Level"))
+        self.branch_count_spin = QSpinBox()
+        self.branch_count_spin.setRange(1, 3)
+        self.branch_count_spin.setValue(self._branch_count)
+        self.branch_count_spin.valueChanged.connect(self._on_branching_changed)
+        layout.addWidget(self.branch_count_spin)
+
+        # Info
+        self.branch_info_label = QLabel("Total: ~24 segments")
+        self.branch_info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.branch_info_label.setStyleSheet("color: #06b6d4; font-size: 11pt; font-weight: bold; padding: 12px; background-color: #164e63; border-radius: 8px; margin-top: 10px; border: 1px solid #0891b2;")
+        layout.addWidget(self.branch_info_label)
+
+        layout.addStretch()
+        group.setLayout(layout)
+        return group
+
+    def _create_animation_section(self):
+        """Create Animation card (full width)."""
+        group = QGroupBox("ANIMATION")
+        layout = QHBoxLayout()
+        layout.setSpacing(25)
+        layout.setContentsMargins(15, 15, 15, 15)
+
+        # Speed
+        speed_layout = QVBoxLayout()
+        speed_layout.addWidget(self._create_label("Wave Speed"))
+        self.anim_speed_slider = QSlider(Qt.Orientation.Horizontal)
+        self.anim_speed_slider.setRange(50, 500)
+        self.anim_speed_slider.setValue(200)
+        self.anim_speed_slider.setMinimumHeight(30)
+        self.anim_speed_slider.valueChanged.connect(self._on_anim_speed_changed)
+        speed_layout.addWidget(self.anim_speed_slider)
+        self.anim_speed_label = QLabel("2.0x")
+        self.anim_speed_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.anim_speed_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        speed_layout.addWidget(self.anim_speed_label)
+        layout.addLayout(speed_layout)
+
+        # Wave Amplitude
+        wave_layout = QVBoxLayout()
+        wave_layout.addWidget(self._create_label("Wave Intensity"))
+        self.wave_amp_slider = QSlider(Qt.Orientation.Horizontal)
+        self.wave_amp_slider.setRange(0, 20)
+        self.wave_amp_slider.setValue(5)
+        self.wave_amp_slider.setMinimumHeight(30)
+        self.wave_amp_slider.valueChanged.connect(self._on_wave_amp_changed)
+        wave_layout.addWidget(self.wave_amp_slider)
+        self.wave_amp_label = QLabel("0.05")
+        self.wave_amp_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.wave_amp_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        wave_layout.addWidget(self.wave_amp_label)
+        layout.addLayout(wave_layout)
+
+        # Pulse Speed
+        pulse_speed_layout = QVBoxLayout()
+        pulse_speed_layout.addWidget(self._create_label("Pulse Speed"))
+        self.pulse_speed_slider = QSlider(Qt.Orientation.Horizontal)
+        self.pulse_speed_slider.setRange(50, 300)
+        self.pulse_speed_slider.setValue(150)
+        self.pulse_speed_slider.setMinimumHeight(30)
+        self.pulse_speed_slider.valueChanged.connect(self._on_pulse_speed_changed)
+        pulse_speed_layout.addWidget(self.pulse_speed_slider)
+        self.pulse_speed_label = QLabel("1.5x")
+        self.pulse_speed_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.pulse_speed_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        pulse_speed_layout.addWidget(self.pulse_speed_label)
+        layout.addLayout(pulse_speed_layout)
+
+        # Pulse Amount
+        pulse_amt_layout = QVBoxLayout()
+        pulse_amt_layout.addWidget(self._create_label("Pulse Amount"))
+        self.pulse_amt_slider = QSlider(Qt.Orientation.Horizontal)
+        self.pulse_amt_slider.setRange(0, 15)
+        self.pulse_amt_slider.setValue(5)
+        self.pulse_amt_slider.setMinimumHeight(30)
+        self.pulse_amt_slider.valueChanged.connect(self._on_pulse_amt_changed)
+        pulse_amt_layout.addWidget(self.pulse_amt_slider)
+        self.pulse_amt_label = QLabel("0.05")
+        self.pulse_amt_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.pulse_amt_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        pulse_amt_layout.addWidget(self.pulse_amt_label)
+        layout.addLayout(pulse_amt_layout)
+
+        group.setLayout(layout)
+        return group
+
+    def _create_actions_section(self):
+        """Create Presets & Actions (full width)."""
+        group = QGroupBox("PRESETS & ACTIONS")
+        layout = QHBoxLayout()
+        layout.setSpacing(12)
+        layout.setContentsMargins(15, 15, 15, 15)
+
+        # Presets
+        for name, algo, params in PRESETS:
+            btn = QPushButton(name)
+            btn.clicked.connect(lambda checked, a=algo, p=params: self._load_preset(a, p))
+            layout.addWidget(btn)
+
+        layout.addStretch()
+
+        # Actions
+        self.undo_btn = QPushButton("Undo")
+        self.undo_btn.clicked.connect(self.undo_requested.emit)
+        self.undo_btn.setEnabled(False)
+        layout.addWidget(self.undo_btn)
+
+        self.redo_btn = QPushButton("Redo")
+        self.redo_btn.clicked.connect(self.redo_requested.emit)
+        self.redo_btn.setEnabled(False)
+        layout.addWidget(self.redo_btn)
+
+        self.export_btn = QPushButton("Export JSON")
+        self.export_btn.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #10b981, stop:1 #059669);
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #34d399, stop:1 #10b981);
+            }
+            QPushButton:pressed {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #059669, stop:1 #047857);
+            }
+        """)
+        self.export_btn.clicked.connect(self.export_requested.emit)
+        layout.addWidget(self.export_btn)
+
+        group.setLayout(layout)
+        return group
+
+    def _create_label(self, text):
+        """Create a styled label."""
+        label = QLabel(text)
+        label.setStyleSheet("color: #d0d0d0; font-size: 10pt; font-weight: 500;")
+        return label
+
+    # Event handlers
+    def _on_tentacles_changed(self, value):
+        if not self._updating:
+            self._num_tentacles = value
+            self._update_branch_info()
+            self.creature_changed.emit()
+
+    def _on_segments_changed(self, value):
+        if not self._updating:
+            self._segments = value
+            self._update_branch_info()
+            self.creature_changed.emit()
+
+    def _on_algorithm_changed(self, text):
+        if not self._updating:
+            self._algorithm = text.lower()
+            self.bezier_widget.setVisible(self._algorithm == 'bezier')
+            self.fourier_widget.setVisible(self._algorithm == 'fourier')
+            self.creature_changed.emit()
+
+    def _on_bezier_changed(self, value):
+        if not self._updating:
+            self._bezier_control_strength = value / 100.0
+            self.bezier_value_label.setText(f"{self._bezier_control_strength:.2f}")
+            self.creature_changed.emit()
+
+    def _on_fourier_changed(self):
+        if not self._updating:
+            self._fourier_waves = self.fourier_waves_spin.value()
+            self._fourier_amplitude = self.fourier_amp_slider.value() / 100.0
+            self.fourier_amp_label.setText(f"{self._fourier_amplitude:.2f}")
+            self.creature_changed.emit()
+
+    def _on_thickness_changed(self, value):
+        if not self._updating:
+            self._thickness_base = value / 100.0
+            self.thickness_label.setText(f"{self._thickness_base:.2f}")
+            self.creature_changed.emit()
+
+    def _on_taper_changed(self, value):
+        if not self._updating:
+            self._taper_factor = value / 100.0
+            self.taper_label.setText(f"{self._taper_factor:.2f}")
+            self.creature_changed.emit()
+
+    def _on_color_changed(self, rgb_tuple):
+        if not self._updating:
+            self._tentacle_color = rgb_tuple
+            self.creature_changed.emit()
+
+    def _on_hue_changed(self, value):
+        if not self._updating:
+            self._hue_shift = value / 100.0
+            self.hue_label.setText(f"{self._hue_shift:.2f}")
+            self.creature_changed.emit()
+
+    def _on_body_scale_changed(self, value):
+        if not self._updating:
+            self._body_scale = value / 100.0
+            self.body_scale_label.setText(f"{self._body_scale:.2f}")
+            self.creature_changed.emit()
+
+    def _on_branching_changed(self):
+        if not self._updating:
+            self._branch_depth = self.branch_depth_spin.value()
+            self._branch_count = self.branch_count_spin.value()
+            self._update_branch_info()
+            self.creature_changed.emit()
+
+    def _on_anim_speed_changed(self, value):
+        if not self._updating:
+            self._anim_speed = value / 100.0
+            self.anim_speed_label.setText(f"{self._anim_speed:.1f}x")
+            self.creature_changed.emit()
+
+    def _on_wave_amp_changed(self, value):
+        if not self._updating:
+            self._wave_amplitude = value / 100.0
+            self.wave_amp_label.setText(f"{self._wave_amplitude:.2f}")
+            self.creature_changed.emit()
+
+    def _on_pulse_speed_changed(self, value):
+        if not self._updating:
+            self._pulse_speed = value / 100.0
+            self.pulse_speed_label.setText(f"{self._pulse_speed:.1f}x")
+            self.creature_changed.emit()
+
+    def _on_pulse_amt_changed(self, value):
+        if not self._updating:
+            self._pulse_amount = value / 100.0
+            self.pulse_amt_label.setText(f"{self._pulse_amount:.2f}")
+            self.creature_changed.emit()
+
+    def _update_branch_info(self):
+        """Update branch info label."""
+        if self._branch_count == 1:
+            branches_per_main = self._branch_depth + 1
+        else:
+            branches_per_main = (self._branch_count ** (self._branch_depth + 1) - 1) // (self._branch_count - 1)
+
+        total_tentacles = self._num_tentacles * branches_per_main
+        total_segments = total_tentacles * self._segments
+        self.branch_info_label.setText(f"Total: ~{total_segments} segments")
+
+    def _load_preset(self, algorithm, params):
+        """Load preset."""
+        self._updating = True
+        self._algorithm = algorithm
+        self.algorithm_combo.setCurrentText(algorithm.capitalize())
+
+        if algorithm == 'bezier':
+            self._bezier_control_strength = params['control_strength']
+            self.bezier_slider.setValue(int(self._bezier_control_strength * 100))
+            self.bezier_widget.setVisible(True)
+            self.fourier_widget.setVisible(False)
+        else:
+            self._fourier_waves = params['num_waves']
+            self._fourier_amplitude = params['amplitude']
+            self.fourier_waves_spin.setValue(self._fourier_waves)
+            self.fourier_amp_slider.setValue(int(self._fourier_amplitude * 100))
+            self.bezier_widget.setVisible(False)
+            self.fourier_widget.setVisible(True)
+
+        self._updating = False
+        self.creature_changed.emit()
+
+    def get_state(self):
+        """Get current state."""
+        return {
+            'num_tentacles': self._num_tentacles,
+            'segments': self._segments,
+            'algorithm': self._algorithm,
+            'params': self.get_algorithm_params(),
+            'thickness_base': self._thickness_base,
+            'taper_factor': self._taper_factor,
+            'branch_depth': self._branch_depth,
+            'branch_count': self._branch_count,
+            'body_scale': self._body_scale,
+            'tentacle_color': self._tentacle_color,
+            'hue_shift': self._hue_shift,
+            'anim_speed': self._anim_speed,
+            'wave_amplitude': self._wave_amplitude,
+            'pulse_speed': self._pulse_speed,
+            'pulse_amount': self._pulse_amount
+        }
+
+    def get_algorithm_params(self):
+        """Get algorithm parameters."""
+        if self._algorithm == 'bezier':
+            return {'control_strength': self._bezier_control_strength}
+        else:
+            return {
+                'num_waves': self._fourier_waves,
+                'amplitude': self._fourier_amplitude
+            }
+
+    def set_state(self, state):
+        """Restore state."""
+        self._updating = True
+
+        self._num_tentacles = state['num_tentacles']
+        self._segments = state['segments']
+        self._algorithm = state['algorithm']
+        self._thickness_base = state['thickness_base']
+        self._taper_factor = state['taper_factor']
+        self._branch_depth = state.get('branch_depth', 0)
+        self._branch_count = state.get('branch_count', 1)
+        self._body_scale = state.get('body_scale', 1.2)
+        self._tentacle_color = state.get('tentacle_color', (0.6, 0.3, 0.7))
+        self._hue_shift = state.get('hue_shift', 0.1)
+        self._anim_speed = state.get('anim_speed', 2.0)
+        self._wave_amplitude = state.get('wave_amplitude', 0.05)
+        self._pulse_speed = state.get('pulse_speed', 1.5)
+        self._pulse_amount = state.get('pulse_amount', 0.05)
+
+        # Update UI
+        self.tentacles_spin.setValue(self._num_tentacles)
+        self.segments_spin.setValue(self._segments)
+        self.algorithm_combo.setCurrentText(self._algorithm.capitalize())
+        self.thickness_slider.setValue(int(self._thickness_base * 100))
+        self.taper_slider.setValue(int(self._taper_factor * 100))
+        self.branch_depth_spin.setValue(self._branch_depth)
+        self.branch_count_spin.setValue(self._branch_count)
+        self.body_scale_slider.setValue(int(self._body_scale * 100))
+        self.color_button.set_color(self._tentacle_color)
+        self.hue_slider.setValue(int(self._hue_shift * 100))
+        self.anim_speed_slider.setValue(int(self._anim_speed * 100))
+        self.wave_amp_slider.setValue(int(self._wave_amplitude * 100))
+        self.pulse_speed_slider.setValue(int(self._pulse_speed * 100))
+        self.pulse_amt_slider.setValue(int(self._pulse_amount * 100))
+
+        params = state['params']
+        if self._algorithm == 'bezier':
+            self._bezier_control_strength = params.get('control_strength', 0.4)
+            self.bezier_slider.setValue(int(self._bezier_control_strength * 100))
+        else:
+            self._fourier_waves = params.get('num_waves', 3)
+            self._fourier_amplitude = params.get('amplitude', 0.15)
+            self.fourier_waves_spin.setValue(self._fourier_waves)
+            self.fourier_amp_slider.setValue(int(self._fourier_amplitude * 100))
+
+        self._update_branch_info()
+        self._updating = False
+        self.creature_changed.emit()
+
+    def set_undo_redo_enabled(self, can_undo, can_redo):
+        """Update undo/redo buttons."""
+        self.undo_btn.setEnabled(can_undo)
+        self.redo_btn.setEnabled(can_redo)

@@ -14,7 +14,7 @@ import json
 import sys
 import os
 
-from .control_panel import ControlPanel
+from .control_panel_modern import ModernControlPanel
 from .ursina_renderer import UrsinaRenderer
 from ..controllers.state_manager import StateManager
 
@@ -29,81 +29,130 @@ class EditorWindow(QMainWindow):
         self.state_manager = StateManager()
 
         self.setWindowTitle("DNA Editor - Creature Designer")
-        self.setFixedSize(1024, 720)  # Modern wide layout
+        self.setFixedSize(1200, 780)  # Modern wide layout with breathing room
         self.move(100, 100)
 
-        # Apply modern dark theme stylesheet
+        # Apply modern dark theme stylesheet with enhanced visuals
         self.setStyleSheet("""
             QMainWindow {
-                background-color: #1e1e1e;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #1a1a1a, stop:1 #1e1e1e);
             }
             QGroupBox {
-                background-color: #2b2b2b;
-                border: 1px solid #444;
-                border-radius: 8px;
-                margin-top: 12px;
-                padding: 15px;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #2d2d2d, stop:1 #252525);
+                border: 1px solid #3a3a3a;
+                border-radius: 10px;
+                margin-top: 16px;
+                padding: 20px;
                 font-weight: bold;
                 color: #e5e5e5;
             }
             QGroupBox::title {
                 subcontrol-origin: margin;
                 subcontrol-position: top left;
-                padding: 5px 10px;
-                background-color: #6366f1;
-                border-radius: 4px;
+                padding: 8px 16px;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                           stop:0 #6366f1, stop:1 #8b5cf6);
+                border-radius: 6px;
                 color: white;
+                font-size: 11pt;
+                font-weight: bold;
             }
             QLabel {
                 color: #e5e5e5;
                 font-size: 11pt;
             }
             QSpinBox, QComboBox {
-                background-color: #3a3a3a;
-                border: 2px solid #555;
-                border-radius: 6px;
-                padding: 8px;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #3a3a3a, stop:1 #323232);
+                border: 2px solid #4a4a4a;
+                border-radius: 8px;
+                padding: 10px;
                 color: #e5e5e5;
                 font-size: 12pt;
                 min-height: 45px;
+                selection-background-color: #6366f1;
             }
             QSpinBox:focus, QComboBox:focus {
                 border: 2px solid #6366f1;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #424242, stop:1 #3a3a3a);
+            }
+            QSpinBox:hover, QComboBox:hover {
+                border: 2px solid #8b5cf6;
+            }
+            QSpinBox::up-button, QSpinBox::down-button {
+                width: 20px;
+                border-radius: 4px;
+                background: #4a4a4a;
+            }
+            QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+                background: #6366f1;
+            }
+            QComboBox::drop-down {
+                border: none;
+                width: 30px;
+            }
+            QComboBox::down-arrow {
+                image: none;
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 5px solid #8b5cf6;
+                margin-right: 8px;
             }
             QPushButton {
-                background-color: #6366f1;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #7c3aed, stop:1 #6366f1);
                 border: none;
-                border-radius: 6px;
+                border-radius: 8px;
                 color: white;
-                padding: 12px;
+                padding: 12px 20px;
                 font-size: 11pt;
                 font-weight: bold;
                 min-height: 45px;
             }
             QPushButton:hover {
-                background-color: #7c3aed;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #8b5cf6, stop:1 #7c3aed);
             }
             QPushButton:pressed {
-                background-color: #5b21b6;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #6d28d9, stop:1 #5b21b6);
+                padding-top: 14px;
+                padding-bottom: 10px;
             }
             QPushButton:disabled {
-                background-color: #444;
-                color: #888;
+                background: #333333;
+                color: #666666;
             }
             QSlider::groove:horizontal {
-                background: #444;
-                height: 8px;
-                border-radius: 4px;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #3a3a3a, stop:1 #2d2d2d);
+                height: 10px;
+                border-radius: 5px;
+                border: 1px solid #4a4a4a;
             }
             QSlider::handle:horizontal {
-                background: #6366f1;
-                width: 20px;
-                height: 20px;
-                margin: -6px 0;
-                border-radius: 10px;
+                background: qradialgradient(cx:0.5, cy:0.5, radius:0.8,
+                                           fx:0.3, fy:0.3,
+                                           stop:0 #a78bfa, stop:1 #6366f1);
+                width: 24px;
+                height: 24px;
+                margin: -8px 0;
+                border-radius: 12px;
+                border: 2px solid #8b5cf6;
             }
             QSlider::handle:horizontal:hover {
-                background: #8b5cf6;
+                background: qradialgradient(cx:0.5, cy:0.5, radius:0.8,
+                                           fx:0.3, fy:0.3,
+                                           stop:0 #c4b5fd, stop:1 #8b5cf6);
+                border: 2px solid #a78bfa;
+            }
+            QSlider::handle:horizontal:pressed {
+                background: qradialgradient(cx:0.5, cy:0.5, radius:0.8,
+                                           fx:0.3, fy:0.3,
+                                           stop:0 #ddd6fe, stop:1 #a78bfa);
             }
         """)
 
@@ -124,7 +173,7 @@ class EditorWindow(QMainWindow):
         layout.setSpacing(0)
 
         # Control panel
-        self.control_panel = ControlPanel()
+        self.control_panel = ModernControlPanel()
         self.control_panel.creature_changed.connect(self._on_creature_changed)
         self.control_panel.undo_requested.connect(self._on_undo)
         self.control_panel.redo_requested.connect(self._on_redo)
@@ -211,7 +260,14 @@ class EditorWindow(QMainWindow):
             thickness_base=state['thickness_base'],
             taper_factor=state['taper_factor'],
             branch_depth=state.get('branch_depth', 0),
-            branch_count=state.get('branch_count', 1)
+            branch_count=state.get('branch_count', 1),
+            body_scale=state.get('body_scale', 1.2),
+            tentacle_color=state.get('tentacle_color', (0.6, 0.3, 0.7)),
+            hue_shift=state.get('hue_shift', 0.1),
+            anim_speed=state.get('anim_speed', 2.0),
+            wave_amplitude=state.get('wave_amplitude', 0.05),
+            pulse_speed=state.get('pulse_speed', 1.5),
+            pulse_amount=state.get('pulse_amount', 0.05)
         )
 
     def _on_undo(self):
@@ -240,7 +296,14 @@ class EditorWindow(QMainWindow):
             thickness_base=state['thickness_base'],
             taper_factor=state['taper_factor'],
             branch_depth=state.get('branch_depth', 0),
-            branch_count=state.get('branch_count', 1)
+            branch_count=state.get('branch_count', 1),
+            body_scale=state.get('body_scale', 1.2),
+            tentacle_color=state.get('tentacle_color', (0.6, 0.3, 0.7)),
+            hue_shift=state.get('hue_shift', 0.1),
+            anim_speed=state.get('anim_speed', 2.0),
+            wave_amplitude=state.get('wave_amplitude', 0.05),
+            pulse_speed=state.get('pulse_speed', 1.5),
+            pulse_amount=state.get('pulse_amount', 0.05)
         )
 
     def _update_undo_redo_state(self):
@@ -269,7 +332,14 @@ class EditorWindow(QMainWindow):
             'thickness_base': state['thickness_base'],
             'taper_factor': state['taper_factor'],
             'branch_depth': state.get('branch_depth', 0),
-            'branch_count': state.get('branch_count', 1)
+            'branch_count': state.get('branch_count', 1),
+            'body_scale': state.get('body_scale', 1.2),
+            'tentacle_color': state.get('tentacle_color', (0.6, 0.3, 0.7)),
+            'hue_shift': state.get('hue_shift', 0.1),
+            'anim_speed': state.get('anim_speed', 2.0),
+            'wave_amplitude': state.get('wave_amplitude', 0.05),
+            'pulse_speed': state.get('pulse_speed', 1.5),
+            'pulse_amount': state.get('pulse_amount', 0.05)
         }
 
         # Open save dialog

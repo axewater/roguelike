@@ -16,7 +16,9 @@ class StateManager:
         self.max_history = MAX_HISTORY_SIZE
 
     def save_state(self, num_tentacles, segments, algorithm, params,
-                   thickness_base, taper_factor, branch_depth=0, branch_count=1):
+                   thickness_base, taper_factor, branch_depth=0, branch_count=1,
+                   body_scale=1.2, tentacle_color=(0.6, 0.3, 0.7), hue_shift=0.1,
+                   anim_speed=2.0, wave_amplitude=0.05, pulse_speed=1.5, pulse_amount=0.05):
         """
         Save current state to history.
 
@@ -29,6 +31,13 @@ class StateManager:
             taper_factor: Taper factor
             branch_depth: Branching depth
             branch_count: Number of branches per tentacle
+            body_scale: Body sphere scale
+            tentacle_color: Base tentacle color (RGB tuple 0-1)
+            hue_shift: Color variation between tentacles
+            anim_speed: Animation wave speed
+            wave_amplitude: Wave motion intensity
+            pulse_speed: Body pulse breathing speed
+            pulse_amount: Body pulse expansion amount
         """
         state = {
             'num_tentacles': num_tentacles,
@@ -38,7 +47,14 @@ class StateManager:
             'thickness_base': thickness_base,
             'taper_factor': taper_factor,
             'branch_depth': branch_depth,
-            'branch_count': branch_count
+            'branch_count': branch_count,
+            'body_scale': body_scale,
+            'tentacle_color': tentacle_color,
+            'hue_shift': hue_shift,
+            'anim_speed': anim_speed,
+            'wave_amplitude': wave_amplitude,
+            'pulse_speed': pulse_speed,
+            'pulse_amount': pulse_amount
         }
 
         # Clear future history if we're not at the end
@@ -92,7 +108,14 @@ class StateManager:
             'thickness_base': state['thickness_base'],
             'taper_factor': state['taper_factor'],
             'branch_depth': state.get('branch_depth', 0),
-            'branch_count': state.get('branch_count', 1)
+            'branch_count': state.get('branch_count', 1),
+            'body_scale': state.get('body_scale', 1.2),
+            'tentacle_color': state.get('tentacle_color', (0.6, 0.3, 0.7)),
+            'hue_shift': state.get('hue_shift', 0.1),
+            'anim_speed': state.get('anim_speed', 2.0),
+            'wave_amplitude': state.get('wave_amplitude', 0.05),
+            'pulse_speed': state.get('pulse_speed', 1.5),
+            'pulse_amount': state.get('pulse_amount', 0.05)
         }
 
     def can_undo(self):
