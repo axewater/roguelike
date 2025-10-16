@@ -82,7 +82,7 @@ class ControlPanel(QWidget):
         tent_layout = QHBoxLayout()
         tent_layout.addWidget(QLabel("Tentacles:"))
         self.tentacles_spin = QSpinBox()
-        self.tentacles_spin.setRange(1, 3)
+        self.tentacles_spin.setRange(1, 12)
         self.tentacles_spin.setValue(self._num_tentacles)
         self.tentacles_spin.valueChanged.connect(self._on_tentacles_changed)
         tent_layout.addWidget(self.tentacles_spin)
