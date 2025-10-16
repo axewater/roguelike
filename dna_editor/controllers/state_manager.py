@@ -79,7 +79,6 @@ class StateManager:
         """
         if self.history_index > 0:
             self.history_index -= 1
-            print(f"Undo (history {self.history_index + 1}/{len(self.history)})")
             return self._get_current_state()
         return None
 
@@ -92,7 +91,6 @@ class StateManager:
         """
         if self.history_index < len(self.history) - 1:
             self.history_index += 1
-            print(f"Redo (history {self.history_index + 1}/{len(self.history)})")
             return self._get_current_state()
         return None
 

@@ -37,7 +37,6 @@ class ColorButton(QPushButton):
                 color: white;
                 font-weight: bold;
                 font-size: 11pt;
-                text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5);
             }}
             QPushButton:hover {{
                 border: 2px solid #8b5cf6;
@@ -77,6 +76,89 @@ class ModernControlPanel(QWidget):
     undo_requested = pyqtSignal()
     redo_requested = pyqtSignal()
     export_requested = pyqtSignal()
+
+    SPINBOX_STYLE = """
+        QSpinBox {
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+            border: 2px solid #4a4a4a;
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 11pt;
+            font-weight: bold;
+        }
+        QSpinBox:hover {
+            border: 2px solid #8b5cf6;
+            background-color: #323232;
+        }
+        QSpinBox:focus {
+            border: 2px solid #a78bfa;
+            background-color: #353535;
+        }
+        QSpinBox::up-button, QSpinBox::down-button {
+            background-color: #3a3a3a;
+            border-radius: 3px;
+            width: 20px;
+        }
+        QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+            background-color: #8b5cf6;
+        }
+        QSpinBox::up-arrow {
+            image: none;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 5px solid #e0e0e0;
+            width: 0px;
+            height: 0px;
+        }
+        QSpinBox::down-arrow {
+            image: none;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid #e0e0e0;
+            width: 0px;
+            height: 0px;
+        }
+    """
+
+    COMBOBOX_STYLE = """
+        QComboBox {
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+            border: 2px solid #4a4a4a;
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 11pt;
+            font-weight: bold;
+        }
+        QComboBox:hover {
+            border: 2px solid #8b5cf6;
+            background-color: #323232;
+        }
+        QComboBox:focus {
+            border: 2px solid #a78bfa;
+            background-color: #353535;
+        }
+        QComboBox::drop-down {
+            border: none;
+            width: 25px;
+        }
+        QComboBox::down-arrow {
+            image: none;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid #e0e0e0;
+            width: 0px;
+            height: 0px;
+        }
+        QComboBox QAbstractItemView {
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+            selection-background-color: #8b5cf6;
+            selection-color: #ffffff;
+            border: 2px solid #8b5cf6;
+        }
+    """
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -152,8 +234,9 @@ class ModernControlPanel(QWidget):
     def _create_shape_section(self):
         """Create Shape & Algorithm card."""
         group = QGroupBox("SHAPE & ALGORITHM")
+        group.setMinimumWidth(280)
         layout = QVBoxLayout()
-        layout.setSpacing(18)
+        layout.setSpacing(12)
         layout.setContentsMargins(15, 15, 15, 15)
 
         # Tentacles
@@ -161,23 +244,32 @@ class ModernControlPanel(QWidget):
         self.tentacles_spin = QSpinBox()
         self.tentacles_spin.setRange(1, 12)
         self.tentacles_spin.setValue(self._num_tentacles)
+        self.tentacles_spin.setMinimumHeight(35)
+        self.tentacles_spin.setStyleSheet(self.SPINBOX_STYLE)
         self.tentacles_spin.valueChanged.connect(self._on_tentacles_changed)
         layout.addWidget(self.tentacles_spin)
+        layout.addSpacing(8)
 
         # Segments
         layout.addWidget(self._create_label("Segments"))
         self.segments_spin = QSpinBox()
         self.segments_spin.setRange(5, 20)
         self.segments_spin.setValue(self._segments)
+        self.segments_spin.setMinimumHeight(35)
+        self.segments_spin.setStyleSheet(self.SPINBOX_STYLE)
         self.segments_spin.valueChanged.connect(self._on_segments_changed)
         layout.addWidget(self.segments_spin)
+        layout.addSpacing(8)
 
         # Algorithm
         layout.addWidget(self._create_label("Algorithm"))
         self.algorithm_combo = QComboBox()
         self.algorithm_combo.addItems(["Bezier", "Fourier"])
+        self.algorithm_combo.setMinimumHeight(35)
+        self.algorithm_combo.setStyleSheet(self.COMBOBOX_STYLE)
         self.algorithm_combo.currentTextChanged.connect(self._on_algorithm_changed)
         layout.addWidget(self.algorithm_combo)
+        layout.addSpacing(8)
 
         # Bezier controls
         self.bezier_widget = QWidget()
@@ -205,8 +297,11 @@ class ModernControlPanel(QWidget):
         self.fourier_waves_spin = QSpinBox()
         self.fourier_waves_spin.setRange(1, 7)
         self.fourier_waves_spin.setValue(3)
+        self.fourier_waves_spin.setMinimumHeight(35)
+        self.fourier_waves_spin.setStyleSheet(self.SPINBOX_STYLE)
         self.fourier_waves_spin.valueChanged.connect(self._on_fourier_changed)
         fourier_layout.addWidget(self.fourier_waves_spin)
+        fourier_layout.addSpacing(8)
         fourier_layout.addWidget(self._create_label("Amplitude"))
         self.fourier_amp_slider = QSlider(Qt.Orientation.Horizontal)
         self.fourier_amp_slider.setRange(5, 40)
@@ -229,8 +324,9 @@ class ModernControlPanel(QWidget):
     def _create_appearance_section(self):
         """Create Appearance card."""
         group = QGroupBox("APPEARANCE")
+        group.setMinimumWidth(280)
         layout = QVBoxLayout()
-        layout.setSpacing(18)
+        layout.setSpacing(12)
         layout.setContentsMargins(15, 15, 15, 15)
 
         # Tentacle Color
@@ -298,8 +394,9 @@ class ModernControlPanel(QWidget):
     def _create_branching_section(self):
         """Create Branching card."""
         group = QGroupBox("BRANCHING")
+        group.setMinimumWidth(280)
         layout = QVBoxLayout()
-        layout.setSpacing(18)
+        layout.setSpacing(12)
         layout.setContentsMargins(15, 15, 15, 15)
 
         # Depth
@@ -307,16 +404,22 @@ class ModernControlPanel(QWidget):
         self.branch_depth_spin = QSpinBox()
         self.branch_depth_spin.setRange(0, 3)
         self.branch_depth_spin.setValue(self._branch_depth)
+        self.branch_depth_spin.setMinimumHeight(35)
+        self.branch_depth_spin.setStyleSheet(self.SPINBOX_STYLE)
         self.branch_depth_spin.valueChanged.connect(self._on_branching_changed)
         layout.addWidget(self.branch_depth_spin)
+        layout.addSpacing(8)
 
         # Count
         layout.addWidget(self._create_label("Count Per Level"))
         self.branch_count_spin = QSpinBox()
         self.branch_count_spin.setRange(1, 3)
         self.branch_count_spin.setValue(self._branch_count)
+        self.branch_count_spin.setMinimumHeight(35)
+        self.branch_count_spin.setStyleSheet(self.SPINBOX_STYLE)
         self.branch_count_spin.valueChanged.connect(self._on_branching_changed)
         layout.addWidget(self.branch_count_spin)
+        layout.addSpacing(8)
 
         # Info
         self.branch_info_label = QLabel("Total: ~24 segments")
@@ -449,7 +552,9 @@ class ModernControlPanel(QWidget):
     def _create_label(self, text):
         """Create a styled label."""
         label = QLabel(text)
-        label.setStyleSheet("color: #d0d0d0; font-size: 10pt; font-weight: 500;")
+        label.setStyleSheet("color: #d0d0d0; font-size: 10pt; font-weight: 500; padding: 2px 0px;")
+        label.setMinimumWidth(120)
+        label.setWordWrap(False)
         return label
 
     # Event handlers

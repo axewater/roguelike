@@ -162,8 +162,6 @@ class EditorWindow(QMainWindow):
         # Initial creature build
         self._on_creature_changed()
 
-        print("✓ Editor window initialized")
-
     def _init_ui(self):
         """Initialize UI layout."""
         # Central widget with vertical layout
@@ -360,7 +358,6 @@ class EditorWindow(QMainWindow):
                     "Export Successful",
                     f"DNA configuration exported to:\n{file_path}"
                 )
-                print(f"✓ Exported DNA to: {file_path}")
 
             except Exception as e:
                 QMessageBox.critical(
@@ -368,7 +365,6 @@ class EditorWindow(QMainWindow):
                     "Export Failed",
                     f"Failed to export DNA:\n{str(e)}"
                 )
-                print(f"✗ Export failed: {e}")
 
     def _show_about(self):
         """Show about dialog."""
@@ -401,11 +397,8 @@ class EditorWindow(QMainWindow):
 
     def closeEvent(self, event):
         """Handle window close event."""
-        print("Closing editor...")
-
         # Cleanup renderer
         self.renderer.cleanup()
 
         # Accept close
         event.accept()
-        print("✓ Editor closed")

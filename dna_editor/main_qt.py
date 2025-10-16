@@ -36,24 +36,10 @@ from dna_editor.qt_ui import EditorWindow
 
 def main():
     """Main entry point."""
-    print("=" * 70)
-    print("DNA EDITOR - PYQT6 VERSION")
-    print("=" * 70)
-    print("Starting DNA Editor with PyQt6 UI...")
-    print()
-    print("Features:")
-    print("  - PyQt6 control panel with sliders and spinboxes")
-    print("  - Ursina 3D viewport (separate window)")
-    print("  - Undo/Redo (Ctrl+Z / Ctrl+Y)")
-    print("  - Export to JSON (Ctrl+E)")
-    print("  - Preset configurations")
-    print()
-    print("Camera Controls (in 3D window):")
-    print("  - Mouse Drag - Rotate camera")
-    print("  - Scroll - Zoom in/out")
-    print("  - R - Reset camera")
-    print("=" * 70)
-    print()
+    print("DNA Editor - Starting...")
+
+    # Suppress Qt warnings about unknown CSS properties
+    os.environ['QT_LOGGING_RULES'] = '*.debug=false;qt.qpa.*=false'
 
     # Create Qt application
     app = QApplication(sys.argv)
@@ -65,9 +51,7 @@ def main():
     window = EditorWindow()
     window.show()
 
-    print("✓ Application started")
-    print("✓ Use the control panel to adjust creature parameters")
-    print()
+    print("✓ Ready - Use control panel to adjust creature parameters")
 
     # Run event loop
     sys.exit(app.exec())

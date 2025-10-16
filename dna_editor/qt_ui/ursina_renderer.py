@@ -46,11 +46,43 @@ class UrsinaRenderer:
     def _init_ursina(self):
         """Initialize Ursina application and scene."""
         try:
-            # Import Ursina
+            # Suppress Panda3D verbose logging
+            import os
+            import sys
+            from io import StringIO
+            import warnings
+
+            # Suppress all warnings (including PNG iCCP warnings)
+            warnings.filterwarnings('ignore')
+
+            # Set Panda3D config via environment variables (more reliable)
+            os.environ['PANDA_PRC_DIR'] = ''
+            os.environ['PANDA_PRC_PATH'] = ''
+
+            # Load custom config that suppresses logging
+            from panda3d.core import loadPrcFileData
+            loadPrcFileData('', '''
+                notify-level error
+                notify-level-pnmimage error
+                default-directnotify-level error
+                paste-emit-keystrokes 0
+            ''')
+
+            # Redirect stdout/stderr to suppress remaining output
+            old_stdout = sys.stdout
+            old_stderr = sys.stderr
+            sys.stdout = StringIO()
+            sys.stderr = StringIO()
+
+            # Import Ursina (will use our config)
             from ursina import Ursina, Entity, camera, Sky, color, held_keys, mouse
             from ursina import AmbientLight, DirectionalLight, PointLight
             from ursina import window
             import math
+
+            # Restore stdout/stderr after imports
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr
 
             # Store module references as instance attributes
             self.Entity = Entity
@@ -65,6 +97,10 @@ class UrsinaRenderer:
             self.window = window
             self.math = math
 
+            # Suppress Ursina initialization output temporarily
+            sys.stdout = StringIO()
+            sys.stderr = StringIO()
+
             # Create Ursina app
             self.ursina_app = Ursina(
                 title="DNA Editor - 3D Preview",
@@ -73,6 +109,10 @@ class UrsinaRenderer:
                 size=(900, 700),
                 position=(400, 50)
             )
+
+            # Restore stdout/stderr
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr
 
             # Set window background
             self.window.color = self.color.rgb(0.05, 0.05, 0.1)
@@ -90,10 +130,8 @@ class UrsinaRenderer:
             self.timer.timeout.connect(self._update_animation)
             self.timer.start(16)  # ~60 FPS
 
-            print("✓ Ursina renderer initialized (separate window)")
-
         except Exception as e:
-            print(f"✗ Failed to initialize Ursina: {e}")
+            print(f"ERROR: Failed to initialize Ursina: {e}")
             import traceback
             traceback.print_exc()
 
@@ -259,17 +297,8 @@ class UrsinaRenderer:
                 pulse_amount=pulse_amount
             )
 
-            # Calculate total tentacles for logging
-            if branch_count == 1:
-                total = num_tentacles * (branch_depth + 1)
-            else:
-                total = num_tentacles * ((branch_count ** (branch_depth + 1) - 1) // (branch_count - 1))
-
-            print(f"✓ Creature rebuilt: {num_tentacles} main tentacles, depth {branch_depth}, "
-                  f"count {branch_count} (~{total} total)")
-
         except Exception as e:
-            print(f"✗ Failed to rebuild creature: {e}")
+            print(f"ERROR: Failed to rebuild creature: {e}")
             import traceback
             traceback.print_exc()
 
@@ -350,7 +379,5 @@ class UrsinaRenderer:
             if self.ursina_app:
                 self.ursina_app.exit()
 
-            print("✓ Ursina renderer cleaned up")
-
         except Exception as e:
-            print(f"✗ Cleanup error: {e}")
+            pass  # Silently ignore cleanup errors
