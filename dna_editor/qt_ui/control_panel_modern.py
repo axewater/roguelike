@@ -552,9 +552,9 @@ class ModernControlPanel(QWidget):
     def _create_label(self, text):
         """Create a styled label."""
         label = QLabel(text)
-        label.setStyleSheet("color: #d0d0d0; font-size: 10pt; font-weight: 500; padding: 2px 0px;")
-        label.setMinimumWidth(120)
-        label.setWordWrap(False)
+        label.setStyleSheet("color: #d0d0d0; font-size: 9pt; font-weight: 500; padding: 2px 0px;")
+        label.setMinimumWidth(100)
+        label.setWordWrap(True)
         return label
 
     # Event handlers

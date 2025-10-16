@@ -6,7 +6,7 @@ Handles undo/redo, file export, and coordinate updates between UI and 3D.
 
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QLabel,
-    QFileDialog, QMessageBox
+    QFileDialog, QMessageBox, QScrollArea
 )
 from PyQt6.QtGui import QAction, QKeySequence
 from PyQt6.QtCore import Qt
@@ -29,7 +29,7 @@ class EditorWindow(QMainWindow):
         self.state_manager = StateManager()
 
         self.setWindowTitle("DNA Editor - Creature Designer")
-        self.setFixedSize(1200, 780)  # Modern wide layout with breathing room
+        self.setFixedSize(1300, 850)  # Modern wide layout with breathing room
         self.move(100, 100)
 
         # Apply modern dark theme stylesheet with enhanced visuals
@@ -176,7 +176,33 @@ class EditorWindow(QMainWindow):
         self.control_panel.undo_requested.connect(self._on_undo)
         self.control_panel.redo_requested.connect(self._on_redo)
         self.control_panel.export_requested.connect(self._on_export)
-        layout.addWidget(self.control_panel)
+
+        # Wrap control panel in scroll area
+        scroll_area = QScrollArea()
+        scroll_area.setWidget(self.control_panel)
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll_area.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background: transparent;
+            }
+            QScrollBar:vertical {
+                background: #2a2a2a;
+                width: 12px;
+                border-radius: 6px;
+            }
+            QScrollBar::handle:vertical {
+                background: #6366f1;
+                border-radius: 6px;
+                min-height: 30px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: #8b5cf6;
+            }
+        """)
+        layout.addWidget(scroll_area)
 
         # Status label at bottom
         status_label = QLabel("3D Preview: Separate Window")
