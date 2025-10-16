@@ -10,6 +10,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
+from ..core.constants import PRESETS
 
 
 class ControlPanel(QWidget):
@@ -204,14 +205,8 @@ class ControlPanel(QWidget):
         group.setFont(QFont("Arial", 10, QFont.Weight.Bold))
         layout = QVBoxLayout()
 
-        # Preset buttons
-        presets = [
-            ("Default", 'bezier', {'control_strength': 0.4}),
-            ("Wavy", 'fourier', {'num_waves': 4, 'amplitude': 0.25}),
-            ("Tight", 'bezier', {'control_strength': 0.2}),
-        ]
-
-        for name, algo, params in presets:
+        # Preset buttons (use imported PRESETS from constants)
+        for name, algo, params in PRESETS:
             btn = QPushButton(name)
             btn.clicked.connect(lambda checked, a=algo, p=params: self._load_preset(a, p))
             layout.addWidget(btn)

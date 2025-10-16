@@ -171,34 +171,108 @@ class VoiceSynthesizer:
             if text in self.voice_cache:
                 return self.voice_cache[text]
 
-        try:
-            # Create temporary WAV file
-            with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as tmp_file:
-                tmp_path = tmp_file.name
-
-            # Generate speech to file (THIS is the blocking call)
-            self.engine.save_to_file(text, tmp_path)
-            self.engine.runAndWait()
-
-            # Load as pygame Sound
-            sound = pygame.mixer.Sound(tmp_path)
-
-            # Cache the sound (thread-safe)
-            with self.cache_lock:
-                self.voice_cache[text] = sound
-
-            # Clean up temp file
+        # Retry up to 5 times if file generation fails
+        max_retries = 5
+        for attempt in range(max_retries):
             try:
-                os.unlink(tmp_path)
-            except:
-                pass  # File cleanup failed, but sound is loaded
+                # Create temporary WAV file
+                with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as tmp_file:
+                    tmp_path = tmp_file.name
 
-            return sound
+                # Generate speech to file
+                self.engine.save_to_file(text, tmp_path)
+                self.engine.runAndWait()
+
+                # Wait a bit for file to be fully written (especially on slower systems)
+                import time
+                time.sleep(0.05)  # 50ms delay
+
+                # Validate the WAV file before loading
+                if not self._validate_wav_file(tmp_path):
+                    # File is corrupted or empty
+                    try:
+                        os.unlink(tmp_path)
+                    except:
+                        pass
+
+                    if attempt < max_retries - 1:
+                        # Retry with exponential backoff
+                        wait_time = 0.1 * (2 ** attempt)  # 0.1s, 0.2s, 0.4s, 0.8s, 1.6s
+                        print(f"⚠ Voice file corrupted for '{text}', retrying ({attempt + 1}/{max_retries}) after {wait_time:.1f}s...")
+                        time.sleep(wait_time)
+                        continue
+                    else:
+                        print(f"⚠ Failed to generate valid voice file for '{text}' after {max_retries} attempts")
+                        return None
+
+                # File is valid, load as pygame Sound
+                sound = pygame.mixer.Sound(tmp_path)
+
+                # Cache the sound (thread-safe)
+                with self.cache_lock:
+                    self.voice_cache[text] = sound
+
+                # Clean up temp file
+                try:
+                    os.unlink(tmp_path)
+                except:
+                    pass  # File cleanup failed, but sound is loaded
+
+                return sound
+
+            except Exception as e:
+                if not self.shutdown_flag:
+                    if attempt < max_retries - 1:
+                        print(f"⚠ Error generating voice for '{text}': {e}, retrying ({attempt + 1}/{max_retries})...")
+                        import time
+                        time.sleep(0.1 * (2 ** attempt))
+                        continue
+                    else:
+                        print(f"⚠ Failed to generate voice for '{text}': {e}")
+                return None
+
+        return None
+
+    def _validate_wav_file(self, file_path: str) -> bool:
+        """
+        Validate that a WAV file exists and has proper structure
+
+        Args:
+            file_path: Path to WAV file to validate
+
+        Returns:
+            True if file is valid, False otherwise
+        """
+        try:
+            # Check file exists
+            if not os.path.exists(file_path):
+                return False
+
+            # Check file has content (minimum WAV header is 44 bytes)
+            file_size = os.path.getsize(file_path)
+            if file_size < 44:
+                return False
+
+            # Try to read and validate WAV header
+            with open(file_path, 'rb') as f:
+                # Read first 12 bytes (RIFF header)
+                header = f.read(12)
+
+                if len(header) < 12:
+                    return False
+
+                # Check RIFF signature
+                if header[0:4] != b'RIFF':
+                    return False
+
+                # Check WAVE signature
+                if header[8:12] != b'WAVE':
+                    return False
+
+            return True
 
         except Exception as e:
-            if not self.shutdown_flag:
-                print(f"⚠ Failed to generate voice for '{text}': {e}")
-            return None
+            return False
 
     def shutdown(self):
         """Shutdown the voice synthesizer and cleanup resources"""

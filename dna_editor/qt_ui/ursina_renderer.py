@@ -32,8 +32,14 @@ class UrsinaRenderer:
         self.camera_height = 2
         self.camera_distance = 6
 
-        # Ursina module references
-        self.ursina_modules = {}
+        # Ursina module references (set in _init_ursina)
+        self.Entity = None
+        self.camera = None
+        self.color = None
+        self.held_keys = None
+        self.mouse = None
+        self.window = None
+        self.math = None
 
         self._init_ursina()
 
@@ -46,20 +52,18 @@ class UrsinaRenderer:
             from ursina import window
             import math
 
-            # Store module references
-            self.ursina_modules = {
-                'Entity': Entity,
-                'camera': camera,
-                'Sky': Sky,
-                'color': color,
-                'held_keys': held_keys,
-                'mouse': mouse,
-                'AmbientLight': AmbientLight,
-                'DirectionalLight': DirectionalLight,
-                'PointLight': PointLight,
-                'window': window,
-                'math': math
-            }
+            # Store module references as instance attributes
+            self.Entity = Entity
+            self.camera = camera
+            self.Sky = Sky
+            self.color = color
+            self.held_keys = held_keys
+            self.mouse = mouse
+            self.AmbientLight = AmbientLight
+            self.DirectionalLight = DirectionalLight
+            self.PointLight = PointLight
+            self.window = window
+            self.math = math
 
             # Create Ursina app
             self.ursina_app = Ursina(
@@ -71,15 +75,15 @@ class UrsinaRenderer:
             )
 
             # Set window background
-            window.color = color.rgb(0.05, 0.05, 0.1)
+            self.window.color = self.color.rgb(0.05, 0.05, 0.1)
 
             # Create scene
             self._create_scene()
 
             # Set up camera with orbit position
-            camera.position = (0, self.camera_height, -self.camera_distance)
-            camera.look_at((0, 0, 0))
-            camera.fov = 60
+            self.camera.position = (0, self.camera_height, -self.camera_distance)
+            self.camera.look_at((0, 0, 0))
+            self.camera.fov = 60
 
             # Start animation timer
             self.timer = QTimer()
@@ -96,38 +100,18 @@ class UrsinaRenderer:
     def _create_scene(self):
         """Create scene elements (ground, sky, lighting)."""
         # Import constants
-        try:
-            from ..core.constants import (
-                GROUND_Y, SHADOW_Y, GROUND_COLOR,
-                SHADOW_LAYERS, SHADOW_BASE_SIZE, SHADOW_SIZE_STEP,
-                SHADOW_BASE_OPACITY, SHADOW_OPACITY_STEP,
-                SKY_GRADIENT_BOTTOM, SKY_GRADIENT_TOP
-            )
-        except ImportError:
-            # Fallback values
-            GROUND_Y = -3.5
-            SHADOW_Y = -3.45
-            GROUND_COLOR = (0.1, 0.1, 0.15)
-            SHADOW_LAYERS = 5
-            SHADOW_BASE_SIZE = 3.5
-            SHADOW_SIZE_STEP = 0.6
-            SHADOW_BASE_OPACITY = 70
-            SHADOW_OPACITY_STEP = 15
-            SKY_GRADIENT_BOTTOM = (0.02, 0.02, 0.08)
-            SKY_GRADIENT_TOP = (0.08, 0.08, 0.15)
-
-        Entity = self.ursina_modules['Entity']
-        Sky = self.ursina_modules['Sky']
-        color = self.ursina_modules['color']
-        AmbientLight = self.ursina_modules['AmbientLight']
-        DirectionalLight = self.ursina_modules['DirectionalLight']
-        PointLight = self.ursina_modules['PointLight']
+        from ..core.constants import (
+            GROUND_Y, SHADOW_Y, GROUND_COLOR,
+            SHADOW_LAYERS, SHADOW_BASE_SIZE, SHADOW_SIZE_STEP,
+            SHADOW_BASE_OPACITY, SHADOW_OPACITY_STEP,
+            SKY_GRADIENT_BOTTOM, SKY_GRADIENT_TOP
+        )
 
         # Ground (positioned below tentacles)
-        self.ground = Entity(
+        self.ground = self.Entity(
             model='plane',
             scale=20,
-            color=color.rgb(*GROUND_COLOR),
+            color=self.color.rgb(*GROUND_COLOR),
             position=(0, GROUND_Y, 0)
         )
 
@@ -149,11 +133,11 @@ class UrsinaRenderer:
             y_offset = (i - num_layers/2) * 200  # Spread layers vertically
 
             # Create semi-transparent layer
-            layer = Entity(
+            layer = self.Entity(
                 model='sphere',
                 scale=sky_radius - i * 2,  # Slightly smaller for each layer
                 position=(0, y_offset, 0),
-                color=color.rgb(*layer_color),
+                color=self.color.rgb(*layer_color),
                 double_sided=True,
                 unlit=True,
                 alpha=0.3 + (i * 0.15)  # More opaque toward top
@@ -161,45 +145,45 @@ class UrsinaRenderer:
             self.sky_layers.append(layer)
 
         # Add base solid sky behind everything
-        self.sky = Entity(
+        self.sky = self.Entity(
             model='sphere',
             scale=sky_radius + 10,
-            color=color.rgb(*SKY_GRADIENT_BOTTOM),
+            color=self.color.rgb(*SKY_GRADIENT_BOTTOM),
             double_sided=True,
             unlit=True
         )
 
         # 3-point lighting system
         self.lighting = {}
-        self.lighting['ambient'] = AmbientLight(
-            color=color.rgb(0.2, 0.2, 0.25),
+        self.lighting['ambient'] = self.AmbientLight(
+            color=self.color.rgb(0.2, 0.2, 0.25),
             intensity=0.2
         )
 
-        self.lighting['key'] = DirectionalLight(
+        self.lighting['key'] = self.DirectionalLight(
             position=(5, 8, 3),
             rotation=(50, -35, 0),
-            color=color.rgb(1.0, 0.98, 0.94),
+            color=self.color.rgb(1.0, 0.98, 0.94),
             intensity=1.5
         )
 
-        self.lighting['fill'] = DirectionalLight(
+        self.lighting['fill'] = self.DirectionalLight(
             position=(-3, 4, -2),
             rotation=(120, 45, 0),
-            color=color.rgb(0.7, 0.75, 0.85),
+            color=self.color.rgb(0.7, 0.75, 0.85),
             intensity=0.6
         )
 
-        self.lighting['rim'] = DirectionalLight(
+        self.lighting['rim'] = self.DirectionalLight(
             position=(-2, 3, -5),
             rotation=(150, 20, 0),
-            color=color.rgb(0.6, 0.7, 1.0),
+            color=self.color.rgb(0.6, 0.7, 1.0),
             intensity=0.8
         )
 
-        self.lighting['point'] = PointLight(
+        self.lighting['point'] = self.PointLight(
             position=(0, 2, 0),
-            color=color.rgb(1.0, 0.95, 0.9),
+            color=self.color.rgb(1.0, 0.95, 0.9),
             intensity=0.4
         )
 
@@ -216,10 +200,10 @@ class UrsinaRenderer:
             layer_opacity = max(5, layer_opacity)  # Minimum opacity of 5
 
             # Create circular shadow layer (sphere scaled very flat)
-            shadow_layer = Entity(
+            shadow_layer = self.Entity(
                 model='sphere',
                 scale=(layer_size, 0.01, layer_size),  # Very flat sphere = circle
-                color=color.rgba(0, 0, 0, layer_opacity),
+                color=self.color.rgba(0, 0, 0, layer_opacity),
                 position=(0, SHADOW_Y + i * 0.001, 0),  # Slight offset to prevent z-fighting
                 unlit=True
             )
@@ -287,53 +271,42 @@ class UrsinaRenderer:
     def _handle_camera_controls(self):
         """Handle mouse camera controls with orbit system."""
         try:
-            camera = self.ursina_modules['camera']
-            held_keys = self.ursina_modules['held_keys']
-            mouse = self.ursina_modules['mouse']
-            math = self.ursina_modules['math']
-
             # Import constants for limits
-            try:
-                from ..core.constants import (
-                    MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE,
-                    MIN_CAMERA_HEIGHT, MAX_CAMERA_HEIGHT
-                )
-            except ImportError:
-                MIN_CAMERA_DISTANCE = 2
-                MAX_CAMERA_DISTANCE = 15
-                MIN_CAMERA_HEIGHT = 0.5
-                MAX_CAMERA_HEIGHT = 5
+            from ..core.constants import (
+                MIN_CAMERA_DISTANCE, MAX_CAMERA_DISTANCE,
+                MIN_CAMERA_HEIGHT, MAX_CAMERA_HEIGHT
+            )
 
             # Mouse drag to orbit (Ursina uses held_keys for mouse buttons)
-            if held_keys['left mouse']:
-                self.camera_angle += mouse.velocity[0] * 200
-                self.camera_height += mouse.velocity[1] * 5
+            if self.held_keys['left mouse']:
+                self.camera_angle += self.mouse.velocity[0] * 200
+                self.camera_height += self.mouse.velocity[1] * 5
 
             # Clamp camera height
             self.camera_height = max(MIN_CAMERA_HEIGHT, min(MAX_CAMERA_HEIGHT, self.camera_height))
 
             # Scroll to zoom (Ursina uses held_keys for scroll events)
-            if held_keys['scroll up']:
+            if self.held_keys['scroll up']:
                 self.camera_distance -= 0.5
-            if held_keys['scroll down']:
+            if self.held_keys['scroll down']:
                 self.camera_distance += 0.5
             self.camera_distance = max(MIN_CAMERA_DISTANCE, min(MAX_CAMERA_DISTANCE, self.camera_distance))
 
             # Calculate camera position using orbit math
-            angle_rad = math.radians(self.camera_angle)
-            cam_x = self.camera_distance * math.sin(angle_rad)
-            cam_z = -self.camera_distance * math.cos(angle_rad)
+            angle_rad = self.math.radians(self.camera_angle)
+            cam_x = self.camera_distance * self.math.sin(angle_rad)
+            cam_z = -self.camera_distance * self.math.cos(angle_rad)
 
             # Update camera position and look at creature center
-            camera.position = (cam_x, self.camera_height, cam_z)
-            camera.look_at((0, 0, 0))
+            self.camera.position = (cam_x, self.camera_height, cam_z)
+            self.camera.look_at((0, 0, 0))
 
             # Reset camera (R key)
-            if held_keys['r']:
+            if self.held_keys['r']:
                 self.camera_angle = 0
                 self.camera_height = 2
                 self.camera_distance = 6
-                held_keys['r'] = False
+                self.held_keys['r'] = False
 
         except Exception as e:
             pass

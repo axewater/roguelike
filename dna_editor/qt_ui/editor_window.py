@@ -121,14 +121,7 @@ class EditorWindow(QMainWindow):
         self._save_state(state)
 
         # Rebuild creature in renderer
-        self.renderer.rebuild_creature(
-            num_tentacles=state['num_tentacles'],
-            segments=state['segments'],
-            algorithm=state['algorithm'],
-            params=state['params'],
-            thickness_base=state['thickness_base'],
-            taper_factor=state['taper_factor']
-        )
+        self._rebuild_creature_from_state(state)
 
         # Update undo/redo button states
         self._update_undo_redo_state()
@@ -150,16 +143,7 @@ class EditorWindow(QMainWindow):
         if state:
             self.control_panel.set_state(state)
             self._update_undo_redo_state()
-
-            # Rebuild creature
-            self.renderer.rebuild_creature(
-                num_tentacles=state['num_tentacles'],
-                segments=state['segments'],
-                algorithm=state['algorithm'],
-                params=state['params'],
-                thickness_base=state['thickness_base'],
-                taper_factor=state['taper_factor']
-            )
+            self._rebuild_creature_from_state(state)
 
     def _on_redo(self):
         """Handle redo request."""
@@ -167,16 +151,18 @@ class EditorWindow(QMainWindow):
         if state:
             self.control_panel.set_state(state)
             self._update_undo_redo_state()
+            self._rebuild_creature_from_state(state)
 
-            # Rebuild creature
-            self.renderer.rebuild_creature(
-                num_tentacles=state['num_tentacles'],
-                segments=state['segments'],
-                algorithm=state['algorithm'],
-                params=state['params'],
-                thickness_base=state['thickness_base'],
-                taper_factor=state['taper_factor']
-            )
+    def _rebuild_creature_from_state(self, state):
+        """Rebuild creature from state dict."""
+        self.renderer.rebuild_creature(
+            num_tentacles=state['num_tentacles'],
+            segments=state['segments'],
+            algorithm=state['algorithm'],
+            params=state['params'],
+            thickness_base=state['thickness_base'],
+            taper_factor=state['taper_factor']
+        )
 
     def _update_undo_redo_state(self):
         """Update undo/redo button and menu enabled states."""

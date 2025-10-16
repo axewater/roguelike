@@ -18,7 +18,7 @@ CAMERA_ANGLE = 45.0     # Camera pitch angle (degrees) (third-person only)
 USE_FIRST_PERSON = True  # True = first-person, False = third-person
 EYE_HEIGHT = 1.4        # Camera height at eye level (first-person)
 CAMERA_ROTATION_SPEED = 8.0  # Rotation interpolation speed (higher = snappier)
-CAMERA_FOV_FPS = 90     # Field of view for first-person (wider than third-person)
+CAMERA_FOV_FPS = 75     # Field of view for first-person (natural human vision ~70-75°)
 
 # Camera pitch (vertical tilt) settings
 DEFAULT_CAMERA_PITCH = 0.0    # Default pitch: look straight ahead

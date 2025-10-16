@@ -690,20 +690,6 @@ def main_3d():
     # Start with main menu screen
     screen_manager.change_screen(ScreenState.MAIN_MENU)
 
-    # Print controls
-    print("\n" + "=" * 50)
-    print("FIRST-PERSON CONTROLS:")
-    print("  W/S - Move Forward/Backward")
-    print("  A/D - Strafe Left/Right")
-    print("  Arrow Left/Right - Rotate Camera")
-    print("  Arrow Up/Down - Move Forward/Backward")
-    print("  1/2/3 - Use Abilities (click to target)")
-    print("  ESC - Pause Menu / Cancel Targeting")
-    print("  F1 - Reveal Map (Debug)")
-    print("=" * 50)
-    print("Starting class selection...")
-    print("=" * 50 + "\n")
-
     # Run Ursina app loop
     app.run()
 
