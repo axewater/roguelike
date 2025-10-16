@@ -40,7 +40,8 @@ OTHER:
 
         self.overlay = Text(
             text=help_text,
-            position=(0, 0),
+            x=0,
+            y=0,
             origin=(0, 0),
             scale=0.8,
             color=color.white,

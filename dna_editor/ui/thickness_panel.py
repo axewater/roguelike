@@ -2,7 +2,7 @@
 Thickness panel - controls for tentacle thickness and taper.
 """
 
-from ursina import Text, Slider, color
+from ursina import Text, Slider, color, window
 
 
 class ThicknessPanel:
@@ -18,12 +18,13 @@ class ThicknessPanel:
         self.on_thickness_changed = on_thickness_changed
         self.elements = []
 
-        y_pos = 0.19
+        y_pos = 0.16
 
         # Section label
         self.thickness_label = Text(
             text="Thickness:",
-            position=(-0.85, y_pos),
+            x=window.left[0] + 0.02,
+            y=y_pos,
             origin=(0, 0),
             scale=0.9,
             color=color.rgb(0.7, 0.9, 1.0)
@@ -34,7 +35,8 @@ class ThicknessPanel:
         y_pos -= 0.05
         self.thickness_base_label = Text(
             text="Base:",
-            position=(-0.85, y_pos),
+            x=window.left[0] + 0.02,
+            y=y_pos,
             origin=(0, 0),
             scale=0.8,
             color=color.white
@@ -43,26 +45,19 @@ class ThicknessPanel:
 
         self.thickness_base_slider = Slider(
             min=0.1, max=0.5, default=0.25, step=0.05,
-            position=(-0.65, y_pos - 0.01),
+            x=window.left[0] + 0.22,
+            y=y_pos - 0.01,
             width=0.2, height=0.02,
             on_value_changed=self.on_thickness_changed
         )
         self.elements.append(self.thickness_base_slider)
 
-        self.thickness_base_value = Text(
-            text="0.25",
-            position=(-0.42, y_pos),
-            origin=(0, 0),
-            scale=0.8,
-            color=color.rgb(0.5, 1.0, 0.5)
-        )
-        self.elements.append(self.thickness_base_value)
-
         # Taper
-        y_pos -= 0.05
+        y_pos -= 0.06
         self.taper_label = Text(
             text="Taper:",
-            position=(-0.85, y_pos),
+            x=window.left[0] + 0.02,
+            y=y_pos,
             origin=(0, 0),
             scale=0.8,
             color=color.white
@@ -71,33 +66,23 @@ class ThicknessPanel:
 
         self.taper_slider = Slider(
             min=0.0, max=1.0, default=0.6, step=0.1,
-            position=(-0.65, y_pos - 0.01),
+            x=window.left[0] + 0.22,
+            y=y_pos - 0.01,
             width=0.2, height=0.02,
             on_value_changed=self.on_thickness_changed
         )
         self.elements.append(self.taper_slider)
 
-        self.taper_value = Text(
-            text="0.6",
-            position=(-0.42, y_pos),
-            origin=(0, 0),
-            scale=0.8,
-            color=color.rgb(0.5, 1.0, 0.5)
-        )
-        self.elements.append(self.taper_value)
-
     def update(self, thickness_base, taper_factor):
         """
-        Update slider values and text.
+        Update slider values.
 
         Args:
             thickness_base: Base thickness value
             taper_factor: Taper factor value
         """
         self.thickness_base_slider.value = thickness_base
-        self.thickness_base_value.text = f"{thickness_base:.2f}"
         self.taper_slider.value = taper_factor
-        self.taper_value.text = f"{taper_factor:.1f}"
 
     def get_values(self):
         """Get current thickness values."""

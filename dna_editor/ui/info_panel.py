@@ -2,7 +2,7 @@
 Info panel - displays creature stats and algorithm selection buttons.
 """
 
-from ursina import Text, Button, color
+from ursina import Text, Button, color, window
 
 
 class InfoPanel:
@@ -21,7 +21,8 @@ class InfoPanel:
         # Title and info text
         self.info_text = Text(
             text="",
-            position=(-0.85, 0.47),
+            x=window.left[0] + 0.7,
+            y=0.47,
             origin=(0, 0),
             scale=1.0,
             color=color.white,
@@ -36,7 +37,8 @@ class InfoPanel:
             text='BEZIER',
             color=color.rgb(0.3, 0.3, 0.4),
             scale=(0.15, 0.04),
-            position=(-0.55, y_pos),
+            x=window.left[0] + 0.2,
+            y=y_pos,
             on_click=lambda: self.on_algorithm_changed('bezier')
         )
         self.elements.append(self.btn_bezier)
@@ -45,7 +47,8 @@ class InfoPanel:
             text='FOURIER',
             color=color.rgb(0.3, 0.3, 0.4),
             scale=(0.15, 0.04),
-            position=(-0.25, y_pos),
+            x=window.left[0] + 0.6,
+            y=y_pos,
             on_click=lambda: self.on_algorithm_changed('fourier')
         )
         self.elements.append(self.btn_fourier)

@@ -11,10 +11,27 @@ This tool allows you to create and customize tentacle creatures in real-time usi
 
 ## Quick Start
 
+**Two versions available:**
+
 ```bash
-# Run from project root
-python3 dna_editor/main.py
+# PyQt6 Version (RECOMMENDED - better UI control)
+python3 dna_editor_copy/main_qt.py
+
+# Original Ursina UI Version
+python3 dna_editor_copy/main.py
 ```
+
+### PyQt6 Version (New!)
+- **Native controls**: Standard sliders, spinboxes, dropdowns
+- **Precise layout**: No coordinate positioning issues
+- **Familiar UX**: OS-native look and feel
+- **Menu bar**: File → Export, Edit → Undo/Redo
+- **Separate 3D viewport**: Ursina window for 3D preview
+
+### Ursina UI Version (Original)
+- **Fully 3D interface**: All controls in Ursina
+- **Single window**: UI overlay on 3D scene
+- **Keyboard shortcuts**: For all parameters
 
 ## Features
 
@@ -102,7 +119,8 @@ Wave composition formula: `P(t) = base_curve(t) + Σ(Aₙ sin(nωt + φₙ))`
 ## Requirements
 
 - Python 3.8+
-- Ursina Engine
+- **PyQt6** (for PyQt6 version)
+- **Ursina Engine** (for 3D rendering)
 - Math (standard library)
 
 ## Architecture
@@ -112,24 +130,35 @@ The DNA Editor follows clean **separation of concerns** with a modular architect
 ### File Structure
 
 ```
-dna_editor/
-├── main.py                      # Entry point (60 lines)
-├── core/                        # Mathematical & configuration
+dna_editor_copy/
+├── main.py                      # Ursina UI version entry point
+├── main_qt.py                   # PyQt6 version entry point (NEW!)
+│
+├── core/                        # Mathematical & configuration (shared)
 │   ├── curves.py               # Bezier & Fourier curve generators
 │   └── constants.py            # All configuration constants
-├── models/                      # 3D entity models
+│
+├── models/                      # 3D entity models (shared)
 │   ├── tentacle.py             # Single tentacle with segments
 │   └── creature.py             # Creature with body & tentacles
-├── ui/                          # User interface components
+│
+├── ui/                          # Ursina UI components (original version)
 │   ├── info_panel.py           # Top info display & algorithm buttons
 │   ├── parameters_panel.py     # Algorithm-specific sliders
 │   ├── thickness_panel.py      # Thickness & taper controls
 │   ├── presets_panel.py        # Preset buttons
 │   └── help_overlay.py         # Help screen overlay
-├── controllers/                 # Application logic
+│
+├── qt_ui/                       # PyQt6 UI components (NEW!)
+│   ├── editor_window.py        # Main window orchestrator
+│   ├── control_panel.py        # Left panel with all controls
+│   └── viewport_widget.py      # Ursina 3D viewport wrapper
+│
+├── controllers/                 # Application logic (shared)
 │   ├── state_manager.py        # Undo/redo history system
-│   ├── camera_controller.py    # Camera orbit & zoom logic
-│   └── editor_controller.py    # Main orchestration controller
+│   ├── camera_controller.py    # Camera orbit & zoom (Ursina version)
+│   └── editor_controller.py    # Main orchestration (Ursina version)
+│
 └── README.md                    # This file
 ```
 

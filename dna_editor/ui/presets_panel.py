@@ -2,7 +2,7 @@
 Presets panel - quick preset buttons for common configurations.
 """
 
-from ursina import Text, Button, color
+from ursina import Text, Button, color, window
 from ..core.constants import PRESETS
 
 
@@ -24,7 +24,8 @@ class PresetsPanel:
         # Section label
         self.presets_label = Text(
             text="Presets:",
-            position=(-0.85, y_pos),
+            x=window.left[0] + 0.02,
+            y=y_pos,
             origin=(0, 0),
             scale=0.9,
             color=color.rgb(0.7, 0.9, 1.0)
@@ -41,17 +42,19 @@ class PresetsPanel:
                 text=name,
                 color=color.rgb(0.3, 0.4, 0.3),
                 scale=(0.12, 0.035),
-                position=(-0.85 + x_offset, y_pos),
+                x=window.left[0] + 0.02 + x_offset,
+                y=y_pos,
                 on_click=lambda a=algo, p=params: self.on_preset_clicked(a, p)
             )
             self.preset_buttons.append(btn)
             self.elements.append(btn)
-            x_offset += 0.30
+            x_offset += 0.14
 
         # Help text (bottom corner)
         self.help_text = Text(
             text="Press H for help",
-            position=(-0.95, -0.45),
+            x=window.left[0] + 0.02,
+            y=-0.45,
             origin=(0, 0),
             scale=0.8,
             color=color.rgb(0.5, 0.5, 0.6)

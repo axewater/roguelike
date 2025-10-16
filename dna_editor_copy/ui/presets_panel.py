@@ -24,7 +24,7 @@ class PresetsPanel:
         # Section label
         self.presets_label = Text(
             text="Presets:",
-            position=(-0.85, y_pos),
+            position=(-1, y_pos),
             origin=(0, 0),
             scale=0.9,
             color=color.rgb(0.7, 0.9, 1.0)
