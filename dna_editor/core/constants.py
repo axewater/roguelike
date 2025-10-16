@@ -2,6 +2,8 @@
 Constants and configuration for DNA Editor.
 """
 
+import math
+
 # Default algorithm parameters
 DEFAULT_PARAMS = {
     'bezier': {'control_strength': 0.4},
@@ -21,11 +23,48 @@ DEFAULT_THICKNESS_BASE = 0.25
 DEFAULT_TAPER_FACTOR = 0.6
 DEFAULT_ALGORITHM = 'bezier'
 
+# Appearance defaults
+DEFAULT_BODY_SCALE = 1.2
+DEFAULT_TENTACLE_COLOR = (0.6, 0.3, 0.7)  # Purple
+DEFAULT_HUE_SHIFT = 0.1  # Color variation between tentacles
+
+# Animation defaults
+DEFAULT_ANIM_SPEED = 2.0  # Wave motion speed
+DEFAULT_WAVE_AMPLITUDE = 0.05  # Animation intensity
+DEFAULT_BODY_PULSE_SPEED = 1.5  # Breathing rate
+DEFAULT_BODY_PULSE_AMOUNT = 0.05  # Breathing expansion
+
 # Limits
 MIN_TENTACLES = 1
 MAX_TENTACLES = 12
 MIN_SEGMENTS = 5
 MAX_SEGMENTS = 20
+
+# Appearance limits
+MIN_BODY_SCALE = 0.5
+MAX_BODY_SCALE = 2.0
+MIN_HUE_SHIFT = 0.0
+MAX_HUE_SHIFT = 0.3
+
+# Animation limits
+MIN_ANIM_SPEED = 0.5
+MAX_ANIM_SPEED = 5.0
+MIN_WAVE_AMPLITUDE = 0.0
+MAX_WAVE_AMPLITUDE = 0.2
+MIN_PULSE_SPEED = 0.5
+MAX_PULSE_SPEED = 3.0
+MIN_PULSE_AMOUNT = 0.0
+MAX_PULSE_AMOUNT = 0.15
+
+# Branching (Fibonacci-based)
+GOLDEN_RATIO = 1.618033988749895  # φ
+GOLDEN_ANGLE = math.pi * (3 - math.sqrt(5))  # ~137.508 degrees in radians
+DEFAULT_BRANCH_DEPTH = 0
+DEFAULT_BRANCH_COUNT = 1
+MIN_BRANCH_DEPTH = 0
+MAX_BRANCH_DEPTH = 3
+MIN_BRANCH_COUNT = 1
+MAX_BRANCH_COUNT = 3
 
 # History
 MAX_HISTORY_SIZE = 50

@@ -28,9 +28,84 @@ class EditorWindow(QMainWindow):
 
         self.state_manager = StateManager()
 
-        self.setWindowTitle("DNA Editor - Controls")
-        self.setFixedSize(360, 750)
-        self.move(50, 100)
+        self.setWindowTitle("DNA Editor - Creature Designer")
+        self.setFixedSize(1024, 720)  # Modern wide layout
+        self.move(100, 100)
+
+        # Apply modern dark theme stylesheet
+        self.setStyleSheet("""
+            QMainWindow {
+                background-color: #1e1e1e;
+            }
+            QGroupBox {
+                background-color: #2b2b2b;
+                border: 1px solid #444;
+                border-radius: 8px;
+                margin-top: 12px;
+                padding: 15px;
+                font-weight: bold;
+                color: #e5e5e5;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top left;
+                padding: 5px 10px;
+                background-color: #6366f1;
+                border-radius: 4px;
+                color: white;
+            }
+            QLabel {
+                color: #e5e5e5;
+                font-size: 11pt;
+            }
+            QSpinBox, QComboBox {
+                background-color: #3a3a3a;
+                border: 2px solid #555;
+                border-radius: 6px;
+                padding: 8px;
+                color: #e5e5e5;
+                font-size: 12pt;
+                min-height: 45px;
+            }
+            QSpinBox:focus, QComboBox:focus {
+                border: 2px solid #6366f1;
+            }
+            QPushButton {
+                background-color: #6366f1;
+                border: none;
+                border-radius: 6px;
+                color: white;
+                padding: 12px;
+                font-size: 11pt;
+                font-weight: bold;
+                min-height: 45px;
+            }
+            QPushButton:hover {
+                background-color: #7c3aed;
+            }
+            QPushButton:pressed {
+                background-color: #5b21b6;
+            }
+            QPushButton:disabled {
+                background-color: #444;
+                color: #888;
+            }
+            QSlider::groove:horizontal {
+                background: #444;
+                height: 8px;
+                border-radius: 4px;
+            }
+            QSlider::handle:horizontal {
+                background: #6366f1;
+                width: 20px;
+                height: 20px;
+                margin: -6px 0;
+                border-radius: 10px;
+            }
+            QSlider::handle:horizontal:hover {
+                background: #8b5cf6;
+            }
+        """)
 
         self._init_ui()
         self._init_menu()
@@ -134,7 +209,9 @@ class EditorWindow(QMainWindow):
             algorithm=state['algorithm'],
             params=state['params'],
             thickness_base=state['thickness_base'],
-            taper_factor=state['taper_factor']
+            taper_factor=state['taper_factor'],
+            branch_depth=state.get('branch_depth', 0),
+            branch_count=state.get('branch_count', 1)
         )
 
     def _on_undo(self):
@@ -161,7 +238,9 @@ class EditorWindow(QMainWindow):
             algorithm=state['algorithm'],
             params=state['params'],
             thickness_base=state['thickness_base'],
-            taper_factor=state['taper_factor']
+            taper_factor=state['taper_factor'],
+            branch_depth=state.get('branch_depth', 0),
+            branch_count=state.get('branch_count', 1)
         )
 
     def _update_undo_redo_state(self):
@@ -188,7 +267,9 @@ class EditorWindow(QMainWindow):
             'algorithm': state['algorithm'],
             'algorithm_params': state['params'],
             'thickness_base': state['thickness_base'],
-            'taper_factor': state['taper_factor']
+            'taper_factor': state['taper_factor'],
+            'branch_depth': state.get('branch_depth', 0),
+            'branch_count': state.get('branch_count', 1)
         }
 
         # Open save dialog

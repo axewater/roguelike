@@ -16,7 +16,7 @@ class StateManager:
         self.max_history = MAX_HISTORY_SIZE
 
     def save_state(self, num_tentacles, segments, algorithm, params,
-                   thickness_base, taper_factor):
+                   thickness_base, taper_factor, branch_depth=0, branch_count=1):
         """
         Save current state to history.
 
@@ -27,6 +27,8 @@ class StateManager:
             params: Algorithm parameters dict
             thickness_base: Base thickness
             taper_factor: Taper factor
+            branch_depth: Branching depth
+            branch_count: Number of branches per tentacle
         """
         state = {
             'num_tentacles': num_tentacles,
@@ -34,7 +36,9 @@ class StateManager:
             'algorithm': algorithm,
             'params': copy.deepcopy(params),
             'thickness_base': thickness_base,
-            'taper_factor': taper_factor
+            'taper_factor': taper_factor,
+            'branch_depth': branch_depth,
+            'branch_count': branch_count
         }
 
         # Clear future history if we're not at the end
@@ -86,7 +90,9 @@ class StateManager:
             'algorithm': state['algorithm'],
             'params': copy.deepcopy(state['params']),
             'thickness_base': state['thickness_base'],
-            'taper_factor': state['taper_factor']
+            'taper_factor': state['taper_factor'],
+            'branch_depth': state.get('branch_depth', 0),
+            'branch_count': state.get('branch_count', 1)
         }
 
     def can_undo(self):

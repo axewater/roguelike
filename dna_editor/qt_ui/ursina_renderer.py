@@ -209,7 +209,8 @@ class UrsinaRenderer:
             )
             self.shadow_layers.append(shadow_layer)
 
-    def rebuild_creature(self, num_tentacles, segments, algorithm, params, thickness_base, taper_factor):
+    def rebuild_creature(self, num_tentacles, segments, algorithm, params, thickness_base, taper_factor,
+                        branch_depth=0, branch_count=1):
         """
         Rebuild creature with new parameters.
 
@@ -220,6 +221,8 @@ class UrsinaRenderer:
             params: Algorithm parameters dict
             thickness_base: Base thickness
             taper_factor: Taper factor
+            branch_depth: Maximum branching depth
+            branch_count: Number of child branches per tentacle
         """
         try:
             # Import creature model (use relative import)
@@ -236,10 +239,19 @@ class UrsinaRenderer:
                 algorithm=algorithm,
                 algorithm_params=params,
                 thickness_base=thickness_base,
-                taper_factor=taper_factor
+                taper_factor=taper_factor,
+                branch_depth=branch_depth,
+                branch_count=branch_count
             )
 
-            print(f"✓ Creature rebuilt: {num_tentacles} tentacles, {segments} segments, {algorithm}")
+            # Calculate total tentacles for logging
+            if branch_count == 1:
+                total = num_tentacles * (branch_depth + 1)
+            else:
+                total = num_tentacles * ((branch_count ** (branch_depth + 1) - 1) // (branch_count - 1))
+
+            print(f"✓ Creature rebuilt: {num_tentacles} main tentacles, depth {branch_depth}, "
+                  f"count {branch_count} (~{total} total)")
 
         except Exception as e:
             print(f"✗ Failed to rebuild creature: {e}")

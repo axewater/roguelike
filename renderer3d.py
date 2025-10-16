@@ -69,7 +69,15 @@ class Renderer3D:
             camera.position = (0, c.EYE_HEIGHT, 0)
             camera.rotation_x = 0  # Look horizontally
             camera.fov = c.CAMERA_FOV_FPS
-            print(f"✓ First-person camera configured: eye_height={c.EYE_HEIGHT}, fov={c.CAMERA_FOV_FPS}°")
+            camera.clip_plane_near = 0.05  # Reduce near clipping to prevent wall/floor disappearing
+            print(f"✓ First-person camera configured: eye_height={c.EYE_HEIGHT}, fov={c.CAMERA_FOV_FPS}°, near_clip=0.05")
+
+            # Apply barrel distortion shader if enabled
+            if c.BARREL_DISTORTION_STRENGTH > 0.0:
+                from shaders import create_barrel_distortion_shader
+                barrel_shader = create_barrel_distortion_shader(strength=c.BARREL_DISTORTION_STRENGTH)
+                camera.shader = barrel_shader
+                print(f"✓ Barrel distortion shader applied (strength={c.BARREL_DISTORTION_STRENGTH})")
         else:
             # Third-person (legacy)
             camera.position = (0, c.CAMERA_HEIGHT, -c.CAMERA_DISTANCE)
