@@ -52,9 +52,12 @@ SKY_GRADIENT_BOTTOM = (0.02, 0.02, 0.08)  # Dark blue-purple at horizon
 SKY_GRADIENT_TOP = (0.08, 0.08, 0.15)  # Lighter blue at top
 DEBUG_MARKER_COLOR = (1, 1, 0)  # Yellow
 
-# Shadow
-SHADOW_SIZE = 8  # Shadow plane scale
-SHADOW_OPACITY = 100  # 0-255
+# Shadow (layered circles for soft shadow effect)
+SHADOW_LAYERS = 5  # Number of shadow layers
+SHADOW_BASE_SIZE = 3.5  # Size of largest (outermost) shadow layer
+SHADOW_SIZE_STEP = 0.6  # Size reduction per layer (creates gradient effect)
+SHADOW_BASE_OPACITY = 25  # Opacity of darkest (innermost) layer (0-255) - SUBTLE!
+SHADOW_OPACITY_STEP = 4  # Opacity reduction per layer - small steps to prevent accumulation
 
 # Body
 BODY_SCALE = 1.2

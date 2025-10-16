@@ -23,7 +23,8 @@ class UrsinaRenderer:
         # Scene components
         self.ground = None
         self.sky = None
-        self.sky_top = None
+        self.sky_layers = []
+        self.shadow_layers = []
         self.lighting = {}
 
         # Camera orbit state
@@ -97,7 +98,9 @@ class UrsinaRenderer:
         # Import constants
         try:
             from ..core.constants import (
-                GROUND_Y, SHADOW_Y, GROUND_COLOR, SHADOW_SIZE, SHADOW_OPACITY,
+                GROUND_Y, SHADOW_Y, GROUND_COLOR,
+                SHADOW_LAYERS, SHADOW_BASE_SIZE, SHADOW_SIZE_STEP,
+                SHADOW_BASE_OPACITY, SHADOW_OPACITY_STEP,
                 SKY_GRADIENT_BOTTOM, SKY_GRADIENT_TOP
             )
         except ImportError:
@@ -105,8 +108,11 @@ class UrsinaRenderer:
             GROUND_Y = -3.5
             SHADOW_Y = -3.45
             GROUND_COLOR = (0.1, 0.1, 0.15)
-            SHADOW_SIZE = 8
-            SHADOW_OPACITY = 100
+            SHADOW_LAYERS = 5
+            SHADOW_BASE_SIZE = 3.5
+            SHADOW_SIZE_STEP = 0.6
+            SHADOW_BASE_OPACITY = 70
+            SHADOW_OPACITY_STEP = 15
             SKY_GRADIENT_BOTTOM = (0.02, 0.02, 0.08)
             SKY_GRADIENT_TOP = (0.08, 0.08, 0.15)
 
@@ -125,24 +131,42 @@ class UrsinaRenderer:
             position=(0, GROUND_Y, 0)
         )
 
-        # Gradient sky (dark at horizon, lighter at top)
-        # Create a large inverted sphere with gradient from bottom to top
+        # Gradient sky using multiple colored layers for smooth transition
+        # Create 5 layers from dark (bottom) to light (top)
+        self.sky_layers = []
+        num_layers = 5
+        sky_radius = 500
+
+        for i in range(num_layers):
+            # Interpolate between bottom and top colors
+            t = i / (num_layers - 1)  # 0.0 to 1.0
+            layer_color = tuple(
+                SKY_GRADIENT_BOTTOM[j] + t * (SKY_GRADIENT_TOP[j] - SKY_GRADIENT_BOTTOM[j])
+                for j in range(3)
+            )
+
+            # Position layers vertically (bottom to top)
+            y_offset = (i - num_layers/2) * 200  # Spread layers vertically
+
+            # Create semi-transparent layer
+            layer = Entity(
+                model='sphere',
+                scale=sky_radius - i * 2,  # Slightly smaller for each layer
+                position=(0, y_offset, 0),
+                color=color.rgb(*layer_color),
+                double_sided=True,
+                unlit=True,
+                alpha=0.3 + (i * 0.15)  # More opaque toward top
+            )
+            self.sky_layers.append(layer)
+
+        # Add base solid sky behind everything
         self.sky = Entity(
             model='sphere',
-            scale=500,
+            scale=sky_radius + 10,
             color=color.rgb(*SKY_GRADIENT_BOTTOM),
             double_sided=True,
             unlit=True
-        )
-        # Add gradient effect using top hemisphere color
-        self.sky_top = Entity(
-            model='sphere',
-            scale=499,
-            position=(0, 250, 0),
-            color=color.rgb(*SKY_GRADIENT_TOP),
-            double_sided=True,
-            unlit=True,
-            alpha=0.5
         )
 
         # 3-point lighting system
@@ -179,15 +203,27 @@ class UrsinaRenderer:
             intensity=0.4
         )
 
-        # Improved shadow plane (larger, positioned on new floor)
-        self.shadow_plane = Entity(
-            model='plane',
-            scale=(SHADOW_SIZE, 1, SHADOW_SIZE),
-            color=color.rgba(0, 0, 0, SHADOW_OPACITY),
-            position=(0, SHADOW_Y, 0),
-            rotation_x=90,
-            unlit=True
-        )
+        # Layered circle shadow for soft shadow effect
+        # Create multiple circular layers: largest/lightest to smallest/darkest
+        self.shadow_layers = []
+        for i in range(SHADOW_LAYERS):
+            # Calculate size (largest to smallest)
+            layer_size = SHADOW_BASE_SIZE - (i * SHADOW_SIZE_STEP)
+
+            # Calculate opacity (lightest for largest, darkest for smallest)
+            # Reverse the opacity so: largest circle = most transparent, smallest = darkest
+            layer_opacity = SHADOW_BASE_OPACITY - ((SHADOW_LAYERS - 1 - i) * SHADOW_OPACITY_STEP)
+            layer_opacity = max(5, layer_opacity)  # Minimum opacity of 5
+
+            # Create circular shadow layer (sphere scaled very flat)
+            shadow_layer = Entity(
+                model='sphere',
+                scale=(layer_size, 0.01, layer_size),  # Very flat sphere = circle
+                color=color.rgba(0, 0, 0, layer_opacity),
+                position=(0, SHADOW_Y + i * 0.001, 0),  # Slight offset to prevent z-fighting
+                unlit=True
+            )
+            self.shadow_layers.append(shadow_layer)
 
     def rebuild_creature(self, num_tentacles, segments, algorithm, params, thickness_base, taper_factor):
         """

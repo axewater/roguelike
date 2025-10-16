@@ -2,6 +2,7 @@
 State manager - handles undo/redo history.
 """
 
+import copy
 from ..core.constants import MAX_HISTORY_SIZE
 
 
@@ -27,19 +28,11 @@ class StateManager:
             thickness_base: Base thickness
             taper_factor: Taper factor
         """
-        # Deep copy params dict (handle both dict and primitive values)
-        params_copy = {}
-        for k, v in params.items():
-            if isinstance(v, dict):
-                params_copy[k] = v.copy()
-            else:
-                params_copy[k] = v
-
         state = {
             'num_tentacles': num_tentacles,
             'segments': segments,
             'algorithm': algorithm,
-            'params': params_copy,
+            'params': copy.deepcopy(params),
             'thickness_base': thickness_base,
             'taper_factor': taper_factor
         }
@@ -87,19 +80,11 @@ class StateManager:
         """Get current state with deep copy of params."""
         state = self.history[self.history_index]
 
-        # Deep copy params dict (handle both dict and primitive values)
-        params_copy = {}
-        for k, v in state['params'].items():
-            if isinstance(v, dict):
-                params_copy[k] = v.copy()
-            else:
-                params_copy[k] = v
-
         return {
             'num_tentacles': state['num_tentacles'],
             'segments': state['segments'],
             'algorithm': state['algorithm'],
-            'params': params_copy,
+            'params': copy.deepcopy(state['params']),
             'thickness_base': state['thickness_base'],
             'taper_factor': state['taper_factor']
         }
