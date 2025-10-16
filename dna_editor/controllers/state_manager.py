@@ -2,7 +2,12 @@
 State manager - handles undo/redo history.
 """
 
-from ..core.constants import MAX_HISTORY_SIZE
+try:
+    # Try relative import (for Ursina version)
+    from ..core.constants import MAX_HISTORY_SIZE
+except ImportError:
+    # Fall back to absolute import (for PyQt6 version)
+    from dna_editor_copy.core.constants import MAX_HISTORY_SIZE
 
 
 class StateManager:
@@ -27,11 +32,19 @@ class StateManager:
             thickness_base: Base thickness
             taper_factor: Taper factor
         """
+        # Deep copy params dict (handle both dict and primitive values)
+        params_copy = {}
+        for k, v in params.items():
+            if isinstance(v, dict):
+                params_copy[k] = v.copy()
+            else:
+                params_copy[k] = v
+
         state = {
             'num_tentacles': num_tentacles,
             'segments': segments,
             'algorithm': algorithm,
-            'params': {k: v.copy() for k, v in params.items()},
+            'params': params_copy,
             'thickness_base': thickness_base,
             'taper_factor': taper_factor
         }
@@ -78,11 +91,20 @@ class StateManager:
     def _get_current_state(self):
         """Get current state with deep copy of params."""
         state = self.history[self.history_index]
+
+        # Deep copy params dict (handle both dict and primitive values)
+        params_copy = {}
+        for k, v in state['params'].items():
+            if isinstance(v, dict):
+                params_copy[k] = v.copy()
+            else:
+                params_copy[k] = v
+
         return {
             'num_tentacles': state['num_tentacles'],
             'segments': state['segments'],
             'algorithm': state['algorithm'],
-            'params': {k: v.copy() for k, v in state['params'].items()},
+            'params': params_copy,
             'thickness_base': state['thickness_base'],
             'taper_factor': state['taper_factor']
         }
