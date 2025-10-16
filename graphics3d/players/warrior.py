@@ -127,7 +127,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     # Neck (more visible, taller)
     neck = Entity(
         parent=warrior,
-        model='cylinder',
+        model='sphere',
         color=skin_tone,
         scale=(0.14, 0.18, 0.14),
         position=(0, 0.38, 0)
@@ -145,7 +145,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     # Gorget base (neck armor) - connects helmet to chest, lower position
     gorget_base = Entity(
         parent=warrior,
-        model='cylinder',
+        model='sphere',
         color=dark_steel,
         scale=(0.22, 0.10, 0.22),
         position=(0, 0.30, 0)
@@ -154,7 +154,7 @@ def create_warrior_model(position=Vec3(0, 0, 0), scale=Vec3(1, 1, 1)):
     # Gorget top layer
     gorget = Entity(
         parent=warrior,
-        model='cylinder',
+        model='sphere',
         color=polished_steel,
         scale=(0.20, 0.11, 0.20),
         position=(0, 0.31, 0)
