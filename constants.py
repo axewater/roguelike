@@ -22,7 +22,7 @@ CAMERA_FOV_FPS = 90     # Field of view for first-person (wider than third-perso
 
 # Camera pitch (vertical tilt) settings
 DEFAULT_CAMERA_PITCH = 0.0    # Default pitch: look straight ahead
-CAMERA_PITCH_SPEED = 8.0      # Pitch interpolation speed (fast for responsive feel)
+CAMERA_PITCH_SPEED = 1.5      # Pitch interpolation speed (smooth ~1 second transition)
 ENEMY_FOCUS_PITCH = 20.0      # Degrees to tilt down when focusing on adjacent enemy
 
 # World settings

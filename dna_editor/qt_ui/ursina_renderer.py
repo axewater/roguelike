@@ -122,8 +122,7 @@ class UrsinaRenderer:
             model='plane',
             scale=20,
             color=color.rgb(*GROUND_COLOR),
-            position=(0, GROUND_Y, 0),
-            shader='basic_lighting_shader'
+            position=(0, GROUND_Y, 0)
         )
 
         # Gradient sky (dark at horizon, lighter at top)
@@ -269,18 +268,20 @@ class UrsinaRenderer:
                 MIN_CAMERA_HEIGHT = 0.5
                 MAX_CAMERA_HEIGHT = 5
 
-            # Mouse drag to orbit
-            if mouse.left:
+            # Mouse drag to orbit (Ursina uses held_keys for mouse buttons)
+            if held_keys['left mouse']:
                 self.camera_angle += mouse.velocity[0] * 200
                 self.camera_height += mouse.velocity[1] * 5
 
             # Clamp camera height
             self.camera_height = max(MIN_CAMERA_HEIGHT, min(MAX_CAMERA_HEIGHT, self.camera_height))
 
-            # Scroll to zoom
-            if mouse.scroll != 0:
-                self.camera_distance -= mouse.scroll * 0.5
-                self.camera_distance = max(MIN_CAMERA_DISTANCE, min(MAX_CAMERA_DISTANCE, self.camera_distance))
+            # Scroll to zoom (Ursina uses held_keys for scroll events)
+            if held_keys['scroll up']:
+                self.camera_distance -= 0.5
+            if held_keys['scroll down']:
+                self.camera_distance += 0.5
+            self.camera_distance = max(MIN_CAMERA_DISTANCE, min(MAX_CAMERA_DISTANCE, self.camera_distance))
 
             # Calculate camera position using orbit math
             angle_rad = math.radians(self.camera_angle)
