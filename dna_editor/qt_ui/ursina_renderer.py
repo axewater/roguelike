@@ -177,7 +177,7 @@ class UrsinaRenderer:
         # Import constants
         from ..core.constants import (
             GROUND_Y, GROUND_COLOR, SHADOW_Y,
-            SKY_GRADIENT_BOTTOM, SKY_GRADIENT_TOP
+            SKY_GRADIENT_BOTTOM, SKY_GRADIENT_TOP, FLOOR_Y
         )
 
         # Ground (positioned below tentacles)
@@ -186,6 +186,15 @@ class UrsinaRenderer:
             scale=20,
             color=self.color.rgb(*GROUND_COLOR),
             position=(0, GROUND_Y, 0)
+        )
+
+        # Physics floor (for blob drop physics, positioned higher than visual ground)
+        self.floor = self.Entity(
+            model='plane',
+            scale=20,
+            color=self.color.rgb(0.25, 0.30, 0.35),  # Slightly lighter blue-gray
+            position=(0, FLOOR_Y, 0),
+            visible=False  # Hidden by default, shown when physics active
         )
 
         # Shadow (radial gradient circle just above ground)
@@ -374,6 +383,28 @@ class UrsinaRenderer:
             camera_pos = self.camera.position
             self.creature.start_attack_2(camera_pos)
 
+    def drop_creature(self):
+        """Enable physics and drop blob creature."""
+        print("=== DROP CREATURE CALLED ===")
+        if not self.creature:
+            print("ERROR: No creature exists")
+            return
+
+        if not hasattr(self.creature, 'enable_physics'):
+            print(f"ERROR: Creature type {type(self.creature).__name__} doesn't support physics")
+            return
+
+        print(f"Creature has {len(self.creature.cubes)} cubes")
+        print(f"Enabling physics (drop from current position)")
+
+        self.creature.enable_physics()  # No drop_from_height parameter needed
+
+        # Show physics floor when physics active
+        self.floor.visible = True
+        print(f"Physics enabled: {self.creature.physics_enabled}")
+        print(f"Physics floor visible: {self.floor.visible}")
+        print("=== DROP CREATURE COMPLETE ===")
+
     def _update_animation(self):
         """Update creature animation and handle rendering."""
         if self.ursina_app:
@@ -384,10 +415,46 @@ class UrsinaRenderer:
                 # Update animation time
                 from ursina import time as ursina_time
                 self.animation_time += ursina_time.dt
+                dt = ursina_time.dt
 
-                # Update creature animation (pass camera position for attack targeting)
+                # Update creature (physics or animation)
                 if self.creature:
-                    self.creature.update_animation(self.animation_time, self.camera.position)
+                    # Check if physics is enabled
+                    if hasattr(self.creature, 'physics_enabled') and self.creature.physics_enabled:
+                        # Run physics simulation
+                        from ..core.constants import DROP_DURATION
+
+                        # Log first frame and occasional updates
+                        if not hasattr(self, '_physics_frame_count'):
+                            self._physics_frame_count = 0
+                            print(f"[UPDATE] Starting physics simulation (actual dt={dt})")
+
+                        self._physics_frame_count += 1
+                        if self._physics_frame_count % 60 == 0:  # Log every 60 frames (~1 second)
+                            print(f"[UPDATE] Physics frame {self._physics_frame_count}, time={self.creature.physics_time:.2f}s")
+                            # Log first cube position
+                            if self.creature.cubes:
+                                pos = self.creature.cubes[0].entity.position
+                                print(f"  Cube 0 position: {pos}")
+
+                        # Clamp dt to prevent physics explosions on lag spikes
+                        # (Cap at 30 FPS minimum, ~0.033s max timestep)
+                        clamped_dt = min(dt, 1.0 / 30.0)
+
+                        # Use actual dt instead of fixed timestep for better accuracy
+                        self.creature.update_physics(clamped_dt)
+                        self.creature.physics_time += clamped_dt
+
+                        # Check if creature has settled (velocity-based detection)
+                        if self._check_creature_settled():
+                            print(f"[UPDATE] Physics settled at {self.creature.physics_time:.2f}s, disabling physics")
+                            self.creature.disable_physics()
+                            self.floor.visible = False  # Hide physics floor
+                            delattr(self, '_physics_frame_count')
+                            delattr(self, '_settle_check_timer')
+                    else:
+                        # Normal animation
+                        self.creature.update_animation(self.animation_time, self.camera.position)
 
                 # Handle camera controls
                 self._handle_camera_controls()
@@ -395,6 +462,48 @@ class UrsinaRenderer:
             except Exception as e:
                 # Silently ignore errors (app might be closing)
                 pass
+
+    def _check_creature_settled(self):
+        """
+        Check if creature has settled (all particles below velocity threshold).
+
+        Returns:
+            True if creature is settled and physics can be disabled
+        """
+        if not self.creature or not hasattr(self.creature, 'physics_engine'):
+            return False
+
+        # Import settling constants
+        from ..core.constants import (
+            MIN_PHYSICS_TIME, SETTLE_VELOCITY_THRESHOLD, SETTLE_DURATION
+        )
+
+        # Require minimum time before checking (let creature fall first)
+        if self.creature.physics_time < MIN_PHYSICS_TIME:
+            return False
+
+        # Check if all particles have low velocity (settled)
+        max_velocity = 0.0
+        for particle in self.creature.physics_engine.particles:
+            velocity = (particle.position - particle.old_position).length()
+            max_velocity = max(max_velocity, velocity)
+
+        # Initialize settle timer if not exists
+        if not hasattr(self, '_settle_check_timer'):
+            self._settle_check_timer = 0.0
+
+        # If velocity low, increment timer; if high, reset timer
+        if max_velocity < SETTLE_VELOCITY_THRESHOLD:
+            self._settle_check_timer += self.creature.physics_time - getattr(self, '_last_physics_time', 0)
+            print(f"[SETTLE CHECK] Max velocity: {max_velocity:.4f}, settle timer: {self._settle_check_timer:.2f}s")
+
+            if self._settle_check_timer >= SETTLE_DURATION:
+                return True  # Settled!
+        else:
+            self._settle_check_timer = 0.0  # Reset timer
+
+        self._last_physics_time = self.creature.physics_time
+        return False
 
     def _handle_camera_controls(self):
         """Handle mouse camera controls with orbit system."""

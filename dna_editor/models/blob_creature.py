@@ -42,6 +42,7 @@ class BlobCube:
         self.parent_cube = parent_cube
         self.children = []  # Child BlobCubes
         self.connector_tube = None  # Tube (stretched cube) connecting to parent
+        self.physics_particle = None  # Physics particle for Verlet simulation (None = not enabled)
 
         # Random jiggle phase offset for organic motion
         self.jiggle_phase_x = random.random() * math.pi * 2
@@ -151,7 +152,14 @@ class BlobCube:
             attack_progress: Attack phase progress (0-1)
             attack_phase: 'expand', 'contract', 'return', or 'idle'
         """
-        if is_attacking and attack_phase == 'cascade':
+        # If physics is enabled, sync entity position from physics particle
+        # Don't return early - let Ursina update cycle complete
+        if self.physics_particle is not None:
+            self.entity.position = self.physics_particle.position
+            self._update_connector_tube_transform()
+            # Skip animation logic when physics is active, but don't return
+            # This allows Ursina to complete its rendering update cycle
+        elif is_attacking and attack_phase == 'cascade':
             # Cascade attack: smooth wave expanding from root → leaves
             from ..core.constants import CASCADE_EXPAND_AMOUNT, CASCADE_PULSE_SCALE
 
@@ -181,7 +189,7 @@ class BlobCube:
 
             # Update connector tube to follow cube
             self._update_connector_tube_transform()
-        else:
+        elif not self.physics_particle:  # Only do idle animation if no physics
             # Idle jiggle animation (each cube jiggles independently)
             jiggle_x = math.sin(time * jiggle_speed + self.jiggle_phase_x) * jiggle_amplitude
             jiggle_y = math.sin(time * jiggle_speed * 1.3 + self.jiggle_phase_y) * jiggle_amplitude * 0.8
@@ -193,8 +201,8 @@ class BlobCube:
             pulse = 1.0 + math.sin(time * jiggle_speed * 0.7 + self.jiggle_phase_x) * 0.05
             self.entity.scale = self.original_size * pulse
 
-        # Update connector tube to follow cube (if it has one)
-        self._update_connector_tube_transform()
+            # Update connector tube to follow cube (if it has one)
+            self._update_connector_tube_transform()
 
     def _ease_out_cubic(self, t):
         """Ease-out cubic (fast start, slow end)."""
@@ -207,6 +215,23 @@ class BlobCube:
     def _ease_out_quad(self, t):
         """Ease-out quadratic."""
         return 1 - (1 - t) * (1 - t)
+
+    def create_physics_particle(self, mass):
+        """
+        Create physics particle for Verlet simulation.
+
+        Args:
+            mass: Particle mass (usually proportional to cube volume)
+        """
+        from ..models.blob_physics import PhysicsParticle
+
+        # Create new Vec3 from entity position (Ursina Vec3 doesn't have .copy())
+        pos = self.entity.position
+        self.physics_particle = PhysicsParticle(
+            position=Vec3(pos.x, pos.y, pos.z),
+            mass=mass,
+            radius=self.original_size * 0.5  # Use half cube size for collision radius
+        )
 
     def destroy(self):
         """Cleanup cube entity and connector tube."""
@@ -266,6 +291,11 @@ class BlobCreature:
         # Attack animation state
         self.is_attacking = False
         self.attack_start_time = 0
+
+        # Physics state (Verlet integration)
+        self.physics_engine = None
+        self.physics_enabled = False
+        self.physics_time = 0.0
 
         # Create toon shader (shared across all cubes and tubes)
         self.toon_shader = create_toon_shader()
@@ -466,6 +496,128 @@ class BlobCreature:
                 attack_progress=cube_attack_progress,  # Per-cube progress (not global)
                 attack_phase=attack_phase
             )
+
+    def enable_physics(self, drop_from_height=0.0):
+        """
+        Activate Verlet physics and drop creature from current position.
+
+        Args:
+            drop_from_height: DEPRECATED - kept for API compatibility, always drops from current position
+        """
+        print(f"  [enable_physics] Starting with {len(self.cubes)} cubes, drop_from_current_position=True")
+
+        from ..models.blob_physics import DistanceConstraint, VerletPhysics
+        from ..core.constants import (
+            PHYSICS_GRAVITY_Y, PHYSICS_DAMPING, CONSTRAINT_STIFFNESS,
+            CONSTRAINT_ITERATIONS, FLOOR_Y, FLOOR_RESTITUTION, FLOOR_FRICTION
+        )
+
+        # Create physics particles for each cube at their CURRENT positions
+        print(f"  [enable_physics] Creating physics particles at current positions...")
+        for i, cube in enumerate(self.cubes):
+            # Mass proportional to cube volume (size^3)
+            mass = cube.original_size ** 3
+            current_pos = cube.entity.position
+            print(f"    Cube {i}: starting at pos={current_pos}, size={cube.original_size}, mass={mass:.3f}")
+
+            # Create particle at current entity position (no lifting!)
+            cube.create_physics_particle(mass)
+            # Physics particle is already at correct position from entity.position in create_physics_particle()
+
+            print(f"    Cube {i}: physics particle at y={cube.physics_particle.position.y:.2f}")
+
+        # Optional: Pin root cube to prevent spinning (uncomment if needed)
+        # self.cubes[0].physics_particle.pinned = True
+
+        # Create distance constraints for tree structure
+        print(f"  [enable_physics] Creating distance constraints...")
+        constraints = []
+        for cube in self.cubes:
+            if cube.parent_cube:
+                parent_particle = cube.parent_cube.physics_particle
+                child_particle = cube.physics_particle
+                rest_length = (cube.original_position - cube.parent_cube.original_position).length()
+                constraints.append(
+                    DistanceConstraint(parent_particle, child_particle, rest_length)
+                )
+        print(f"  [enable_physics] Created {len(constraints)} constraints")
+
+        # Initialize physics engine
+        gravity = Vec3(0, PHYSICS_GRAVITY_Y, 0)
+        print(f"  [enable_physics] Initializing physics engine (gravity={PHYSICS_GRAVITY_Y}, floor={FLOOR_Y})")
+
+        self.physics_engine = VerletPhysics(
+            particles=[cube.physics_particle for cube in self.cubes],
+            constraints=constraints,
+            gravity=gravity,
+            damping=PHYSICS_DAMPING,
+            floor_y=FLOOR_Y,
+            constraint_stiffness=CONSTRAINT_STIFFNESS,
+            constraint_iterations=CONSTRAINT_ITERATIONS,
+            floor_restitution=FLOOR_RESTITUTION,
+            floor_friction=FLOOR_FRICTION
+        )
+
+        self.physics_enabled = True
+        self.physics_time = 0.0
+        print(f"  [enable_physics] Physics enabled successfully")
+
+    def disable_physics(self):
+        """Disable physics and return to keyframed animation."""
+        print(f"  [disable_physics] Disabling physics, returning to animation")
+        self.physics_enabled = False
+        self.physics_engine = None
+
+        # Clear physics particles from all cubes
+        for cube in self.cubes:
+            cube.physics_particle = None
+        print(f"  [disable_physics] Physics disabled")
+
+    def update_physics(self, dt):
+        """
+        Step physics simulation.
+
+        Args:
+            dt: Delta time (seconds)
+        """
+        if self.physics_engine:
+            # Log first physics step
+            if not hasattr(self, '_first_physics_logged'):
+                self._first_physics_logged = True
+                print(f"  [update_physics] First physics step, dt={dt}")
+                print(f"    Particles: {len(self.physics_engine.particles)}")
+                print(f"    Constraints: {len(self.physics_engine.constraints)}")
+                if self.cubes:
+                    pos = self.cubes[0].physics_particle.position
+                    print(f"    First cube particle at: {pos}")
+
+            self.physics_engine.step(dt)
+
+            # Sync visual entities with physics particles
+            for i, cube in enumerate(self.cubes):
+                if cube.physics_particle:
+                    cube.entity.position = cube.physics_particle.position
+                    cube.entity.enabled = True  # Force visible
+                    cube.entity.visible = True  # Ensure not hidden
+                    cube._update_connector_tube_transform()
+                    # Also ensure connector tube is visible
+                    if cube.connector_tube:
+                        cube.connector_tube.enabled = True
+                        cube.connector_tube.visible = True
+
+                    # Debug logging for first cube on first physics frame
+                    if not hasattr(self, '_physics_debug_logged') and i == 0:
+                        self._physics_debug_logged = True
+                        print(f"  [ENTITY DEBUG] First cube state after physics sync:")
+                        print(f"    position: {cube.entity.position}")
+                        print(f"    world_position: {cube.entity.world_position}")
+                        print(f"    enabled: {cube.entity.enabled}")
+                        print(f"    visible: {cube.entity.visible}")
+                        print(f"    alpha: {cube.entity.alpha}")
+                        print(f"    parent: {cube.entity.parent}")
+                        print(f"    shader: {cube.entity.shader}")
+                        if hasattr(cube.entity, 'color'):
+                            print(f"    color: {cube.entity.color}")
 
     def destroy(self):
         """Cleanup all cube entities."""

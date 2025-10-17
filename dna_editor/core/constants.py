@@ -179,9 +179,9 @@ EYE_BLINK_INTERVAL_MAX = 8.0  # Maximum seconds between blinks
 
 # Blob defaults
 DEFAULT_NUM_CUBES = 8  # DEPRECATED: Use branch_depth + branch_count instead
-DEFAULT_CUBE_SIZE_MIN = 0.3
-DEFAULT_CUBE_SIZE_MAX = 0.8
-DEFAULT_CUBE_SPACING = 1.2
+DEFAULT_CUBE_SIZE_MIN = 0.18  # 40% smaller (0.3 * 0.6)
+DEFAULT_CUBE_SIZE_MAX = 0.48  # 40% smaller (0.8 * 0.6)
+DEFAULT_CUBE_SPACING = 0.72  # 40% smaller (1.2 * 0.6)
 DEFAULT_BLOB_COLOR = (0.2, 0.8, 0.4)  # Green slime
 DEFAULT_BLOB_TRANSPARENCY = 0.7  # 70% transparent
 DEFAULT_JIGGLE_SPEED = 2.0
@@ -229,3 +229,30 @@ BLOB_ATTACK_CONTRACT_END = 0.8  # DEPRECATED
 BLOB_ATTACK_RETURN_END = 1.2  # DEPRECATED
 BLOB_ATTACK_EXPANSION = 1.5  # DEPRECATED
 BLOB_ATTACK_SCALE = 1.3  # DEPRECATED
+
+# ==========================================
+# BLOB PHYSICS (VERLET INTEGRATION)
+# ==========================================
+
+# Physics simulation
+PHYSICS_TIMESTEP = 1.0 / 60.0  # 60Hz fixed update (DEPRECATED - now using actual dt)
+PHYSICS_GRAVITY_Y = -98.0  # Gravity acceleration (m/s^2) - 10x stronger for visible drop
+PHYSICS_DAMPING = 0.98  # Velocity damping (0.98 = 2% loss per frame)
+
+# Floor collision
+FLOOR_Y = -2.0  # Floor plane Y position
+FLOOR_RESTITUTION = 0.4  # Bounce factor (0.4 = 40% energy retained)
+FLOOR_FRICTION = 0.9  # Horizontal friction multiplier (0.9 = 10% loss)
+
+# Distance constraints
+CONSTRAINT_STIFFNESS = 0.5  # How rigid constraints are (0-1, where 0.5 = moderate)
+CONSTRAINT_ITERATIONS = 10  # Solver passes per frame (more = stiffer, max 10)
+
+# Drop animation
+DROP_START_HEIGHT = 5.0  # DEPRECATED - creature now drops from current position
+DROP_DURATION = 3.0  # DEPRECATED - physics now runs until velocity settling
+
+# Physics settling detection (replaces fixed DROP_DURATION)
+SETTLE_VELOCITY_THRESHOLD = 0.02  # Maximum velocity to consider "settled" (units/second) - lower = stricter
+SETTLE_DURATION = 2.0  # Must be below threshold for this long (seconds) - increased from 0.5s
+MIN_PHYSICS_TIME = 2.0  # Minimum physics time before checking for settling (seconds) - increased from 1.0s
