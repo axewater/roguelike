@@ -312,7 +312,7 @@ class ModernControlPanel(QWidget):
         type_selector_layout.addWidget(type_label)
 
         self.creature_type_combo = QComboBox()
-        self.creature_type_combo.addItems(["Tentacle Creature", "Blob Creature", "Polyp Creature", "Starfish Creature"])
+        self.creature_type_combo.addItems(["Tentacle Creature", "Blob Creature", "Polyp Creature", "Starfish Creature", "Medusa Creature"])
         self.creature_type_combo.setMinimumHeight(40)
         self.creature_type_combo.setStyleSheet(self.COMBOBOX_STYLE)
         self.creature_type_combo.currentTextChanged.connect(self._on_creature_type_changed)
@@ -1440,11 +1440,14 @@ class ModernControlPanel(QWidget):
                 self._creature_type = 'blob'
             elif text == "Polyp Creature":
                 self._creature_type = 'polyp'
-            else:  # "Starfish Creature"
+            elif text == "Starfish Creature":
                 self._creature_type = 'starfish'
+            else:  # "Medusa Creature"
+                self._creature_type = 'medusa'
 
             # Show/hide appropriate containers
-            self.tentacle_container.setVisible(self._creature_type == 'tentacle')
+            # Medusa uses tentacle container (similar parameters)
+            self.tentacle_container.setVisible(self._creature_type in ('tentacle', 'medusa'))
             self.blob_container.setVisible(self._creature_type == 'blob')
             self.polyp_container.setVisible(self._creature_type == 'polyp')
             self.starfish_container.setVisible(self._creature_type == 'starfish')
@@ -1750,12 +1753,15 @@ class ModernControlPanel(QWidget):
             display_name = "Blob Creature"
         elif self._creature_type == 'polyp':
             display_name = "Polyp Creature"
-        else:  # starfish
+        elif self._creature_type == 'starfish':
             display_name = "Starfish Creature"
+        else:  # medusa
+            display_name = "Medusa Creature"
         self.creature_type_combo.setCurrentText(display_name)
 
         # Show/hide appropriate containers
-        self.tentacle_container.setVisible(self._creature_type == 'tentacle')
+        # Medusa uses tentacle container (similar parameters)
+        self.tentacle_container.setVisible(self._creature_type in ('tentacle', 'medusa'))
         self.blob_container.setVisible(self._creature_type == 'blob')
         self.polyp_container.setVisible(self._creature_type == 'polyp')
         self.starfish_container.setVisible(self._creature_type == 'starfish')

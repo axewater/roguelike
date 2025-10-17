@@ -287,7 +287,7 @@ class UrsinaRenderer:
         Rebuild creature with new parameters.
 
         Args:
-            creature_type: 'tentacle', 'blob', 'polyp', or 'starfish'
+            creature_type: 'tentacle', 'blob', 'polyp', 'starfish', or 'medusa'
             [Tentacle parameters]
             num_tentacles: Number of tentacles
             segments: Segments per tentacle
@@ -425,6 +425,29 @@ class UrsinaRenderer:
                     curl_factor=curl_factor,
                     anim_speed=starfish_anim_speed,
                     pulse_amount=starfish_pulse_amount
+                )
+
+            elif creature_type == 'medusa':
+                # Import and create medusa creature (eyes on tentacle tips)
+                from ..models.medusa_creature import MedusaCreature
+
+                self.creature = MedusaCreature(
+                    num_tentacles=num_tentacles,
+                    segments_per_tentacle=segments,
+                    algorithm=algorithm,
+                    algorithm_params=params,
+                    thickness_base=thickness_base,
+                    taper_factor=taper_factor,
+                    body_scale=body_scale,
+                    tentacle_color=tentacle_color,
+                    hue_shift=hue_shift,
+                    anim_speed=anim_speed,
+                    wave_amplitude=wave_amplitude,
+                    pulse_speed=pulse_speed,
+                    pulse_amount=pulse_amount,
+                    eye_size=eye_size_max,  # Use max eye size for tip eyes
+                    eyeball_color=eyeball_color,
+                    pupil_color=pupil_color
                 )
 
             else:
