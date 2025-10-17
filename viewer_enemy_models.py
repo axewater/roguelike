@@ -61,32 +61,39 @@ class OrbitCamera:
         Handle camera controls - adapted from DNA Editor's _handle_camera_controls().
         Uses held_keys and mouse.velocity for smooth, working controls.
         """
+        camera_changed = False
+
         # Mouse drag to orbit (use held_keys like DNA Editor does)
         if held_keys['left mouse']:
             # Use mouse.velocity for smooth rotation (automatic delta calculation!)
             self.camera_angle += mouse.velocity[0] * 200  # Horizontal rotation
             self.camera_height += mouse.velocity[1] * 5   # Vertical movement
+            camera_changed = True
 
         # Clamp camera height
         self.camera_height = max(self.min_height, min(self.max_height, self.camera_height))
 
-        # Scroll to zoom (use held_keys like DNA Editor)
+        # Scroll to zoom (use held_keys like DNA Editor does)
         if held_keys['scroll up']:
             self.camera_distance -= 0.5
+            camera_changed = True
         if held_keys['scroll down']:
             self.camera_distance += 0.5
+            camera_changed = True
 
         # Clamp distance
         self.camera_distance = max(self.min_distance, min(self.max_distance, self.camera_distance))
 
-        # Update camera position
-        self.update_camera_position()
+        # Update camera position if anything changed
+        if camera_changed:
+            self.update_camera_position()
 
         # Reset camera (R key)
         if held_keys['r']:
             self.camera_angle = 0
             self.camera_height = 2.0
             self.camera_distance = 12.0
+            self.update_camera_position()
             held_keys['r'] = False  # Reset key state
 
 

@@ -23,7 +23,6 @@ class UrsinaRenderer:
         # Scene components
         self.ground = None
         self.sky = None
-        self.sky_layers = []
         self.shadow_layers = []
         self.lighting = {}
 
@@ -153,43 +152,13 @@ class UrsinaRenderer:
             position=(0, GROUND_Y, 0)
         )
 
-        # Gradient sky using multiple colored layers for smooth transition
-        # Create 5 layers from dark (bottom) to light (top)
-        self.sky_layers = []
-        num_layers = 5
-        sky_radius = 500
-
-        for i in range(num_layers):
-            # Interpolate between bottom and top colors
-            t = i / (num_layers - 1)  # 0.0 to 1.0
-            layer_color = tuple(
-                SKY_GRADIENT_BOTTOM[j] + t * (SKY_GRADIENT_TOP[j] - SKY_GRADIENT_BOTTOM[j])
-                for j in range(3)
-            )
-
-            # Position layers vertically (bottom to top)
-            y_offset = (i - num_layers/2) * 200  # Spread layers vertically
-
-            # Create semi-transparent layer
-            layer = self.Entity(
-                model='sphere',
-                scale=sky_radius - i * 2,  # Slightly smaller for each layer
-                position=(0, y_offset, 0),
-                color=self.color.rgb(*layer_color),
-                double_sided=True,
-                unlit=True,
-                alpha=0.3 + (i * 0.15)  # More opaque toward top
-            )
-            self.sky_layers.append(layer)
-
-        # Add base solid sky behind everything
-        self.sky = self.Entity(
-            model='sphere',
-            scale=sky_radius + 10,
-            color=self.color.rgb(*SKY_GRADIENT_BOTTOM),
-            double_sided=True,
-            unlit=True
+        # Simple single-layer sky using Ursina's built-in Sky
+        # Use an average of top and bottom gradient colors for a bright, colorful sky
+        sky_color = tuple(
+            (SKY_GRADIENT_BOTTOM[i] + SKY_GRADIENT_TOP[i]) / 2
+            for i in range(3)
         )
+        self.sky = self.Sky(color=self.color.rgb(*sky_color))
 
         # Enhanced lighting system for toon/cel-shading
         # Key: Lower ambient + stronger directional = clearer lighting bands
