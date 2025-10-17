@@ -4,6 +4,7 @@ Tentacle model - a single tentacle made of connected segments.
 
 from ursina import Entity, Vec3, color, destroy
 import math
+import random
 from ..core.curves import bezier_curve, fourier_curve
 from ..core.constants import (
     GOLDEN_RATIO, GOLDEN_ANGLE,
@@ -48,6 +49,9 @@ class Tentacle:
         self.branch_count = branch_count
         self.current_depth = current_depth
         self.segment_distances = []  # Original distance between consecutive segments
+
+        # Generate unique random phase offset for this tentacle (for animation variation)
+        self.animation_phase_offset = random.random() * math.pi * 2
 
         # Get or create toon shader (create once, share across all tentacles)
         if toon_shader is not None:
@@ -239,8 +243,8 @@ class Tentacle:
             n = segment.total_segments
 
             # Per-tentacle phase offset for variation (prevents all tentacles moving in sync)
-            # Use segment total as a pseudo-random offset
-            tentacle_phase = (n * 0.13) % (math.pi * 2)
+            # Use stored random offset generated at creation
+            tentacle_phase = self.animation_phase_offset
 
             # Multi-frequency waves (like Fourier series)
             # Primary wave - main motion
@@ -284,7 +288,7 @@ class Tentacle:
             n = len(self.segments)
 
             # Per-tentacle phase offset (same as segments)
-            tentacle_phase = (n * 0.13) % (math.pi * 2)
+            tentacle_phase = self.animation_phase_offset
 
             # Multi-frequency waves (same as segments)
             phase1 = time * anim_speed + i * 0.3 + tentacle_phase
