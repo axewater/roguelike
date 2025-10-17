@@ -361,6 +361,12 @@ class UrsinaRenderer:
                     pulse_amount=blob_pulse_amount
                 )
 
+                # Auto-enable physics to drop creature to floor
+                print("[BLOB SPAWN] Auto-enabling physics for drop animation")
+                self.creature.enable_physics()
+                self.floor.visible = True  # Show physics floor
+                print("[BLOB SPAWN] Physics enabled, creature will drop and settle")
+
             else:
                 print(f"ERROR: Unknown creature type '{creature_type}'")
 

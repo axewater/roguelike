@@ -79,7 +79,6 @@ class ModernControlPanel(QWidget):
     export_requested = pyqtSignal()
     attack_requested = pyqtSignal()
     attack_2_requested = pyqtSignal()
-    drop_physics_requested = pyqtSignal()  # Emits when Drop button clicked
 
     SPINBOX_STYLE = """
         QSpinBox {
@@ -1000,36 +999,6 @@ class ModernControlPanel(QWidget):
         self.blob_pulse_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.blob_pulse_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
         layout.addWidget(self.blob_pulse_label)
-
-        layout.addSpacing(20)
-
-        # Drop Physics Button (prominent green button)
-        self.drop_physics_btn = QPushButton("⬇ DROP CREATURE ⬇")
-        self.drop_physics_btn.setMinimumHeight(55)
-        self.drop_physics_btn.setStyleSheet("""
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                           stop:0 #10b981, stop:1 #059669);
-                border: 2px solid #34d399;
-                border-radius: 8px;
-                font-weight: bold;
-                font-size: 14pt;
-                letter-spacing: 1px;
-                color: white;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                           stop:0 #34d399, stop:1 #10b981);
-                border: 2px solid #6ee7b7;
-            }
-            QPushButton:pressed {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                           stop:0 #059669, stop:1 #047857);
-                border: 2px solid #10b981;
-            }
-        """)
-        self.drop_physics_btn.clicked.connect(self.drop_physics_requested.emit)
-        layout.addWidget(self.drop_physics_btn)
 
         layout.addStretch()
         group.setLayout(layout)

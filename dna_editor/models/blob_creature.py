@@ -563,15 +563,28 @@ class BlobCreature:
         print(f"  [enable_physics] Physics enabled successfully")
 
     def disable_physics(self):
-        """Disable physics and return to keyframed animation."""
-        print(f"  [disable_physics] Disabling physics, returning to animation")
+        """Disable physics and return to keyframed animation at settled positions."""
+        print(f"  [disable_physics] Disabling physics, baking settled positions as new original_position")
+
+        # Update original positions to current settled positions before disabling
+        # This makes idle/attack animations play from the floor position instead of reverting
+        for cube in self.cubes:
+            if cube.physics_particle:
+                # Store the settled position as the new original position
+                cube.original_position = Vec3(
+                    cube.physics_particle.position.x,
+                    cube.physics_particle.position.y,
+                    cube.physics_particle.position.z
+                )
+                print(f"    Cube original_position updated to: {cube.original_position}")
+
         self.physics_enabled = False
         self.physics_engine = None
 
         # Clear physics particles from all cubes
         for cube in self.cubes:
             cube.physics_particle = None
-        print(f"  [disable_physics] Physics disabled")
+        print(f"  [disable_physics] Physics disabled, animations will use settled floor positions")
 
     def update_physics(self, dt):
         """

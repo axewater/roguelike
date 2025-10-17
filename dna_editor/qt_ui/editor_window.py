@@ -234,7 +234,6 @@ class EditorWindow(QMainWindow):
         self.control_panel.export_requested.connect(self._on_export)
         self.control_panel.attack_requested.connect(self._on_attack)
         self.control_panel.attack_2_requested.connect(self._on_attack_2)
-        self.control_panel.drop_physics_requested.connect(self._on_drop_physics)
 
         # Wrap control panel in scroll area
         scroll_area = QScrollArea()
@@ -442,10 +441,6 @@ class EditorWindow(QMainWindow):
     def _on_attack_2(self):
         """Handle Attack 2 button press (single tentacle slash)."""
         self.renderer.trigger_attack_2()
-
-    def _on_drop_physics(self):
-        """Handle Drop Physics button press."""
-        self.renderer.drop_creature()
 
     def _on_export(self):
         """Handle export to JSON."""
