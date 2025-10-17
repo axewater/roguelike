@@ -294,7 +294,7 @@ class ModernControlPanel(QWidget):
         type_selector_layout.addWidget(type_label)
 
         self.creature_type_combo = QComboBox()
-        self.creature_type_combo.addItems(["Tentacle Creature", "Blob Creature"])
+        self.creature_type_combo.addItems(["Tentacle Creature", "Blob Creature", "Polyp Creature"])
         self.creature_type_combo.setMinimumHeight(40)
         self.creature_type_combo.setStyleSheet(self.COMBOBOX_STYLE)
         self.creature_type_combo.currentTextChanged.connect(self._on_creature_type_changed)
@@ -1126,11 +1126,17 @@ class ModernControlPanel(QWidget):
         """Handle creature type selection change."""
         if not self._updating:
             # Convert display name to internal type
-            self._creature_type = 'tentacle' if text == "Tentacle Creature" else 'blob'
+            if text == "Tentacle Creature":
+                self._creature_type = 'tentacle'
+            elif text == "Blob Creature":
+                self._creature_type = 'blob'
+            else:  # "Polyp Creature"
+                self._creature_type = 'polyp'
 
             # Show/hide appropriate containers
             self.tentacle_container.setVisible(self._creature_type == 'tentacle')
             self.blob_container.setVisible(self._creature_type == 'blob')
+            # Polyp uses tentacle controls for now (similar parameters)
 
             # Emit signals
             self.creature_type_changed.emit(self._creature_type)

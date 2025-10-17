@@ -275,7 +275,10 @@ class UrsinaRenderer:
                         # Blob parameters
                         blob_branch_depth=2, blob_branch_count=2, cube_size_min=0.3, cube_size_max=0.8,
                         cube_spacing=1.2, blob_color=(0.2, 0.8, 0.4), blob_transparency=0.7,
-                        jiggle_speed=2.0, blob_pulse_amount=0.1):
+                        jiggle_speed=2.0, blob_pulse_amount=0.1,
+                        # Polyp parameters
+                        num_spheres=4, polyp_color=(0.6, 0.3, 0.7), polyp_curve_intensity=0.4,
+                        polyp_anim_speed=2.0, polyp_pulse=0.08):
         """
         Rebuild creature with new parameters.
 
@@ -366,6 +369,28 @@ class UrsinaRenderer:
                 self.creature.enable_physics()
                 self.floor.visible = True  # Show physics floor
                 print("[BLOB SPAWN] Physics enabled, creature will drop and settle")
+
+            elif creature_type == 'polyp':
+                # Import and create polyp creature
+                from ..models.polyp_creature import PolypCreature
+
+                # Calculate tentacles per sphere (8, 6, 5, 4 for 4 spheres)
+                tentacles_per_sphere = [8, 6, 5, 4][:num_spheres]
+
+                self.creature = PolypCreature(
+                    num_spheres=num_spheres,
+                    algorithm=algorithm,
+                    algorithm_params=params,
+                    base_sphere_size=0.8,
+                    tentacles_per_sphere=tentacles_per_sphere,
+                    segments_per_tentacle=segments,
+                    thickness_base=thickness_base,
+                    taper_factor=taper_factor,
+                    spine_color=polyp_color,
+                    curve_intensity=polyp_curve_intensity,
+                    anim_speed=polyp_anim_speed,
+                    pulse_amount=polyp_pulse
+                )
 
             else:
                 print(f"ERROR: Unknown creature type '{creature_type}'")

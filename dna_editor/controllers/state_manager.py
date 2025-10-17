@@ -26,7 +26,10 @@ class StateManager:
                    # Blob parameters
                    blob_branch_depth=2, blob_branch_count=2, cube_size_min=0.3, cube_size_max=0.8,
                    cube_spacing=1.2, blob_color=(0.2, 0.8, 0.4), blob_transparency=0.7,
-                   jiggle_speed=2.0, blob_pulse_amount=0.1):
+                   jiggle_speed=2.0, blob_pulse_amount=0.1,
+                   # Polyp parameters
+                   num_spheres=4, polyp_color=(0.6, 0.3, 0.7), polyp_curve_intensity=0.4,
+                   polyp_anim_speed=2.0, polyp_pulse=0.08):
         """
         Save current state to history.
 
@@ -96,7 +99,13 @@ class StateManager:
             'blob_color': blob_color,
             'blob_transparency': blob_transparency,
             'jiggle_speed': jiggle_speed,
-            'blob_pulse_amount': blob_pulse_amount
+            'blob_pulse_amount': blob_pulse_amount,
+            # Polyp parameters
+            'num_spheres': num_spheres,
+            'polyp_color': polyp_color,
+            'polyp_curve_intensity': polyp_curve_intensity,
+            'polyp_anim_speed': polyp_anim_speed,
+            'polyp_pulse': polyp_pulse
         }
 
         # Clear future history if we're not at the end
@@ -172,7 +181,13 @@ class StateManager:
             'blob_color': state.get('blob_color', (0.2, 0.8, 0.4)),
             'blob_transparency': state.get('blob_transparency', 0.7),
             'jiggle_speed': state.get('jiggle_speed', 2.0),
-            'blob_pulse_amount': state.get('blob_pulse_amount', 0.1)
+            'blob_pulse_amount': state.get('blob_pulse_amount', 0.1),
+            # Polyp parameters
+            'num_spheres': state.get('num_spheres', 4),
+            'polyp_color': state.get('polyp_color', (0.6, 0.3, 0.7)),
+            'polyp_curve_intensity': state.get('polyp_curve_intensity', 0.4),
+            'polyp_anim_speed': state.get('polyp_anim_speed', 2.0),
+            'polyp_pulse': state.get('polyp_pulse', 0.08)
         }
 
     def can_undo(self):

@@ -366,7 +366,13 @@ class EditorWindow(QMainWindow):
             blob_color=state.get('blob_color', (0.2, 0.8, 0.4)),
             blob_transparency=state.get('blob_transparency', 0.7),
             jiggle_speed=state.get('jiggle_speed', 2.0),
-            blob_pulse_amount=state.get('blob_pulse_amount', 0.1)
+            blob_pulse_amount=state.get('blob_pulse_amount', 0.1),
+            # Polyp parameters (reuses tentacle UI values)
+            num_spheres=state.get('num_tentacles', 4),
+            polyp_color=state.get('tentacle_color', (0.6, 0.3, 0.7)),
+            polyp_curve_intensity=0.4,
+            polyp_anim_speed=state.get('anim_speed', 2.0),
+            polyp_pulse=state.get('pulse_amount', 0.08)
         )
 
     def _on_undo(self):
@@ -419,7 +425,13 @@ class EditorWindow(QMainWindow):
             blob_color=state.get('blob_color', (0.2, 0.8, 0.4)),
             blob_transparency=state.get('blob_transparency', 0.7),
             jiggle_speed=state.get('jiggle_speed', 2.0),
-            blob_pulse_amount=state.get('blob_pulse_amount', 0.1)
+            blob_pulse_amount=state.get('blob_pulse_amount', 0.1),
+            # Polyp parameters (reuses tentacle UI values)
+            num_spheres=state.get('num_tentacles', 4),
+            polyp_color=state.get('tentacle_color', (0.6, 0.3, 0.7)),
+            polyp_curve_intensity=0.4,
+            polyp_anim_speed=state.get('anim_speed', 2.0),
+            polyp_pulse=state.get('pulse_amount', 0.08)
         )
 
     def _update_undo_redo_state(self):

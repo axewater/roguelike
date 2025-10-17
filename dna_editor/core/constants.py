@@ -256,3 +256,31 @@ DROP_DURATION = 3.0  # DEPRECATED - physics now runs until velocity settling
 SETTLE_VELOCITY_THRESHOLD = 0.02  # Maximum velocity to consider "settled" (units/second) - lower = stricter
 SETTLE_DURATION = 2.0  # Must be below threshold for this long (seconds) - increased from 0.5s
 MIN_PHYSICS_TIME = 2.0  # Minimum physics time before checking for settling (seconds) - increased from 1.0s
+
+# ==========================================
+# POLYP CREATURE CONSTANTS
+# ==========================================
+
+# Polyp defaults (segmented spine with spheres and tentacles)
+DEFAULT_NUM_SPHERES = 4  # Number of spheres in chain (3-5)
+DEFAULT_BASE_SPHERE_SIZE = 0.8  # Size of root sphere
+DEFAULT_TENTACLES_PER_SPHERE = [8, 6, 5, 4]  # Tentacles per sphere (decreases along chain)
+DEFAULT_POLYP_SEGMENTS = 12  # Segments per tentacle
+DEFAULT_POLYP_THICKNESS = 0.2  # Base tentacle thickness
+DEFAULT_POLYP_TAPER = 0.6  # Tentacle taper factor
+DEFAULT_POLYP_COLOR = (0.6, 0.3, 0.7)  # Purple spine
+DEFAULT_CURVE_INTENSITY = 0.4  # Spine curve amount (0-1)
+DEFAULT_POLYP_ANIM_SPEED = 2.0  # Animation speed
+DEFAULT_POLYP_PULSE = 0.08  # Pulse intensity
+
+# Polyp limits
+MIN_NUM_SPHERES = 3
+MAX_NUM_SPHERES = 5
+MIN_BASE_SPHERE_SIZE = 0.4
+MAX_BASE_SPHERE_SIZE = 1.5
+MIN_TENTACLES_PER_SPHERE = 3
+MAX_TENTACLES_PER_SPHERE = 10
+MIN_CURVE_INTENSITY = 0.0
+MAX_CURVE_INTENSITY = 1.0
+MIN_POLYP_PULSE = 0.0
+MAX_POLYP_PULSE = 0.2
