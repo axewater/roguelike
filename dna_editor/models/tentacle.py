@@ -233,38 +233,88 @@ class Tentacle:
             self._apply_segment_constraints()
             return
 
-        # Otherwise, use normal idle animation
+        # Otherwise, use normal idle animation with multi-frequency 3D wave motion
         for segment in self.segments:
             i = segment.segment_index
             n = segment.total_segments
 
-            # Wave travels from base to tip (use dynamic speed)
-            phase = time * anim_speed + i * 0.3
+            # Per-tentacle phase offset for variation (prevents all tentacles moving in sync)
+            # Use segment total as a pseudo-random offset
+            tentacle_phase = (n * 0.13) % (math.pi * 2)
 
-            # Amplitude increases toward tip (use dynamic amplitude)
-            amplitude = wave_amplitude * (i / n)
+            # Multi-frequency waves (like Fourier series)
+            # Primary wave - main motion
+            phase1 = time * anim_speed + i * 0.3 + tentacle_phase
+            # Secondary wave - slower, adds complexity
+            phase2 = time * anim_speed * 0.5 + i * 0.15
+            # Tertiary wave - faster, adds subtle detail
+            phase3 = time * anim_speed * 2.0 + i * 0.6
 
-            # Calculate offset
-            offset_x = math.sin(phase) * amplitude
-            offset_y = math.cos(phase * 1.3) * amplitude
+            # Non-linear amplitude (quadratic - tips move MORE dramatically)
+            # Using power of 1.5 for smooth but noticeable increase
+            amplitude = wave_amplitude * ((i / max(n, 1)) ** 1.5)
 
-            # Apply offset
-            segment.position = segment.base_position + Vec3(offset_x, offset_y, 0)
+            # 3D offsets with multiple frequencies
+            # Each axis gets a blend of different frequencies (60% primary, 30% secondary, 10% tertiary)
+            offset_x = (math.sin(phase1) * 0.6 +
+                       math.sin(phase2) * 0.3 +
+                       math.sin(phase3) * 0.1) * amplitude
 
-        # Animate shadow spheres (follow their base positions with same wave motion)
+            offset_y = (math.cos(phase1 * 1.3) * 0.6 +
+                       math.cos(phase2 * 1.5) * 0.3 +
+                       math.cos(phase3 * 0.9) * 0.1) * amplitude
+
+            # NEW: Z-axis motion for forward/back drifting
+            offset_z = (math.sin(phase1 * 0.8) * 0.4 +
+                       math.cos(phase2 * 1.2) * 0.2 +
+                       math.sin(phase3 * 1.1) * 0.1) * amplitude
+
+            # Add slow spiral rotation around tentacle axis (creates gentle twist)
+            spiral_angle = time * 0.5 + i * 0.2 + tentacle_phase
+            twist_radius = amplitude * 0.3
+            offset_x += math.cos(spiral_angle) * twist_radius
+            offset_y += math.sin(spiral_angle) * twist_radius
+
+            # Apply offset in 3D
+            segment.position = segment.base_position + Vec3(offset_x, offset_y, offset_z)
+
+        # Animate shadow spheres (follow their base positions with same multi-frequency 3D wave motion)
         for shadow in self.shadow_spheres:
             i = shadow.segment_index
             n = len(self.segments)
 
-            # Same wave motion as segments
-            phase = time * anim_speed + i * 0.3
-            amplitude = wave_amplitude * (i / n)
+            # Per-tentacle phase offset (same as segments)
+            tentacle_phase = (n * 0.13) % (math.pi * 2)
 
-            offset_x = math.sin(phase) * amplitude
-            offset_y = math.cos(phase * 1.3) * amplitude
+            # Multi-frequency waves (same as segments)
+            phase1 = time * anim_speed + i * 0.3 + tentacle_phase
+            phase2 = time * anim_speed * 0.5 + i * 0.15
+            phase3 = time * anim_speed * 2.0 + i * 0.6
 
-            # Apply offset to shadow
-            shadow.position = shadow.base_position + Vec3(offset_x, offset_y, 0)
+            # Non-linear amplitude
+            amplitude = wave_amplitude * ((i / max(n, 1)) ** 1.5)
+
+            # 3D offsets with multiple frequencies
+            offset_x = (math.sin(phase1) * 0.6 +
+                       math.sin(phase2) * 0.3 +
+                       math.sin(phase3) * 0.1) * amplitude
+
+            offset_y = (math.cos(phase1 * 1.3) * 0.6 +
+                       math.cos(phase2 * 1.5) * 0.3 +
+                       math.cos(phase3 * 0.9) * 0.1) * amplitude
+
+            offset_z = (math.sin(phase1 * 0.8) * 0.4 +
+                       math.cos(phase2 * 1.2) * 0.2 +
+                       math.sin(phase3 * 1.1) * 0.1) * amplitude
+
+            # Add spiral rotation
+            spiral_angle = time * 0.5 + i * 0.2 + tentacle_phase
+            twist_radius = amplitude * 0.3
+            offset_x += math.cos(spiral_angle) * twist_radius
+            offset_y += math.sin(spiral_angle) * twist_radius
+
+            # Apply offset to shadow in 3D
+            shadow.position = shadow.base_position + Vec3(offset_x, offset_y, offset_z)
 
         # Animate child branches (pass all parameters through, including attack state)
         for child in self.children:
