@@ -373,7 +373,16 @@ class EditorWindow(QMainWindow):
             polyp_color=state.get('polyp_color', (0.6, 0.3, 0.7)),
             curve_intensity=state.get('curve_intensity', 0.4),
             polyp_tentacles_per_sphere=state.get('polyp_tentacles_per_sphere', 6),
-            polyp_segments=state.get('polyp_segments', 12)
+            polyp_segments=state.get('polyp_segments', 12),
+            # Starfish parameters
+            num_arms=state.get('num_arms', 5),
+            arm_segments=state.get('arm_segments', 6),
+            central_body_size=state.get('central_body_size', 0.8),
+            arm_base_thickness=state.get('arm_base_thickness', 0.4),
+            starfish_color=state.get('starfish_color', (0.9, 0.5, 0.3)),
+            curl_factor=state.get('curl_factor', 0.3),
+            starfish_anim_speed=state.get('starfish_anim_speed', 1.5),
+            starfish_pulse_amount=state.get('starfish_pulse_amount', 0.06)
         )
 
     def _on_undo(self):
@@ -433,7 +442,16 @@ class EditorWindow(QMainWindow):
             polyp_color=state.get('polyp_color', (0.6, 0.3, 0.7)),
             curve_intensity=state.get('curve_intensity', 0.4),
             polyp_tentacles_per_sphere=state.get('polyp_tentacles_per_sphere', 6),
-            polyp_segments=state.get('polyp_segments', 12)
+            polyp_segments=state.get('polyp_segments', 12),
+            # Starfish parameters
+            num_arms=state.get('num_arms', 5),
+            arm_segments=state.get('arm_segments', 6),
+            central_body_size=state.get('central_body_size', 0.8),
+            arm_base_thickness=state.get('arm_base_thickness', 0.4),
+            starfish_color=state.get('starfish_color', (0.9, 0.5, 0.3)),
+            curl_factor=state.get('curl_factor', 0.3),
+            starfish_anim_speed=state.get('starfish_anim_speed', 1.5),
+            starfish_pulse_amount=state.get('starfish_pulse_amount', 0.06)
         )
 
     def _update_undo_redo_state(self):
@@ -515,6 +533,17 @@ class EditorWindow(QMainWindow):
                 'thickness_base': state.get('thickness_base', 0.2),
                 'taper_factor': state.get('taper_factor', 0.6)
             })
+        elif creature_type == 'starfish':
+            dna_config.update({
+                'num_arms': state.get('num_arms', 5),
+                'arm_segments': state.get('arm_segments', 6),
+                'central_body_size': state.get('central_body_size', 0.8),
+                'arm_base_thickness': state.get('arm_base_thickness', 0.4),
+                'starfish_color': state.get('starfish_color', (0.9, 0.5, 0.3)),
+                'curl_factor': state.get('curl_factor', 0.3),
+                'anim_speed': state.get('starfish_anim_speed', 1.5),
+                'pulse_amount': state.get('starfish_pulse_amount', 0.06)
+            })
 
         # Open save dialog
         file_path, _ = QFileDialog.getSaveFileName(
@@ -555,6 +584,7 @@ class EditorWindow(QMainWindow):
             "<li><b>Tentacle Creature</b> - Mathematical curve-based tentacles (Bezier/Fourier)</li>"
             "<li><b>Blob Creature</b> - Translucent slime cube clusters</li>"
             "<li><b>Polyp Creature</b> - Organic spine with spheres and tentacles</li>"
+            "<li><b>Starfish Creature</b> - Radial symmetry with articulated arms</li>"
             "</ul>"
             "<p><b>Controls:</b></p>"
             "<ul>"

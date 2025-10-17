@@ -246,6 +246,16 @@ class ModernControlPanel(QWidget):
         self._polyp_tentacles_per_sphere = 6
         self._polyp_segments = 12
 
+        # Starfish parameters
+        self._num_arms = 5
+        self._arm_segments = 6
+        self._central_body_size = 0.8
+        self._arm_base_thickness = 0.4
+        self._starfish_color = (0.9, 0.5, 0.3)  # Orange
+        self._curl_factor = 0.3
+        self._starfish_anim_speed = 1.5
+        self._starfish_pulse = 0.06
+
         self._updating = False
         self._init_ui()
 
@@ -302,7 +312,7 @@ class ModernControlPanel(QWidget):
         type_selector_layout.addWidget(type_label)
 
         self.creature_type_combo = QComboBox()
-        self.creature_type_combo.addItems(["Tentacle Creature", "Blob Creature", "Polyp Creature"])
+        self.creature_type_combo.addItems(["Tentacle Creature", "Blob Creature", "Polyp Creature", "Starfish Creature"])
         self.creature_type_combo.setMinimumHeight(40)
         self.creature_type_combo.setStyleSheet(self.COMBOBOX_STYLE)
         self.creature_type_combo.currentTextChanged.connect(self._on_creature_type_changed)
@@ -387,10 +397,32 @@ class ModernControlPanel(QWidget):
         self.polyp_container.setLayout(polyp_layout)
         self.polyp_container.setVisible(False)  # Hidden by default
 
+        # ===== STARFISH CREATURE SECTIONS =====
+        self.starfish_container = QWidget()
+        starfish_layout = QVBoxLayout()
+        starfish_layout.setContentsMargins(0, 0, 0, 0)
+
+        starfish_grid = QGridLayout()
+        starfish_grid.setSpacing(20)
+
+        # Column 1: Arms & Body
+        starfish_grid.addWidget(self._create_starfish_arms_section(), 0, 0)
+
+        # Column 2: Appearance
+        starfish_grid.addWidget(self._create_starfish_appearance_section(), 0, 1)
+
+        # Column 3: Animation
+        starfish_grid.addWidget(self._create_starfish_animation_section(), 0, 2)
+
+        starfish_layout.addLayout(starfish_grid)
+        self.starfish_container.setLayout(starfish_layout)
+        self.starfish_container.setVisible(False)  # Hidden by default
+
         # Add all containers to design layout
         design_layout.addWidget(self.tentacle_container)
         design_layout.addWidget(self.blob_container)
         design_layout.addWidget(self.polyp_container)
+        design_layout.addWidget(self.starfish_container)
 
         design_layout.addStretch()
         design_tab.setLayout(design_layout)
@@ -1143,6 +1175,143 @@ class ModernControlPanel(QWidget):
         group.setLayout(layout)
         return group
 
+    # ===== STARFISH CREATURE SECTIONS =====
+
+    def _create_starfish_arms_section(self):
+        """Create Starfish Arms & Body card."""
+        group = QGroupBox("ARMS & BODY")
+        group.setMinimumWidth(280)
+        layout = QVBoxLayout()
+        layout.setSpacing(12)
+        layout.setContentsMargins(15, 15, 15, 15)
+
+        # Number of Arms (5-8)
+        layout.addWidget(self._create_label("Number of Arms"))
+        self.num_arms_spin = QSpinBox()
+        self.num_arms_spin.setRange(5, 8)
+        self.num_arms_spin.setValue(self._num_arms)
+        self.num_arms_spin.setMinimumHeight(35)
+        self.num_arms_spin.setStyleSheet(self.SPINBOX_STYLE)
+        self.num_arms_spin.valueChanged.connect(self._on_num_arms_changed)
+        layout.addWidget(self.num_arms_spin)
+        layout.addSpacing(8)
+
+        # Arm Segments (4-10)
+        layout.addWidget(self._create_label("Segments Per Arm"))
+        self.arm_segments_spin = QSpinBox()
+        self.arm_segments_spin.setRange(4, 10)
+        self.arm_segments_spin.setValue(self._arm_segments)
+        self.arm_segments_spin.setMinimumHeight(35)
+        self.arm_segments_spin.setStyleSheet(self.SPINBOX_STYLE)
+        self.arm_segments_spin.valueChanged.connect(self._on_arm_segments_changed)
+        layout.addWidget(self.arm_segments_spin)
+        layout.addSpacing(8)
+
+        # Central Body Size (0.4-1.5)
+        layout.addWidget(self._create_label("Central Body Size"))
+        self.central_body_slider = QSlider(Qt.Orientation.Horizontal)
+        self.central_body_slider.setRange(40, 150)  # 0.4 to 1.5
+        self.central_body_slider.setValue(80)  # 0.8 default
+        self.central_body_slider.setMinimumHeight(30)
+        self.central_body_slider.valueChanged.connect(self._on_central_body_changed)
+        layout.addWidget(self.central_body_slider)
+        self.central_body_label = QLabel("0.80")
+        self.central_body_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.central_body_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.central_body_label)
+
+        layout.addStretch()
+        group.setLayout(layout)
+        return group
+
+    def _create_starfish_appearance_section(self):
+        """Create Starfish Appearance card."""
+        group = QGroupBox("APPEARANCE")
+        group.setMinimumWidth(280)
+        layout = QVBoxLayout()
+        layout.setSpacing(12)
+        layout.setContentsMargins(15, 15, 15, 15)
+
+        # Starfish Color
+        layout.addWidget(self._create_label("Starfish Color"))
+        self.starfish_color_button = ColorButton(self._starfish_color)
+        self.starfish_color_button.colorChanged.connect(self._on_starfish_color_changed)
+        layout.addWidget(self.starfish_color_button)
+
+        # Arm Base Thickness (0.2-0.6)
+        layout.addWidget(self._create_label("Arm Thickness"))
+        self.arm_thickness_slider = QSlider(Qt.Orientation.Horizontal)
+        self.arm_thickness_slider.setRange(20, 60)  # 0.2 to 0.6
+        self.arm_thickness_slider.setValue(40)  # 0.4 default
+        self.arm_thickness_slider.setMinimumHeight(30)
+        self.arm_thickness_slider.valueChanged.connect(self._on_arm_thickness_changed)
+        layout.addWidget(self.arm_thickness_slider)
+        self.arm_thickness_label = QLabel("0.40")
+        self.arm_thickness_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.arm_thickness_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.arm_thickness_label)
+
+        # Curl Factor (0-0.8)
+        layout.addWidget(self._create_label("Arm Curl Amount"))
+        self.curl_factor_slider = QSlider(Qt.Orientation.Horizontal)
+        self.curl_factor_slider.setRange(0, 80)  # 0 to 0.8
+        self.curl_factor_slider.setValue(30)  # 0.3 default
+        self.curl_factor_slider.setMinimumHeight(30)
+        self.curl_factor_slider.valueChanged.connect(self._on_curl_factor_changed)
+        layout.addWidget(self.curl_factor_slider)
+        self.curl_factor_label = QLabel("0.30")
+        self.curl_factor_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.curl_factor_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.curl_factor_label)
+
+        # Info label
+        self.starfish_info_label = QLabel("Higher curl = arms bend downward more")
+        self.starfish_info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.starfish_info_label.setStyleSheet("color: #06b6d4; font-size: 10pt; font-style: italic; padding: 8px; background-color: #164e63; border-radius: 8px; margin-top: 10px; border: 1px solid #0891b2;")
+        layout.addWidget(self.starfish_info_label)
+
+        layout.addStretch()
+        group.setLayout(layout)
+        return group
+
+    def _create_starfish_animation_section(self):
+        """Create Starfish Animation card."""
+        group = QGroupBox("ANIMATION")
+        group.setMinimumWidth(280)
+        layout = QVBoxLayout()
+        layout.setSpacing(12)
+        layout.setContentsMargins(15, 15, 15, 15)
+
+        # Animation Speed
+        layout.addWidget(self._create_label("Animation Speed"))
+        self.starfish_anim_speed_slider = QSlider(Qt.Orientation.Horizontal)
+        self.starfish_anim_speed_slider.setRange(50, 500)  # 0.5 to 5.0
+        self.starfish_anim_speed_slider.setValue(150)  # 1.5 default
+        self.starfish_anim_speed_slider.setMinimumHeight(30)
+        self.starfish_anim_speed_slider.valueChanged.connect(self._on_starfish_anim_speed_changed)
+        layout.addWidget(self.starfish_anim_speed_slider)
+        self.starfish_anim_speed_label = QLabel("1.5x")
+        self.starfish_anim_speed_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.starfish_anim_speed_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.starfish_anim_speed_label)
+
+        # Pulse Amount
+        layout.addWidget(self._create_label("Pulse Amount"))
+        self.starfish_pulse_slider = QSlider(Qt.Orientation.Horizontal)
+        self.starfish_pulse_slider.setRange(0, 20)  # 0 to 0.2
+        self.starfish_pulse_slider.setValue(6)  # 0.06 default
+        self.starfish_pulse_slider.setMinimumHeight(30)
+        self.starfish_pulse_slider.valueChanged.connect(self._on_starfish_pulse_changed)
+        layout.addWidget(self.starfish_pulse_slider)
+        self.starfish_pulse_label = QLabel("0.06")
+        self.starfish_pulse_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.starfish_pulse_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.starfish_pulse_label)
+
+        layout.addStretch()
+        group.setLayout(layout)
+        return group
+
     # Event handlers
     def _on_tentacles_changed(self, value):
         if not self._updating:
@@ -1269,13 +1438,16 @@ class ModernControlPanel(QWidget):
                 self._creature_type = 'tentacle'
             elif text == "Blob Creature":
                 self._creature_type = 'blob'
-            else:  # "Polyp Creature"
+            elif text == "Polyp Creature":
                 self._creature_type = 'polyp'
+            else:  # "Starfish Creature"
+                self._creature_type = 'starfish'
 
             # Show/hide appropriate containers
             self.tentacle_container.setVisible(self._creature_type == 'tentacle')
             self.blob_container.setVisible(self._creature_type == 'blob')
             self.polyp_container.setVisible(self._creature_type == 'polyp')
+            self.starfish_container.setVisible(self._creature_type == 'starfish')
 
             # Emit signals
             self.creature_type_changed.emit(self._creature_type)
@@ -1371,6 +1543,53 @@ class ModernControlPanel(QWidget):
             self._polyp_segments = value
             self.creature_changed.emit()
 
+    # ==== STARFISH EVENT HANDLERS ====
+
+    def _on_num_arms_changed(self, value):
+        if not self._updating:
+            self._num_arms = value
+            self.creature_changed.emit()
+
+    def _on_arm_segments_changed(self, value):
+        if not self._updating:
+            self._arm_segments = value
+            self.creature_changed.emit()
+
+    def _on_central_body_changed(self, value):
+        if not self._updating:
+            self._central_body_size = value / 100.0
+            self.central_body_label.setText(f"{self._central_body_size:.2f}")
+            self.creature_changed.emit()
+
+    def _on_starfish_color_changed(self, rgb_tuple):
+        if not self._updating:
+            self._starfish_color = rgb_tuple
+            self.creature_changed.emit()
+
+    def _on_arm_thickness_changed(self, value):
+        if not self._updating:
+            self._arm_base_thickness = value / 100.0
+            self.arm_thickness_label.setText(f"{self._arm_base_thickness:.2f}")
+            self.creature_changed.emit()
+
+    def _on_curl_factor_changed(self, value):
+        if not self._updating:
+            self._curl_factor = value / 100.0
+            self.curl_factor_label.setText(f"{self._curl_factor:.2f}")
+            self.creature_changed.emit()
+
+    def _on_starfish_anim_speed_changed(self, value):
+        if not self._updating:
+            self._starfish_anim_speed = value / 100.0
+            self.starfish_anim_speed_label.setText(f"{self._starfish_anim_speed:.1f}x")
+            self.creature_changed.emit()
+
+    def _on_starfish_pulse_changed(self, value):
+        if not self._updating:
+            self._starfish_pulse = value / 100.0
+            self.starfish_pulse_label.setText(f"{self._starfish_pulse:.2f}")
+            self.creature_changed.emit()
+
     def _update_branch_info(self):
         """Update branch info label."""
         if self._branch_count == 1:
@@ -1445,7 +1664,16 @@ class ModernControlPanel(QWidget):
             'polyp_color': self._polyp_color,
             'curve_intensity': self._curve_intensity,
             'polyp_tentacles_per_sphere': self._polyp_tentacles_per_sphere,
-            'polyp_segments': self._polyp_segments
+            'polyp_segments': self._polyp_segments,
+            # Starfish parameters
+            'num_arms': self._num_arms,
+            'arm_segments': self._arm_segments,
+            'central_body_size': self._central_body_size,
+            'arm_base_thickness': self._arm_base_thickness,
+            'starfish_color': self._starfish_color,
+            'curl_factor': self._curl_factor,
+            'starfish_anim_speed': self._starfish_anim_speed,
+            'starfish_pulse_amount': self._starfish_pulse
         }
 
     def get_algorithm_params(self):
@@ -1505,19 +1733,32 @@ class ModernControlPanel(QWidget):
         self._polyp_tentacles_per_sphere = state.get('polyp_tentacles_per_sphere', 6)
         self._polyp_segments = state.get('polyp_segments', 12)
 
+        # Starfish parameters
+        self._num_arms = state.get('num_arms', 5)
+        self._arm_segments = state.get('arm_segments', 6)
+        self._central_body_size = state.get('central_body_size', 0.8)
+        self._arm_base_thickness = state.get('arm_base_thickness', 0.4)
+        self._starfish_color = state.get('starfish_color', (0.9, 0.5, 0.3))
+        self._curl_factor = state.get('curl_factor', 0.3)
+        self._starfish_anim_speed = state.get('starfish_anim_speed', 1.5)
+        self._starfish_pulse = state.get('starfish_pulse_amount', 0.06)
+
         # Update creature type selector
         if self._creature_type == 'tentacle':
             display_name = "Tentacle Creature"
         elif self._creature_type == 'blob':
             display_name = "Blob Creature"
-        else:  # polyp
+        elif self._creature_type == 'polyp':
             display_name = "Polyp Creature"
+        else:  # starfish
+            display_name = "Starfish Creature"
         self.creature_type_combo.setCurrentText(display_name)
 
         # Show/hide appropriate containers
         self.tentacle_container.setVisible(self._creature_type == 'tentacle')
         self.blob_container.setVisible(self._creature_type == 'blob')
         self.polyp_container.setVisible(self._creature_type == 'polyp')
+        self.starfish_container.setVisible(self._creature_type == 'starfish')
 
         # Update tentacle UI
         self.tentacles_spin.setValue(self._num_tentacles)
@@ -1558,6 +1799,16 @@ class ModernControlPanel(QWidget):
         self.curve_intensity_slider.setValue(int(self._curve_intensity * 100))
         self.polyp_tentacles_spin.setValue(self._polyp_tentacles_per_sphere)
         self.polyp_segments_spin.setValue(self._polyp_segments)
+
+        # Update starfish UI
+        self.num_arms_spin.setValue(self._num_arms)
+        self.arm_segments_spin.setValue(self._arm_segments)
+        self.central_body_slider.setValue(int(self._central_body_size * 100))
+        self.starfish_color_button.set_color(self._starfish_color)
+        self.arm_thickness_slider.setValue(int(self._arm_base_thickness * 100))
+        self.curl_factor_slider.setValue(int(self._curl_factor * 100))
+        self.starfish_anim_speed_slider.setValue(int(self._starfish_anim_speed * 100))
+        self.starfish_pulse_slider.setValue(int(self._starfish_pulse * 100))
 
         # Update branch info label
         self._update_blob_branch_info()

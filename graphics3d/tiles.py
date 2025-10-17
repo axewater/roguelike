@@ -10,6 +10,7 @@ from PyQt6.QtGui import QColor
 import constants as c
 from graphics3d.utils import world_to_3d_position, qcolor_to_ursina_color, rgb_to_ursina_color
 from textures import get_moss_stone_texture, get_brick_texture
+from shaders import create_corner_shadow_shader
 
 
 # ===== CACHED PROCEDURAL TEXTURES =====
@@ -61,6 +62,12 @@ print(f"  ✓ {len(DUNGEON_CEILING_TEXTURES)} ceiling variants generated")
 
 print("✓ Procedural textures generated and cached")
 
+# ===== CACHED CORNER SHADOW SHADER =====
+# Generate shader once for all floor/ceiling tiles
+print("Creating corner shadow shader for ambient occlusion...")
+CORNER_SHADOW_SHADER = create_corner_shadow_shader(intensity=c.CORNER_SHADOW_INTENSITY)
+print(f"✓ Corner shadow shader created (intensity={c.CORNER_SHADOW_INTENSITY})")
+
 
 def create_floor_mesh(x: int, y: int, biome_color):
     """
@@ -96,7 +103,8 @@ def create_floor_mesh(x: int, y: int, biome_color):
     variant_idx = (x * 7 + y * 13) % len(DUNGEON_FLOOR_TEXTURES)
     floor_texture = DUNGEON_FLOOR_TEXTURES[variant_idx]
 
-    return Entity(
+    # Create floor entity
+    floor_entity = Entity(
         model='plane',
         position=pos,
         scale=(1, 1, 1),
@@ -104,6 +112,11 @@ def create_floor_mesh(x: int, y: int, biome_color):
         texture=floor_texture,  # Select from 4 variants
         collider=None  # No collision for floors
     )
+
+    # Apply corner shadow shader for dramatic ambient occlusion
+    floor_entity.shader = CORNER_SHADOW_SHADER
+
+    return floor_entity
 
 
 def create_wall_mesh(x: int, y: int, biome_color, height: float = None):
@@ -199,7 +212,7 @@ def create_ceiling_mesh(x: int, y: int):
     ceiling_texture = DUNGEON_CEILING_TEXTURES[variant_idx]
 
     # Create ceiling plane facing downward
-    return Entity(
+    ceiling_entity = Entity(
         model='plane',
         position=pos,
         scale=(1, 1, 1),
@@ -208,3 +221,8 @@ def create_ceiling_mesh(x: int, y: int):
         rotation_x=180,  # Flip to face downward
         collider=None  # No collision for ceilings
     )
+
+    # Apply corner shadow shader for dramatic ambient occlusion
+    ceiling_entity.shader = CORNER_SHADOW_SHADER
+
+    return ceiling_entity

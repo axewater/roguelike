@@ -278,12 +278,16 @@ class UrsinaRenderer:
                         jiggle_speed=2.0, blob_pulse_amount=0.1,
                         # Polyp parameters
                         num_spheres=4, base_sphere_size=0.8, polyp_color=(0.6, 0.3, 0.7),
-                        curve_intensity=0.4, polyp_tentacles_per_sphere=6, polyp_segments=12):
+                        curve_intensity=0.4, polyp_tentacles_per_sphere=6, polyp_segments=12,
+                        # Starfish parameters
+                        num_arms=5, arm_segments=6, central_body_size=0.8, arm_base_thickness=0.4,
+                        starfish_color=(0.9, 0.5, 0.3), curl_factor=0.3,
+                        starfish_anim_speed=1.5, starfish_pulse_amount=0.06):
         """
         Rebuild creature with new parameters.
 
         Args:
-            creature_type: 'tentacle', 'blob', or 'polyp'
+            creature_type: 'tentacle', 'blob', 'polyp', or 'starfish'
             [Tentacle parameters]
             num_tentacles: Number of tentacles
             segments: Segments per tentacle
@@ -322,6 +326,15 @@ class UrsinaRenderer:
             curve_intensity: Spine curve amount (0-1)
             polyp_tentacles_per_sphere: Number of tentacles per sphere (3-12)
             polyp_segments: Segments per tentacle, controls length (5-20)
+            [Starfish parameters]
+            num_arms: Number of arms (5-8)
+            arm_segments: Segments per arm (4-10)
+            central_body_size: Central body size (0.4-1.5)
+            arm_base_thickness: Arm thickness (0.2-0.6)
+            starfish_color: Starfish color (RGB tuple 0-1)
+            curl_factor: Arm curvature amount (0-0.8)
+            starfish_anim_speed: Animation speed
+            starfish_pulse_amount: Pulse intensity
         """
         try:
             # Destroy old creature
@@ -397,6 +410,21 @@ class UrsinaRenderer:
                     curve_intensity=curve_intensity,
                     anim_speed=anim_speed,
                     pulse_amount=pulse_amount
+                )
+
+            elif creature_type == 'starfish':
+                # Import and create starfish creature
+                from ..models.starfish_creature import StarfishCreature
+
+                self.creature = StarfishCreature(
+                    num_arms=num_arms,
+                    arm_segments=arm_segments,
+                    central_body_size=central_body_size,
+                    arm_base_thickness=arm_base_thickness,
+                    starfish_color=starfish_color,
+                    curl_factor=curl_factor,
+                    anim_speed=starfish_anim_speed,
+                    pulse_amount=starfish_pulse_amount
                 )
 
             else:

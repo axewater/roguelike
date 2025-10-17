@@ -284,3 +284,33 @@ MIN_CURVE_INTENSITY = 0.0
 MAX_CURVE_INTENSITY = 1.0
 MIN_POLYP_PULSE = 0.0
 MAX_POLYP_PULSE = 0.2
+
+# ==========================================
+# STARFISH CREATURE CONSTANTS
+# ==========================================
+
+# Starfish defaults (radial symmetry with articulated arms)
+DEFAULT_NUM_ARMS = 5  # Number of arms (5-8)
+DEFAULT_ARM_SEGMENTS = 6  # Segments per arm (4-10)
+DEFAULT_CENTRAL_BODY_SIZE = 0.8  # Central body sphere size
+DEFAULT_ARM_BASE_THICKNESS = 0.4  # Base thickness of arms
+DEFAULT_STARFISH_COLOR = (0.9, 0.5, 0.3)  # Orange
+DEFAULT_CURL_FACTOR = 0.3  # Arm curvature amount (0-0.8)
+DEFAULT_STARFISH_ANIM_SPEED = 1.5  # Animation speed
+DEFAULT_STARFISH_PULSE = 0.06  # Pulse intensity
+
+# Starfish limits
+MIN_NUM_ARMS = 5
+MAX_NUM_ARMS = 8
+MIN_ARM_SEGMENTS = 4
+MAX_ARM_SEGMENTS = 10
+MIN_CENTRAL_BODY_SIZE = 0.4
+MAX_CENTRAL_BODY_SIZE = 1.5
+MIN_ARM_THICKNESS = 0.2
+MAX_ARM_THICKNESS = 0.6
+MIN_CURL_FACTOR = 0.0
+MAX_CURL_FACTOR = 0.8
+
+# Starfish animation
+STARFISH_ATTACK_DURATION = 1.0  # Attack cycle duration (seconds)
+STARFISH_CURL_SPEED = 2.5  # Speed of curl animation

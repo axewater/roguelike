@@ -29,7 +29,11 @@ class StateManager:
                    jiggle_speed=2.0, blob_pulse_amount=0.1,
                    # Polyp parameters
                    num_spheres=4, base_sphere_size=0.8, polyp_color=(0.6, 0.3, 0.7),
-                   curve_intensity=0.4, polyp_tentacles_per_sphere=6, polyp_segments=12):
+                   curve_intensity=0.4, polyp_tentacles_per_sphere=6, polyp_segments=12,
+                   # Starfish parameters
+                   num_arms=5, arm_segments=6, central_body_size=0.8, arm_base_thickness=0.4,
+                   starfish_color=(0.9, 0.5, 0.3), curl_factor=0.3, starfish_anim_speed=1.5,
+                   starfish_pulse_amount=0.06):
         """
         Save current state to history.
 
@@ -73,6 +77,15 @@ class StateManager:
             curve_intensity: Spine curve amount (0-1)
             polyp_tentacles_per_sphere: Number of tentacles per sphere
             polyp_segments: Segments per tentacle (length)
+            [Starfish parameters]
+            num_arms: Number of arms (5-8)
+            arm_segments: Segments per arm (4-10)
+            central_body_size: Size of central body sphere (0.4-1.5)
+            arm_base_thickness: Base thickness of arms (0.2-0.6)
+            starfish_color: Base color (RGB tuple 0-1)
+            curl_factor: Arm curvature amount (0-0.8)
+            starfish_anim_speed: Animation speed
+            starfish_pulse_amount: Pulse intensity
         """
         state = {
             'creature_type': creature_type,
@@ -113,7 +126,16 @@ class StateManager:
             'polyp_color': polyp_color,
             'curve_intensity': curve_intensity,
             'polyp_tentacles_per_sphere': polyp_tentacles_per_sphere,
-            'polyp_segments': polyp_segments
+            'polyp_segments': polyp_segments,
+            # Starfish parameters
+            'num_arms': num_arms,
+            'arm_segments': arm_segments,
+            'central_body_size': central_body_size,
+            'arm_base_thickness': arm_base_thickness,
+            'starfish_color': starfish_color,
+            'curl_factor': curl_factor,
+            'starfish_anim_speed': starfish_anim_speed,
+            'starfish_pulse_amount': starfish_pulse_amount
         }
 
         # Clear future history if we're not at the end
@@ -196,7 +218,16 @@ class StateManager:
             'polyp_color': state.get('polyp_color', (0.6, 0.3, 0.7)),
             'curve_intensity': state.get('curve_intensity', 0.4),
             'polyp_tentacles_per_sphere': state.get('polyp_tentacles_per_sphere', 6),
-            'polyp_segments': state.get('polyp_segments', 12)
+            'polyp_segments': state.get('polyp_segments', 12),
+            # Starfish parameters
+            'num_arms': state.get('num_arms', 5),
+            'arm_segments': state.get('arm_segments', 6),
+            'central_body_size': state.get('central_body_size', 0.8),
+            'arm_base_thickness': state.get('arm_base_thickness', 0.4),
+            'starfish_color': state.get('starfish_color', (0.9, 0.5, 0.3)),
+            'curl_factor': state.get('curl_factor', 0.3),
+            'starfish_anim_speed': state.get('starfish_anim_speed', 1.5),
+            'starfish_pulse_amount': state.get('starfish_pulse_amount', 0.06)
         }
 
     def can_undo(self):

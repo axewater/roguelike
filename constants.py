@@ -28,6 +28,9 @@ ENEMY_FOCUS_PITCH = 20.0      # Degrees to tilt down when focusing on adjacent e
 # Camera lens distortion (barrel/fisheye effect)
 BARREL_DISTORTION_STRENGTH = 0.10  # Subtle fisheye warp at edges (0.0=none, 0.1=subtle, 0.3=strong)
 
+# Corner shadow / ambient occlusion effect
+CORNER_SHADOW_INTENSITY = 0.85  # Darkness at tile corners (0.0=none, 0.85=ultra dark, 1.0=maximum)
+
 # World settings
 WALL_HEIGHT = 2.0       # 3D wall height in world units
 PLAYER_HEIGHT = 1.5     # Player model height

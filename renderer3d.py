@@ -88,28 +88,28 @@ class Renderer3D:
 
     def setup_lighting(self):
         """Set up basic 3D lighting with fog of war ambiance"""
-        # Ambient light (general illumination) - REDUCED for fog of war atmosphere
-        self.ambient_light = AmbientLight(color=(0.2, 0.2, 0.25, 1))
+        # Ambient light (general illumination) - IMPROVED for better visibility
+        self.ambient_light = AmbientLight(color=(0.4, 0.4, 0.45, 1))
 
-        # Directional light (sun/moon) - REDUCED for mysterious dungeon feel
+        # Directional light (sun/moon) - IMPROVED for better depth perception
         self.sun_light = DirectionalLight(
             position=(10, 20, 10),
             rotation=(45, 45, 0),
-            color=(0.3, 0.3, 0.35, 1)  # Dim blue-gray light
+            color=(0.6, 0.6, 0.65, 1)  # Brighter blue-gray light
         )
 
-        # Point light following player (torch effect) - NOW MORE IMPORTANT
+        # Point light following player (torch effect) - BRIGHTER for better illumination
         self.player_light = PointLight(
-            color=(1, 0.9, 0.7, 1),  # Warm torch light
+            color=(1.5, 1.2, 0.8, 1),  # Brighter, warmer torch light
             position=(0, 2, 0)
         )
 
-        # Atmospheric fog for depth and mystery
+        # Atmospheric fog for depth and mystery - REDUCED for better visibility
         scene.fog_color = ursina_color.rgb(0.1, 0.1, 0.15)  # Dark blue-gray
-        scene.fog_density = (5, 15)  # Start at 5 units, full fog at 15 units
+        scene.fog_density = (8, 20)  # Start at 8 units, full fog at 20 units
 
-        print("✓ Lighting configured for fog of war (low ambient, torch-focused)")
-        print("✓ Atmospheric fog enabled (density: 5-15 units)")
+        print("✓ Lighting configured with improved visibility (ambient: 0.4, directional: 0.6)")
+        print("✓ Atmospheric fog enabled (density: 8-20 units, reduced from 5-15)")
 
     def render_dungeon(self):
         """
@@ -268,7 +268,7 @@ class Renderer3D:
 
             # Create enemy model if it doesn't exist
             if enemy_id not in self.enemy_entities:
-                enemy_model = create_enemy_model_3d(enemy.enemy_type, pos)
+                enemy_model = create_enemy_model_3d(enemy.enemy_type, Vec3(*pos))
 
                 # Create health bar billboard
                 hp_pct = enemy.hp / enemy.max_hp
@@ -332,7 +332,7 @@ class Renderer3D:
 
             # Create item model if it doesn't exist
             if item_id not in self.item_entities:
-                item_model = create_item_model_3d(item.item_type, item.rarity, pos)
+                item_model = create_item_model_3d(item.item_type, item.rarity, Vec3(*pos))
 
                 # Store reference
                 self.item_entities[item_id] = item_model

@@ -148,7 +148,7 @@ def create_polished_steel_material(size: int = 256) -> Material:
     texture_img = generate_metal_texture((180, 180, 190), size=size, scratches=10, worn=False)
     return Material(
         texture=Texture(texture_img),
-        shader='matcap',
+        shader='lit_with_shadows',
         metallic=0.9,
         roughness=0.2,
         specular=0.95
@@ -160,7 +160,7 @@ def create_battle_worn_steel_material(size: int = 256) -> Material:
     texture_img = generate_metal_texture((140, 140, 150), size=size, scratches=30, worn=True)
     return Material(
         texture=Texture(texture_img),
-        shader='matcap',
+        shader='lit_with_shadows',
         metallic=0.85,
         roughness=0.4,
         specular=0.7
@@ -172,7 +172,7 @@ def create_bronze_material(size: int = 256) -> Material:
     texture_img = generate_metal_texture((120, 100, 60), size=size, scratches=15, worn=False)
     return Material(
         texture=Texture(texture_img),
-        shader='matcap',
+        shader='lit_with_shadows',
         metallic=0.8,
         roughness=0.3,
         specular=0.8
@@ -184,7 +184,7 @@ def create_iron_material(size: int = 256) -> Material:
     texture_img = generate_metal_texture((70, 70, 75), size=size, scratches=25, worn=True)
     return Material(
         texture=Texture(texture_img),
-        shader='matcap',
+        shader='lit_with_shadows',
         metallic=0.7,
         roughness=0.6,
         specular=0.5
@@ -246,7 +246,7 @@ def create_brown_leather_material(size: int = 256) -> Material:
     texture_img = generate_leather_texture((100, 70, 40), size=size, grain=50)
     return Material(
         texture=Texture(texture_img),
-        shader='matcap',
+        shader='lit_with_shadows',
         metallic=0.0,
         roughness=0.7,
         specular=0.2
@@ -258,7 +258,7 @@ def create_black_leather_material(size: int = 256) -> Material:
     texture_img = generate_leather_texture((50, 45, 45), size=size, grain=60)
     return Material(
         texture=Texture(texture_img),
-        shader='matcap',
+        shader='lit_with_shadows',
         metallic=0.0,
         roughness=0.75,
         specular=0.15
@@ -274,7 +274,7 @@ def create_worn_leather_material(size: int = 256) -> Material:
 
     return Material(
         texture=Texture(texture_img),
-        shader='matcap',
+        shader='lit_with_shadows',
         metallic=0.0,
         roughness=0.85,
         specular=0.1
@@ -336,7 +336,7 @@ def create_red_cloth_material(size: int = 256) -> Material:
     texture_img = generate_cloth_texture((180, 60, 40), size=size, weave=30)
     return Material(
         texture=Texture(texture_img),
-        shader='matcap',
+        shader='lit_with_shadows',
         metallic=0.0,
         roughness=0.9,
         specular=0.05
@@ -348,7 +348,7 @@ def create_blue_cloth_material(size: int = 256) -> Material:
     texture_img = generate_cloth_texture((100, 150, 255), size=size, weave=35)
     return Material(
         texture=Texture(texture_img),
-        shader='matcap',
+        shader='lit_with_shadows',
         metallic=0.0,
         roughness=0.9,
         specular=0.05
@@ -360,7 +360,7 @@ def create_green_cloth_material(size: int = 256) -> Material:
     texture_img = generate_cloth_texture((100, 200, 100), size=size, weave=32)
     return Material(
         texture=Texture(texture_img),
-        shader='matcap',
+        shader='lit_with_shadows',
         metallic=0.0,
         roughness=0.9,
         specular=0.05
@@ -372,7 +372,7 @@ def create_dark_cloth_material(size: int = 256) -> Material:
     texture_img = generate_cloth_texture((60, 60, 65), size=size, weave=40)
     return Material(
         texture=Texture(texture_img),
-        shader='matcap',
+        shader='lit_with_shadows',
         metallic=0.0,
         roughness=0.95,
         specular=0.02
@@ -432,7 +432,7 @@ def create_wood_material(size: int = 256) -> Material:
     texture_img = generate_wood_texture((120, 80, 40), size=size, grain_lines=40)
     return Material(
         texture=Texture(texture_img),
-        shader='matcap',
+        shader='lit_with_shadows',
         metallic=0.0,
         roughness=0.8,
         specular=0.1
@@ -444,7 +444,7 @@ def create_dark_wood_material(size: int = 256) -> Material:
     texture_img = generate_wood_texture((60, 45, 25), size=size, grain_lines=35)
     return Material(
         texture=Texture(texture_img),
-        shader='matcap',
+        shader='lit_with_shadows',
         metallic=0.0,
         roughness=0.85,
         specular=0.08
@@ -463,7 +463,7 @@ def create_skin_material(size: int = 256) -> Material:
 
     return Material(
         texture=Texture(img),
-        shader='matcap',
+        shader='lit_with_shadows',
         metallic=0.0,
         roughness=0.6,
         specular=0.3  # Slight sheen for skin
@@ -494,7 +494,7 @@ def create_gold_material(size: int = 256) -> Material:
     texture_img = generate_metal_texture((180, 160, 50), size=size, scratches=5, worn=False)
     return Material(
         texture=Texture(texture_img),
-        shader='matcap',
+        shader='lit_with_shadows',
         metallic=0.95,
         roughness=0.15,
         specular=0.98
