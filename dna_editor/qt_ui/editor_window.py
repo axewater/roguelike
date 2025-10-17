@@ -358,7 +358,8 @@ class EditorWindow(QMainWindow):
             eyeball_color=state.get('eyeball_color', (1.0, 1.0, 1.0)),
             pupil_color=state.get('pupil_color', (0.0, 0.0, 0.0)),
             # Blob parameters
-            num_cubes=state.get('num_cubes', 8),
+            blob_branch_depth=state.get('blob_branch_depth', 2),
+            blob_branch_count=state.get('blob_branch_count', 2),
             cube_size_min=state.get('cube_size_min', 0.3),
             cube_size_max=state.get('cube_size_max', 0.8),
             cube_spacing=state.get('cube_spacing', 1.2),
@@ -410,7 +411,8 @@ class EditorWindow(QMainWindow):
             eyeball_color=state.get('eyeball_color', (1.0, 1.0, 1.0)),
             pupil_color=state.get('pupil_color', (0.0, 0.0, 0.0)),
             # Blob parameters
-            num_cubes=state.get('num_cubes', 8),
+            blob_branch_depth=state.get('blob_branch_depth', 2),
+            blob_branch_count=state.get('blob_branch_count', 2),
             cube_size_min=state.get('cube_size_min', 0.3),
             cube_size_max=state.get('cube_size_max', 0.8),
             cube_spacing=state.get('cube_spacing', 1.2),
@@ -477,7 +479,8 @@ class EditorWindow(QMainWindow):
             })
         elif creature_type == 'blob':
             dna_config.update({
-                'num_cubes': state.get('num_cubes', 8),
+                'branch_depth': state.get('blob_branch_depth', 2),
+                'branch_count': state.get('blob_branch_count', 2),
                 'cube_size_min': state.get('cube_size_min', 0.3),
                 'cube_size_max': state.get('cube_size_max', 0.8),
                 'cube_spacing': state.get('cube_spacing', 1.2),

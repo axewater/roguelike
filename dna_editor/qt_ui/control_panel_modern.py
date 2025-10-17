@@ -228,7 +228,8 @@ class ModernControlPanel(QWidget):
         self._creature_type = 'tentacle'  # 'tentacle' or 'blob'
 
         # Blob parameters
-        self._num_cubes = 8
+        self._blob_branch_depth = 2
+        self._blob_branch_count = 2
         self._cube_size_min = 0.3
         self._cube_size_max = 0.8
         self._cube_spacing = 1.2
@@ -853,23 +854,42 @@ class ModernControlPanel(QWidget):
     # ===== BLOB CREATURE SECTIONS =====
 
     def _create_blob_shape_section(self):
-        """Create Blob Shape card."""
+        """Create Blob Shape card with Fibonacci branching controls."""
         group = QGroupBox("BLOB SHAPE")
         group.setMinimumWidth(280)
         layout = QVBoxLayout()
         layout.setSpacing(12)
         layout.setContentsMargins(15, 15, 15, 15)
 
-        # Number of Cubes
-        layout.addWidget(self._create_label("Number of Cubes"))
-        self.num_cubes_spin = QSpinBox()
-        self.num_cubes_spin.setRange(1, 20)
-        self.num_cubes_spin.setValue(self._num_cubes)
-        self.num_cubes_spin.setMinimumHeight(35)
-        self.num_cubes_spin.setButtonSymbols(QSpinBox.ButtonSymbols.UpDownArrows)
-        self.num_cubes_spin.setStyleSheet(self.SPINBOX_STYLE)
-        self.num_cubes_spin.valueChanged.connect(self._on_num_cubes_changed)
-        layout.addWidget(self.num_cubes_spin)
+        # Branch Depth
+        layout.addWidget(self._create_label("Branch Depth"))
+        self.blob_branch_depth_spin = QSpinBox()
+        self.blob_branch_depth_spin.setRange(0, 3)
+        self.blob_branch_depth_spin.setValue(self._blob_branch_depth)
+        self.blob_branch_depth_spin.setMinimumHeight(35)
+        self.blob_branch_depth_spin.setButtonSymbols(QSpinBox.ButtonSymbols.UpDownArrows)
+        self.blob_branch_depth_spin.setStyleSheet(self.SPINBOX_STYLE)
+        self.blob_branch_depth_spin.valueChanged.connect(self._on_blob_branching_changed)
+        layout.addWidget(self.blob_branch_depth_spin)
+        layout.addSpacing(8)
+
+        # Branch Count
+        layout.addWidget(self._create_label("Branches Per Level"))
+        self.blob_branch_count_spin = QSpinBox()
+        self.blob_branch_count_spin.setRange(1, 3)
+        self.blob_branch_count_spin.setValue(self._blob_branch_count)
+        self.blob_branch_count_spin.setMinimumHeight(35)
+        self.blob_branch_count_spin.setButtonSymbols(QSpinBox.ButtonSymbols.UpDownArrows)
+        self.blob_branch_count_spin.setStyleSheet(self.SPINBOX_STYLE)
+        self.blob_branch_count_spin.valueChanged.connect(self._on_blob_branching_changed)
+        layout.addWidget(self.blob_branch_count_spin)
+        layout.addSpacing(8)
+
+        # Branch Info Label (shows total cube count)
+        self.blob_branch_info_label = QLabel("Total: ~7 cubes")
+        self.blob_branch_info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.blob_branch_info_label.setStyleSheet("color: #06b6d4; font-size: 11pt; font-weight: bold; padding: 12px; background-color: #164e63; border-radius: 8px; margin-top: 10px; border: 1px solid #0891b2;")
+        layout.addWidget(self.blob_branch_info_label)
         layout.addSpacing(8)
 
         # Cube Spacing
@@ -1116,10 +1136,24 @@ class ModernControlPanel(QWidget):
             self.creature_type_changed.emit(self._creature_type)
             self.creature_changed.emit()
 
-    def _on_num_cubes_changed(self, value):
+    def _on_blob_branching_changed(self):
         if not self._updating:
-            self._num_cubes = value
+            self._blob_branch_depth = self.blob_branch_depth_spin.value()
+            self._blob_branch_count = self.blob_branch_count_spin.value()
+            self._update_blob_branch_info()
             self.creature_changed.emit()
+
+    def _update_blob_branch_info(self):
+        """Calculate and display total cube count from branch parameters."""
+        if self._blob_branch_count == 1:
+            # Linear: 1 + 1 + 1 + ... = depth + 1
+            total_cubes = self._blob_branch_depth + 1
+        else:
+            # Geometric series: 1 + c + c² + c³ + ... + c^d
+            # Sum = (c^(d+1) - 1) / (c - 1)
+            total_cubes = (self._blob_branch_count ** (self._blob_branch_depth + 1) - 1) // (self._blob_branch_count - 1)
+
+        self.blob_branch_info_label.setText(f"Total: ~{total_cubes} cubes")
 
     def _on_cube_spacing_changed(self, value):
         if not self._updating:
@@ -1217,7 +1251,8 @@ class ModernControlPanel(QWidget):
             'eyeball_color': self._eyeball_color,
             'pupil_color': self._pupil_color,
             # Blob parameters
-            'num_cubes': self._num_cubes,
+            'blob_branch_depth': self._blob_branch_depth,
+            'blob_branch_count': self._blob_branch_count,
             'cube_size_min': self._cube_size_min,
             'cube_size_max': self._cube_size_max,
             'cube_spacing': self._cube_spacing,
@@ -1266,7 +1301,8 @@ class ModernControlPanel(QWidget):
         self._pupil_color = state.get('pupil_color', (0.0, 0.0, 0.0))
 
         # Blob parameters
-        self._num_cubes = state.get('num_cubes', 8)
+        self._blob_branch_depth = state.get('blob_branch_depth', 2)
+        self._blob_branch_count = state.get('blob_branch_count', 2)
         self._cube_size_min = state.get('cube_size_min', 0.3)
         self._cube_size_max = state.get('cube_size_max', 0.8)
         self._cube_spacing = state.get('cube_spacing', 1.2)
@@ -1305,7 +1341,8 @@ class ModernControlPanel(QWidget):
         self.pupil_color_button.set_color(self._pupil_color)
 
         # Update blob UI
-        self.num_cubes_spin.setValue(self._num_cubes)
+        self.blob_branch_depth_spin.setValue(self._blob_branch_depth)
+        self.blob_branch_count_spin.setValue(self._blob_branch_count)
         self.cube_spacing_slider.setValue(int(self._cube_spacing * 100))
         self.blob_color_button.set_color(self._blob_color)
         self.blob_transparency_slider.setValue(int(self._blob_transparency * 100))
@@ -1313,6 +1350,9 @@ class ModernControlPanel(QWidget):
         self.cube_size_max_slider.setValue(int(self._cube_size_max * 100))
         self.jiggle_speed_slider.setValue(int(self._jiggle_speed * 100))
         self.blob_pulse_slider.setValue(int(self._blob_pulse_amount * 100))
+
+        # Update branch info label
+        self._update_blob_branch_info()
 
         params = state.get('params', {})
         if self._algorithm == 'bezier':

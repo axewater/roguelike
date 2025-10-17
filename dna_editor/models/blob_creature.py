@@ -17,9 +17,10 @@ from ..shaders import create_toon_shader
 
 
 class BlobCube:
-    """Single cube in the blob with individual animation state."""
+    """Single cube in the blob with individual animation state and tree structure."""
 
-    def __init__(self, position, size, base_color, transparency, parent, toon_shader=None):
+    def __init__(self, position, size, base_color, transparency, parent, toon_shader=None,
+                 tree_depth=0, parent_cube=None):
         """
         Create a blob cube.
 
@@ -28,13 +29,19 @@ class BlobCube:
             size: Cube scale
             base_color: RGB tuple (0-1)
             transparency: Alpha value (0-1, where 1 is fully transparent)
-            parent: Parent entity
+            parent: Parent entity (scene root)
             toon_shader: Optional toon shader to apply
+            tree_depth: Distance from root (0 = root, 1 = children, etc.)
+            parent_cube: Reference to parent BlobCube (None for root)
         """
         self.original_position = position
         self.original_size = size
         self.base_color = base_color
         self.transparency = transparency
+        self.tree_depth = tree_depth
+        self.parent_cube = parent_cube
+        self.children = []  # Child BlobCubes
+        self.connector_tube = None  # Cylinder connecting to parent
 
         # Random jiggle phase offset for organic motion
         self.jiggle_phase_x = random.random() * math.pi * 2
@@ -59,6 +66,78 @@ class BlobCube:
 
         self.entity = Entity(**entity_params)
 
+        # Create connector tube if this cube has a parent
+        if parent_cube is not None:
+            self._create_connector_tube(parent, base_color, transparency, toon_shader)
+
+    def _create_connector_tube(self, scene_parent, base_color, transparency, toon_shader):
+        """Create cylinder connecting this cube to its parent cube."""
+        from ..core.constants import CONNECTOR_TUBE_RADIUS_RATIO, CONNECTOR_TUBE_OPACITY_MULTIPLIER
+
+        # Calculate tube radius (fraction of average cube size)
+        avg_size = (self.original_size + self.parent_cube.original_size) / 2
+        tube_radius = avg_size * CONNECTOR_TUBE_RADIUS_RATIO
+
+        # Tube transparency (slightly more opaque than cubes)
+        tube_transparency = transparency * CONNECTOR_TUBE_OPACITY_MULTIPLIER
+
+        # Calculate initial position, rotation, and length
+        midpoint = (self.original_position + self.parent_cube.original_position) / 2
+        direction = (self.original_position - self.parent_cube.original_position).normalized()
+        length = (self.original_position - self.parent_cube.original_position).length()
+
+        # Calculate rotation to align cylinder with direction
+        # Ursina cylinders point along Y axis by default
+        # We need to rotate to align with direction vector
+        from ursina import Vec3
+        up = Vec3(0, 1, 0)
+        if direction.length() > 0.001:
+            # Calculate rotation axis and angle
+            axis = up.cross(direction).normalized()
+            angle = math.acos(max(-1, min(1, up.dot(direction))))
+            # Convert to Euler angles (Ursina uses pitch, yaw, roll)
+            # For simplicity, we'll use look_at approach
+            rotation = Vec3(0, 0, 0)  # Will be set via look_at below
+        else:
+            rotation = Vec3(0, 0, 0)
+
+        # Create tube color (same as cube but with tube transparency)
+        tube_color = color.rgba(base_color[0], base_color[1], base_color[2], 1.0 - tube_transparency)
+
+        # Create cylinder entity
+        tube_params = {
+            'model': 'cylinder',
+            'color': tube_color,
+            'position': midpoint,
+            'scale': (tube_radius, length / 2, tube_radius),  # Y scale = half length (Ursina cylinder quirk)
+            'parent': scene_parent
+        }
+
+        # Apply toon shader if provided
+        if toon_shader is not None:
+            tube_params['shader'] = toon_shader
+
+        self.connector_tube = Entity(**tube_params)
+
+        # Point the cylinder from parent to child
+        self.connector_tube.look_at(self.parent_cube.entity, axis='up')
+
+    def _update_connector_tube_transform(self):
+        """Update connector tube position and orientation to follow animated cubes."""
+        if self.connector_tube is None or self.parent_cube is None:
+            return
+
+        # Recalculate midpoint between current positions
+        midpoint = (self.entity.position + self.parent_cube.entity.position) / 2
+        self.connector_tube.position = midpoint
+
+        # Recalculate length
+        length = (self.entity.position - self.parent_cube.entity.position).length()
+        self.connector_tube.scale_y = length / 2  # Ursina cylinder Y scale = half length
+
+        # Update rotation to point from parent to child
+        self.connector_tube.look_at(self.parent_cube.entity, axis='up')
+
     def update_animation(self, time, jiggle_speed, jiggle_amplitude,
                         is_attacking=False, attack_progress=0.0, attack_phase='idle'):
         """
@@ -72,31 +151,36 @@ class BlobCube:
             attack_progress: Attack phase progress (0-1)
             attack_phase: 'expand', 'contract', 'return', or 'idle'
         """
-        if is_attacking:
-            # Attack animation overrides idle jiggle
-            if attack_phase == 'expand':
-                # Expand outward from center (smooth ease-out)
-                t = self._ease_out_cubic(attack_progress)
-                direction = self.original_position.normalized()
-                offset = direction * (BLOB_ATTACK_EXPANSION - 1.0) * t
-                self.entity.position = self.original_position + offset
-                self.entity.scale = self.original_size * (1.0 + (BLOB_ATTACK_SCALE - 1.0) * t)
+        if is_attacking and attack_phase == 'cascade':
+            # Cascade attack: smooth wave expanding from root → leaves
+            from ..core.constants import CASCADE_EXPAND_AMOUNT, CASCADE_PULSE_SCALE
 
-            elif attack_phase == 'contract':
-                # Contract back (smooth ease-in)
-                t = 1.0 - self._ease_in_cubic(attack_progress)
-                direction = self.original_position.normalized()
-                offset = direction * (BLOB_ATTACK_EXPANSION - 1.0) * t
-                self.entity.position = self.original_position + offset
-                self.entity.scale = self.original_size * (1.0 + (BLOB_ATTACK_SCALE - 1.0) * t)
+            # Calculate direction from origin (for radial expansion)
+            direction = self.original_position.normalized()
+            if direction.length() < 0.001:
+                direction = Vec3(0, 1, 0)  # Fallback for root at origin
 
-            elif attack_phase == 'return':
-                # Return to idle (ease to rest)
-                t = 1.0 - self._ease_out_quad(attack_progress)
-                direction = self.original_position.normalized()
-                offset = direction * (BLOB_ATTACK_EXPANSION - 1.0) * t * 0.1  # Small residual
-                self.entity.position = self.original_position + offset
-                self.entity.scale = self.original_size
+            # Smooth wave: expand → contract → return
+            if attack_progress < 0.5:
+                # Expansion phase (0 → 0.5)
+                t = attack_progress * 2.0  # Map to 0→1
+                ease_t = self._ease_out_cubic(t)  # Ease-out for smooth expansion
+                expansion_factor = 1.0 + (CASCADE_EXPAND_AMOUNT - 1.0) * ease_t
+                position_offset = direction * (CASCADE_EXPAND_AMOUNT - 1.0) * ease_t * 0.5
+                self.entity.position = self.original_position + position_offset
+                self.entity.scale = self.original_size * (1.0 + (CASCADE_PULSE_SCALE - 1.0) * ease_t)
+            else:
+                # Contraction + return phase (0.5 → 1.0)
+                t = (attack_progress - 0.5) * 2.0  # Map to 0→1
+                ease_t = self._ease_in_cubic(t)  # Fast return
+                remaining_expansion = 1.0 - ease_t
+                expansion_factor = 1.0 + (CASCADE_EXPAND_AMOUNT - 1.0) * remaining_expansion
+                position_offset = direction * (CASCADE_EXPAND_AMOUNT - 1.0) * remaining_expansion * 0.5
+                self.entity.position = self.original_position + position_offset
+                self.entity.scale = self.original_size * (1.0 + (CASCADE_PULSE_SCALE - 1.0) * remaining_expansion)
+
+            # Update connector tube to follow cube
+            self._update_connector_tube_transform()
         else:
             # Idle jiggle animation (each cube jiggles independently)
             jiggle_x = math.sin(time * jiggle_speed + self.jiggle_phase_x) * jiggle_amplitude
@@ -108,6 +192,9 @@ class BlobCube:
             # Subtle pulse in size
             pulse = 1.0 + math.sin(time * jiggle_speed * 0.7 + self.jiggle_phase_x) * 0.05
             self.entity.scale = self.original_size * pulse
+
+        # Update connector tube to follow cube (if it has one)
+        self._update_connector_tube_transform()
 
     def _ease_out_cubic(self, t):
         """Ease-out cubic (fast start, slow end)."""
@@ -122,14 +209,16 @@ class BlobCube:
         return 1 - (1 - t) * (1 - t)
 
     def destroy(self):
-        """Cleanup cube entity."""
+        """Cleanup cube entity and connector tube."""
+        if self.connector_tube is not None:
+            destroy(self.connector_tube)
         destroy(self.entity)
 
 
 class BlobCreature:
-    """Creature made of translucent slime cubes in random 3D cluster."""
+    """Creature made of translucent slime cubes in Fibonacci tree structure."""
 
-    def __init__(self, num_cubes=DEFAULT_NUM_CUBES,
+    def __init__(self, branch_depth=None, branch_count=None,
                  cube_size_min=DEFAULT_CUBE_SIZE_MIN,
                  cube_size_max=DEFAULT_CUBE_SIZE_MAX,
                  cube_spacing=DEFAULT_CUBE_SPACING,
@@ -138,10 +227,11 @@ class BlobCreature:
                  jiggle_speed=DEFAULT_JIGGLE_SPEED,
                  pulse_amount=DEFAULT_BLOB_PULSE_AMOUNT):
         """
-        Create a blob creature.
+        Create a blob creature with Fibonacci tree structure.
 
         Args:
-            num_cubes: Number of cubes in blob (1-20)
+            branch_depth: Maximum branching depth (0-3 levels)
+            branch_count: Number of children per cube (1-3)
             cube_size_min: Minimum cube size
             cube_size_max: Maximum cube size
             cube_spacing: Distance between cube centers
@@ -150,12 +240,21 @@ class BlobCreature:
             jiggle_speed: Animation speed
             pulse_amount: Pulse animation intensity
         """
+        from ..core.constants import DEFAULT_BLOB_BRANCH_DEPTH, DEFAULT_BLOB_BRANCH_COUNT
+
+        # Use defaults if not provided
+        if branch_depth is None:
+            branch_depth = DEFAULT_BLOB_BRANCH_DEPTH
+        if branch_count is None:
+            branch_count = DEFAULT_BLOB_BRANCH_COUNT
+
         # Create root entity
         self.root = Entity(position=(0, 0, 0))
         self.cubes = []
 
         # Store parameters
-        self.num_cubes = num_cubes
+        self.branch_depth = branch_depth
+        self.branch_count = branch_count
         self.cube_size_min = cube_size_min
         self.cube_size_max = cube_size_max
         self.cube_spacing = cube_spacing
@@ -168,96 +267,109 @@ class BlobCreature:
         self.is_attacking = False
         self.attack_start_time = 0
 
-        # Create toon shader (shared across all cubes)
+        # Create toon shader (shared across all cubes and tubes)
         self.toon_shader = create_toon_shader()
         if self.toon_shader is None:
             print("WARNING: Toon shader creation failed in BlobCreature, using default rendering")
 
-        # Generate blob cubes
+        # Generate blob cubes with tree structure
         self._generate_cubes()
 
     def _generate_cubes(self):
-        """Generate random 3D cluster of cubes."""
-        # Clear existing cubes
+        """Generate Fibonacci tree structure of cubes."""
+        from ..core.constants import GOLDEN_RATIO, GOLDEN_ANGLE
+
+        # Clear existing cubes and tubes
         for cube in self.cubes:
             cube.destroy()
         self.cubes.clear()
 
-        # Track occupied positions for random cluster growth
-        occupied_positions = []
+        # Create root cube at origin (top of creature, grows downward)
+        root_position = Vec3(0, 0.5, 0)  # Start slightly above center
+        root_cube = BlobCube(
+            position=root_position,
+            size=self.cube_size_max,  # Root is largest
+            base_color=self.blob_color,
+            transparency=self.transparency,
+            parent=self.root,
+            toon_shader=self.toon_shader,
+            tree_depth=0,
+            parent_cube=None  # Root has no parent
+        )
+        self.cubes.append(root_cube)
 
-        for i in range(self.num_cubes):
-            if i == 0:
-                # First cube at origin
-                position = Vec3(0, 0, 0)
-            else:
-                # Find random adjacent position to existing cube
-                # Pick random existing cube as base
-                base_cube_pos = random.choice(occupied_positions)
+        # Recursively generate children
+        if self.branch_depth > 0:
+            self._generate_children(root_cube, current_depth=0)
 
-                # Generate random adjacent position (6 cardinal directions + diagonals)
-                attempts = 0
-                max_attempts = 20
+    def _generate_children(self, parent_cube, current_depth):
+        """Recursively generate child cubes using golden angle distribution."""
+        from ..core.constants import GOLDEN_RATIO, GOLDEN_ANGLE
 
-                while attempts < max_attempts:
-                    # Random offset in 3D grid with spacing
-                    offset_x = random.choice([-1, 0, 1]) * self.cube_spacing
-                    offset_y = random.choice([-1, 0, 1]) * self.cube_spacing
-                    offset_z = random.choice([-1, 0, 1]) * self.cube_spacing
+        if current_depth >= self.branch_depth:
+            return  # Max depth reached
 
-                    # Skip if zero offset (same position)
-                    if offset_x == 0 and offset_y == 0 and offset_z == 0:
-                        attempts += 1
-                        continue
+        # Generate branch_count children for this parent
+        for i in range(self.branch_count):
+            # Calculate child position using golden angle + lower hemisphere bias
+            angle = i * GOLDEN_ANGLE  # Fibonacci spiral spacing (~137.5 degrees)
 
-                    position = base_cube_pos + Vec3(offset_x, offset_y, offset_z)
+            # Bias toward lower hemisphere (y grows more negative with depth)
+            # Depth 0 children: y_offset around -0.4 to -0.6
+            # Depth 1+ children: y_offset gets more negative
+            depth_factor = (current_depth + 1) / max(self.branch_depth, 1)
+            y_offset = -0.4 - depth_factor * 0.5  # Range: -0.4 to -0.9
 
-                    # Check if position is already occupied (within tolerance)
-                    collision = False
-                    for occupied_pos in occupied_positions:
-                        if (position - occupied_pos).length() < self.cube_spacing * 0.5:
-                            collision = True
-                            break
+            # Calculate spherical offset from parent (biased downward)
+            # Use smaller radius for y calculation to create elongated downward shape
+            radius_horizontal = math.sqrt(max(0, 1 - (y_offset * 0.7) ** 2))  # Elliptical
+            x_offset = radius_horizontal * math.cos(angle) * self.cube_spacing
+            z_offset = radius_horizontal * math.sin(angle) * self.cube_spacing
 
-                    if not collision:
-                        break
-
-                    attempts += 1
-
-                # If couldn't find non-colliding position, use last attempt
-                # (allows overlapping for dense blobs)
-
-            # Random size within range
-            size = random.uniform(self.cube_size_min, self.cube_size_max)
-
-            # Add slight color variation per cube
-            hue_variation = (random.random() - 0.5) * 0.1  # ±5% variation
-            cube_color = (
-                max(0.0, min(1.0, self.blob_color[0] + hue_variation)),
-                max(0.0, min(1.0, self.blob_color[1] + hue_variation * 0.5)),
-                max(0.0, min(1.0, self.blob_color[2] + hue_variation))
+            child_position = parent_cube.original_position + Vec3(
+                x_offset,
+                y_offset * self.cube_spacing,
+                z_offset
             )
 
-            # Create cube
-            cube = BlobCube(
-                position=position,
-                size=size,
-                base_color=cube_color,
+            # Scale cube size by golden ratio (children are smaller)
+            child_size = parent_cube.original_size / GOLDEN_RATIO
+            child_size = max(self.cube_size_min, child_size)  # Clamp to minimum
+
+            # Slight color variation with depth (darker/greener as depth increases)
+            hue_shift = current_depth * 0.08
+            child_color = (
+                max(0.0, self.blob_color[0] - hue_shift * 0.2),  # Slightly less red
+                min(1.0, self.blob_color[1] + hue_shift * 0.1),  # Slightly more green
+                max(0.0, self.blob_color[2] - hue_shift * 0.1)   # Slightly less blue
+            )
+
+            # Create child cube (with parent link for tree structure)
+            child_cube = BlobCube(
+                position=child_position,
+                size=child_size,
+                base_color=child_color,
                 transparency=self.transparency,
                 parent=self.root,
-                toon_shader=self.toon_shader
+                toon_shader=self.toon_shader,
+                tree_depth=current_depth + 1,
+                parent_cube=parent_cube  # Link to parent (creates connector tube)
             )
 
-            self.cubes.append(cube)
-            occupied_positions.append(position)
+            parent_cube.children.append(child_cube)
+            self.cubes.append(child_cube)
 
-    def rebuild(self, num_cubes, cube_size_min, cube_size_max, cube_spacing,
+            # Recurse to create grandchildren
+            self._generate_children(child_cube, current_depth + 1)
+
+    def rebuild(self, branch_depth, branch_count, cube_size_min, cube_size_max, cube_spacing,
                 blob_color, transparency, jiggle_speed, pulse_amount):
         """
         Rebuild blob with new parameters.
 
         Args:
-            num_cubes: Number of cubes
+            branch_depth: Maximum branching depth
+            branch_count: Children per cube
             cube_size_min: Minimum cube size
             cube_size_max: Maximum cube size
             cube_spacing: Cube spacing
@@ -266,7 +378,8 @@ class BlobCreature:
             jiggle_speed: Animation speed
             pulse_amount: Pulse intensity
         """
-        self.num_cubes = num_cubes
+        self.branch_depth = branch_depth
+        self.branch_count = branch_count
         self.cube_size_min = cube_size_min
         self.cube_size_max = cube_size_max
         self.cube_spacing = cube_spacing
@@ -275,7 +388,7 @@ class BlobCreature:
         self.jiggle_speed = jiggle_speed
         self.pulse_amount = pulse_amount
 
-        # Regenerate cubes
+        # Regenerate cubes with new tree structure
         self._generate_cubes()
 
     def start_attack(self, camera_position):
@@ -300,52 +413,57 @@ class BlobCreature:
 
     def update_animation(self, time, camera_position=None):
         """
-        Update blob animation.
+        Update blob animation with cascade attack.
 
         Args:
             time: Current animation time
             camera_position: Optional camera position (for interface consistency)
         """
+        from ..core.constants import CASCADE_ATTACK_DURATION, CASCADE_WAVE_SPEED, BLOB_JIGGLE_AMPLITUDE
+
         # Handle attack state
         attack_phase = 'idle'
-        attack_progress = 0.0
+        global_attack_progress = 0.0
 
         if self.is_attacking:
             # Initialize attack start time on first frame
             if self.attack_start_time == 0:
                 self.attack_start_time = time
 
-            # Calculate attack progress
+            # Calculate global attack progress (0-1)
             attack_elapsed = time - self.attack_start_time
+            global_attack_progress = min(attack_elapsed / CASCADE_ATTACK_DURATION, 1.0)
 
-            if attack_elapsed < BLOB_ATTACK_EXPAND_END:
-                # Expansion phase
-                attack_phase = 'expand'
-                attack_progress = attack_elapsed / BLOB_ATTACK_EXPAND_END
-            elif attack_elapsed < BLOB_ATTACK_CONTRACT_END:
-                # Contraction phase
-                attack_phase = 'contract'
-                attack_progress = (attack_elapsed - BLOB_ATTACK_EXPAND_END) / (BLOB_ATTACK_CONTRACT_END - BLOB_ATTACK_EXPAND_END)
-            elif attack_elapsed < BLOB_ATTACK_RETURN_END:
-                # Return to idle phase
-                attack_phase = 'return'
-                attack_progress = (attack_elapsed - BLOB_ATTACK_CONTRACT_END) / (BLOB_ATTACK_RETURN_END - BLOB_ATTACK_CONTRACT_END)
-            else:
+            if global_attack_progress >= 1.0:
                 # Attack complete
                 self.is_attacking = False
                 self.attack_start_time = 0
                 attack_phase = 'idle'
+            else:
+                attack_phase = 'cascade'
 
-        # Update all cubes
+        # Update all cubes with depth-aware cascade timing
         jiggle_amplitude = BLOB_JIGGLE_AMPLITUDE * (1.0 + self.pulse_amount)
 
         for cube in self.cubes:
+            # Calculate per-cube attack timing based on tree_depth
+            # Each level triggers (1 / CASCADE_WAVE_SPEED) seconds after its parent
+            if self.is_attacking and attack_phase == 'cascade':
+                # Delay increases with tree depth
+                cube_attack_delay = cube.tree_depth / CASCADE_WAVE_SPEED
+                # Calculate cube's attack progress (starts at 0 when delay passes)
+                cube_attack_time = global_attack_progress * CASCADE_ATTACK_DURATION - cube_attack_delay
+                # Normalize to 0-1 and clamp (2x multiplier for faster individual pulse)
+                cube_attack_progress = max(0.0, min(1.0, cube_attack_time / (CASCADE_ATTACK_DURATION * 0.5)))
+            else:
+                cube_attack_progress = 0.0
+
             cube.update_animation(
                 time=time,
                 jiggle_speed=self.jiggle_speed,
                 jiggle_amplitude=jiggle_amplitude,
                 is_attacking=self.is_attacking,
-                attack_progress=attack_progress,
+                attack_progress=cube_attack_progress,  # Per-cube progress (not global)
                 attack_phase=attack_phase
             )
 

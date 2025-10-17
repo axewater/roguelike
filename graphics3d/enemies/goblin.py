@@ -4,7 +4,7 @@ Goblin 3D model - Small wicked trickster with hunched posture
 Procedurally generated 3D model using Ursina primitives.
 """
 
-from ursina import Entity, Vec3, color as ursina_color, color
+from ursina import Entity, Vec3, color as ursina_color
 import math
 
 
@@ -38,49 +38,6 @@ def create_goblin_3d(position: Vec3, enemy_color: ursina_color) -> Entity:
         scale=0.35,
         parent=goblin,
         position=(0, 0.75, 0)  # Adjusted for taller body
-    )
-
-    # Eye positioning constants (calculated from head radius 0.35)
-    HEAD_RADIUS = 0.35
-    EYE_SPACING = 0.12  # Half-distance between eyes (34% of radius)
-    EYE_HEIGHT = 0.08   # Above head center (23% of radius)
-    EYE_FORWARD = 0.25  # Z-depth forward from head center (71% of radius)
-    # Validation: sqrt(0.12² + 0.08² + 0.25²) ≈ 0.28 < 0.35 (eyes slightly inset)
-
-    # Left eye (white sclera)
-    left_eye = Entity(
-        model='sphere',
-        color=color.white,
-        scale=0.08,
-        parent=head,  # Parent to head for animation
-        position=(-EYE_SPACING, EYE_HEIGHT, EYE_FORWARD)
-    )
-
-    # Left pupil (dark iris)
-    left_pupil = Entity(
-        model='sphere',
-        color=color.black,
-        scale=0.04,
-        parent=left_eye,
-        position=(0, 0, 0.06)  # Slightly forward on eyeball surface
-    )
-
-    # Right eye (white sclera)
-    right_eye = Entity(
-        model='sphere',
-        color=color.white,
-        scale=0.08,
-        parent=head,  # Parent to head for animation
-        position=(EYE_SPACING, EYE_HEIGHT, EYE_FORWARD)
-    )
-
-    # Right pupil (dark iris)
-    right_pupil = Entity(
-        model='sphere',
-        color=color.black,
-        scale=0.04,
-        parent=right_eye,
-        position=(0, 0, 0.06)  # Slightly forward on eyeball surface
     )
 
     # Left shoulder joint
@@ -140,21 +97,21 @@ def create_goblin_3d(position: Vec3, enemy_color: ursina_color) -> Entity:
         position=(0.2, -0.5, 0)  # At body bottom
     )
 
-    # Left leg (4x original size)
+    # Left leg (skinny)
     # Body Y radius is 0.5, bottom at y=-0.5, so position at y=-0.65 to clear it
     left_leg = Entity(
         model='sphere',
         color=enemy_color.tint(-0.1),
-        scale=(0.6, 0.8, 0.6),  # 4x larger
+        scale=(0.25, 0.7, 0.25),  # Thin legs
         parent=body,
         position=(-0.2, -1.0, 0)  # Below body, adjusted for larger size
     )
 
-    # Right leg (4x original size)
+    # Right leg (skinny)
     right_leg = Entity(
         model='sphere',
         color=enemy_color.tint(-0.1),
-        scale=(0.6, 0.8, 0.6),  # 4x larger
+        scale=(0.25, 0.7, 0.25),  # Thin legs
         parent=body,
         position=(0.2, -1.0, 0)  # Below body, adjusted for larger size
     )
@@ -162,8 +119,6 @@ def create_goblin_3d(position: Vec3, enemy_color: ursina_color) -> Entity:
     # Store animation state in goblin entity
     goblin.idle_time = 0.0
     goblin.head_ref = head  # Reference for animation
-    goblin.left_eye_ref = left_eye  # Reference for future eye animations
-    goblin.right_eye_ref = right_eye
 
     return goblin
 

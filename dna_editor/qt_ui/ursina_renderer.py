@@ -264,7 +264,7 @@ class UrsinaRenderer:
                         num_eyes=3, eye_size_min=0.1, eye_size_max=0.25,
                         eyeball_color=(1.0, 1.0, 1.0), pupil_color=(0.0, 0.0, 0.0),
                         # Blob parameters
-                        num_cubes=8, cube_size_min=0.3, cube_size_max=0.8,
+                        blob_branch_depth=2, blob_branch_count=2, cube_size_min=0.3, cube_size_max=0.8,
                         cube_spacing=1.2, blob_color=(0.2, 0.8, 0.4), blob_transparency=0.7,
                         jiggle_speed=2.0, blob_pulse_amount=0.1):
         """
@@ -294,7 +294,8 @@ class UrsinaRenderer:
             eyeball_color: Eyeball color (RGB tuple 0-1)
             pupil_color: Pupil color (RGB tuple 0-1)
             [Blob parameters]
-            num_cubes: Number of cubes
+            blob_branch_depth: Branching depth (0-3)
+            blob_branch_count: Branches per level (1-3)
             cube_size_min: Minimum cube size
             cube_size_max: Maximum cube size
             cube_spacing: Cube spacing
@@ -340,7 +341,8 @@ class UrsinaRenderer:
                 from ..models.blob_creature import BlobCreature
 
                 self.creature = BlobCreature(
-                    num_cubes=num_cubes,
+                    branch_depth=blob_branch_depth,
+                    branch_count=blob_branch_count,
                     cube_size_min=cube_size_min,
                     cube_size_max=cube_size_max,
                     cube_spacing=cube_spacing,

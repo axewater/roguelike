@@ -8,6 +8,8 @@ Controls:
 - Left mouse drag: Rotate camera
 - Scroll wheel: Zoom in/out
 - R: Reset camera
+- 1-6: Focus on individual enemies
+- 0: Return to overview
 - ESC: Quit
 """
 
@@ -31,11 +33,28 @@ class OrbitCamera:
     Uses Ursina's built-in mouse velocity tracking for smooth rotation.
     """
 
-    def __init__(self, target_position=Vec3(0, 0, 0), distance=12.0, height=2.0):
+    def __init__(self, target_position=Vec3(0, 0, 0), distance=12.0, height=2.0, enemies_list=None):
         self.target = target_position
         self.camera_angle = 0  # Horizontal rotation angle
         self.camera_height = height  # Vertical height
         self.camera_distance = distance  # Distance from target
+
+        # Focus state
+        self.selected_enemy_index = None  # None = overview, 0-5 = specific enemy
+        self.enemies_list = enemies_list or []
+
+        # Default camera settings
+        self.overview_defaults = {
+            'target': target_position,
+            'distance': distance,
+            'height': height,
+            'angle': 0
+        }
+        self.enemy_focus_defaults = {
+            'distance': 6.0,  # Closer view for individual enemies
+            'height': 1.5,    # Lower height for better angle
+            'angle': 0
+        }
 
         # Limits
         self.min_distance = 3.0
@@ -47,6 +66,12 @@ class OrbitCamera:
 
     def update_camera_position(self):
         """Update camera position using orbit math - same as DNA Editor"""
+        # If an enemy is selected, update target to follow its position
+        if self.selected_enemy_index is not None and self.selected_enemy_index < len(self.enemies_list):
+            enemy = self.enemies_list[self.selected_enemy_index]
+            enemy_pos = enemy['entity'].position
+            self.target = Vec3(enemy_pos.x, enemy_pos.y + 0.5, enemy_pos.z)
+
         # Calculate camera position using orbit angle
         angle_rad = math.radians(self.camera_angle)
         cam_x = self.camera_distance * math.sin(angle_rad)
@@ -77,11 +102,22 @@ class OrbitCamera:
         if camera_changed:
             self.update_camera_position()
 
-        # Reset camera (R key)
+        # Reset camera (R key) - aware of current focus mode
         if held_keys['r']:
-            self.camera_angle = 0
-            self.camera_height = 2.0
-            self.camera_distance = 12.0
+            if self.selected_enemy_index is None:
+                # Reset to overview defaults
+                self.camera_angle = self.overview_defaults['angle']
+                self.camera_height = self.overview_defaults['height']
+                self.camera_distance = self.overview_defaults['distance']
+                print("Camera reset: Overview mode")
+            else:
+                # Reset to enemy focus defaults (stay focused on enemy)
+                self.camera_angle = self.enemy_focus_defaults['angle']
+                self.camera_height = self.enemy_focus_defaults['height']
+                self.camera_distance = self.enemy_focus_defaults['distance']
+                enemy_name = self.enemies_list[self.selected_enemy_index]['name']
+                print(f"Camera reset: Focused on {enemy_name}")
+
             self.update_camera_position()
             held_keys['r'] = False  # Reset key state
 
@@ -95,6 +131,42 @@ class OrbitCamera:
             self.camera_distance += 0.5
             self.camera_distance = max(self.min_distance, min(self.max_distance, self.camera_distance))
             self.update_camera_position()
+
+    def focus_on_enemy(self, enemy_index):
+        """
+        Focus camera on a specific enemy (0-5)
+
+        Args:
+            enemy_index: Index of enemy in enemies_list (0-5)
+        """
+        if 0 <= enemy_index < len(self.enemies_list):
+            self.selected_enemy_index = enemy_index
+            enemy = self.enemies_list[enemy_index]
+
+            # Get enemy position (add small Y offset to center on model)
+            enemy_pos = enemy['entity'].position
+            self.target = Vec3(enemy_pos.x, enemy_pos.y + 0.5, enemy_pos.z)
+
+            # Apply enemy focus defaults
+            self.camera_distance = self.enemy_focus_defaults['distance']
+            self.camera_height = self.enemy_focus_defaults['height']
+            self.camera_angle = self.enemy_focus_defaults['angle']
+
+            self.update_camera_position()
+            print(f"Focused on: {enemy['name']}")
+
+    def focus_overview(self):
+        """Return to overview mode (viewing all enemies)"""
+        self.selected_enemy_index = None
+
+        # Restore overview defaults
+        self.target = self.overview_defaults['target']
+        self.camera_distance = self.overview_defaults['distance']
+        self.camera_height = self.overview_defaults['height']
+        self.camera_angle = self.overview_defaults['angle']
+
+        self.update_camera_position()
+        print("Returned to overview")
 
 
 def create_enemy_grid():
@@ -197,6 +269,7 @@ def create_ground_plane():
 # Global variables for update function
 orbit_cam = None
 enemies = []
+info_text = None  # Dynamic text showing current focus state
 
 
 def update():
@@ -228,7 +301,7 @@ def input(key):
     Must be defined at module level for Ursina to find it.
     This is where scroll events are handled (they don't work with held_keys).
     """
-    global orbit_cam
+    global orbit_cam, info_text
 
     if orbit_cam is None:
         return
@@ -236,10 +309,22 @@ def input(key):
     # Handle scroll for zoom (scroll is momentary, not "held")
     orbit_cam.handle_scroll(key)
 
+    # Handle number keys for camera focus (0-6)
+    if key == '0':
+        orbit_cam.focus_overview()
+        if info_text:
+            info_text.text = "Overview Mode"
+    elif key in ['1', '2', '3', '4', '5', '6']:
+        enemy_index = int(key) - 1  # Convert 1-6 to 0-5
+        if enemy_index < len(enemies):
+            orbit_cam.focus_on_enemy(enemy_index)
+            if info_text:
+                info_text.text = f"Focused: {enemies[enemy_index]['name']}"
+
 
 def main():
     """Main entry point for the enemy model viewer"""
-    global orbit_cam, enemies
+    global orbit_cam, enemies, info_text
 
     # Initialize Ursina with simple window settings
     app = Ursina(
@@ -267,7 +352,8 @@ def main():
     print(f"Loaded {len(enemies)} enemy models")
 
     # Setup orbit camera (look at center of grid, slightly above ground)
-    orbit_cam = OrbitCamera(target_position=Vec3(0, 0.5, 0), distance=12.0, height=2.0)
+    # Pass enemies list so camera can track them
+    orbit_cam = OrbitCamera(target_position=Vec3(0, 0.5, 0), distance=12.0, height=2.0, enemies_list=enemies)
 
     # Create controls text (top-left corner)
     controls_text = Text(
@@ -277,6 +363,8 @@ def main():
             "Left Mouse Drag: Rotate\n"
             "Scroll Wheel: Zoom\n"
             "R: Reset Camera\n"
+            "1-6: Focus Enemy\n"
+            "0: Overview\n"
             "ESC: Quit"
         ),
         position=(-0.85, 0.45),
@@ -286,9 +374,9 @@ def main():
         background=True
     )
 
-    # Create info text (top-right corner) showing model count
+    # Create info text (top-right corner) showing current focus state
     info_text = Text(
-        text=f"{len(enemies)} Enemy Models",
+        text="Overview Mode",
         position=(0.75, 0.45),
         scale=1.5,
         color=ursina_color.rgb(100, 200, 255),
@@ -296,8 +384,13 @@ def main():
     )
 
     print("\nViewer ready!")
-    print("Controls: Left mouse drag to rotate, scroll to zoom, R to reset, ESC to quit")
-    print(f"Camera position: {camera.position}")
+    print("Controls:")
+    print("  - Left mouse drag to rotate, scroll to zoom")
+    print("  - R to reset camera")
+    print("  - 1-6 to focus on individual enemies")
+    print("  - 0 to return to overview")
+    print("  - ESC to quit")
+    print(f"\nCamera position: {camera.position}")
     print(f"Camera looking at: {orbit_cam.target}")
 
     # Run the app (update function will be called automatically)

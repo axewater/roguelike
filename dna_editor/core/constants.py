@@ -178,7 +178,7 @@ EYE_BLINK_INTERVAL_MAX = 8.0  # Maximum seconds between blinks
 # ==========================================
 
 # Blob defaults
-DEFAULT_NUM_CUBES = 8
+DEFAULT_NUM_CUBES = 8  # DEPRECATED: Use branch_depth + branch_count instead
 DEFAULT_CUBE_SIZE_MIN = 0.3
 DEFAULT_CUBE_SIZE_MAX = 0.8
 DEFAULT_CUBE_SPACING = 1.2
@@ -187,9 +187,17 @@ DEFAULT_BLOB_TRANSPARENCY = 0.7  # 70% transparent
 DEFAULT_JIGGLE_SPEED = 2.0
 DEFAULT_BLOB_PULSE_AMOUNT = 0.1
 
+# Blob Branching (Fibonacci Tree Structure)
+DEFAULT_BLOB_BRANCH_DEPTH = 2  # 0-3 levels (depth=2 with count=2 → ~7 cubes)
+DEFAULT_BLOB_BRANCH_COUNT = 2  # 1-3 children per cube
+MIN_BLOB_BRANCH_DEPTH = 0
+MAX_BLOB_BRANCH_DEPTH = 3
+MIN_BLOB_BRANCH_COUNT = 1
+MAX_BLOB_BRANCH_COUNT = 3
+
 # Blob limits
-MIN_NUM_CUBES = 1
-MAX_NUM_CUBES = 20
+MIN_NUM_CUBES = 1  # DEPRECATED
+MAX_NUM_CUBES = 20  # DEPRECATED
 MIN_CUBE_SIZE = 0.1
 MAX_CUBE_SIZE = 1.5
 MIN_CUBE_SPACING = 0.5
@@ -201,11 +209,23 @@ MAX_JIGGLE_SPEED = 5.0
 MIN_BLOB_PULSE = 0.0
 MAX_BLOB_PULSE = 0.3
 
+# Connector Tubes (visual connections between parent-child cubes)
+CONNECTOR_TUBE_RADIUS_RATIO = 0.15  # Tube radius = 15% of cube size
+CONNECTOR_TUBE_OPACITY_MULTIPLIER = 0.6  # Tubes are 60% of cube transparency
+
 # Blob animation
 BLOB_JIGGLE_AMPLITUDE = 0.1  # How much each cube jiggles (world units)
-BLOB_ATTACK_DURATION = 1.2  # Total attack duration
-BLOB_ATTACK_EXPAND_END = 0.4  # Expansion phase ends
-BLOB_ATTACK_CONTRACT_END = 0.8  # Contraction phase ends
-BLOB_ATTACK_RETURN_END = 1.2  # Return to idle
-BLOB_ATTACK_EXPANSION = 1.5  # Expand to 150% of original spacing
-BLOB_ATTACK_SCALE = 1.3  # Each cube scales to 130%
+
+# Cascade Attack Animation (wave propagates through tree structure)
+CASCADE_ATTACK_DURATION = 1.4  # Total attack duration
+CASCADE_WAVE_SPEED = 3.0  # Levels per second (higher = faster wave propagation)
+CASCADE_EXPAND_AMOUNT = 1.6  # Max expansion multiplier (outward push)
+CASCADE_PULSE_SCALE = 1.35  # Individual cube scale during attack
+
+# Old attack constants (DEPRECATED - using cascade now)
+BLOB_ATTACK_DURATION = 1.2  # DEPRECATED
+BLOB_ATTACK_EXPAND_END = 0.4  # DEPRECATED
+BLOB_ATTACK_CONTRACT_END = 0.8  # DEPRECATED
+BLOB_ATTACK_RETURN_END = 1.2  # DEPRECATED
+BLOB_ATTACK_EXPANSION = 1.5  # DEPRECATED
+BLOB_ATTACK_SCALE = 1.3  # DEPRECATED
