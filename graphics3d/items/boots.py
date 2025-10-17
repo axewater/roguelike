@@ -52,69 +52,190 @@ def create_boots_3d(position: Vec3, rarity: str) -> Entity:
         glow = Entity(
             model='sphere',
             color=glow_color,
-            scale=0.3,
+            scale=0.35,
             parent=boots,
             position=(0, 0, 0),
             alpha=0.3,
             unlit=True
         )
 
-    # Left boot
-    left_boot = Entity(
+    # ====== LEFT BOOT ======
+    left_boot_container = Entity(parent=boots, position=(-0.1, -0.1, 0), rotation=(0, -5, 0))
+
+    # Sole - dark rubber/leather bottom
+    left_sole = Entity(
         model='cube',
-        color=boot_color,
-        scale=(0.12, 0.15, 0.18),
-        parent=boots,
-        position=(-0.1, -0.05, 0),
-        rotation=(0, -10, 0)  # Slight outward angle
+        color=boot_color.tint(-0.3),
+        scale=(0.11, 0.025, 0.22),
+        parent=left_boot_container,
+        position=(0, 0, 0)
     )
 
-    # Left boot toe
+    # Heel - raised back section
+    left_heel = Entity(
+        model='cube',
+        color=boot_color.tint(-0.3),
+        scale=(0.11, 0.05, 0.08),
+        parent=left_boot_container,
+        position=(0, 0.025, -0.09)
+    )
+
+    # Main foot section - body of boot
+    left_foot = Entity(
+        model='cube',
+        color=boot_color,
+        scale=(0.1, 0.12, 0.2),
+        parent=left_boot_container,
+        position=(0, 0.08, 0)
+    )
+
+    # Toe cap - rounded front (sphere for smooth look)
     left_toe = Entity(
-        model='cube',
-        color=boot_color.tint(-0.1),
-        scale=(0.1, 0.12, 0.08),
-        parent=left_boot,
-        position=(0, 0, 0.13)
+        model='sphere',
+        color=boot_color.tint(-0.05),
+        scale=(0.09, 0.1, 0.11),
+        parent=left_boot_container,
+        position=(0, 0.06, 0.13)
     )
 
-    # Right boot
-    right_boot = Entity(
+    # Ankle section - slightly wider upper boot
+    left_ankle = Entity(
         model='cube',
         color=boot_color,
-        scale=(0.12, 0.15, 0.18),
-        parent=boots,
-        position=(0.1, -0.05, 0),
-        rotation=(0, 10, 0)  # Slight outward angle
+        scale=(0.11, 0.1, 0.18),
+        parent=left_boot_container,
+        position=(0, 0.19, 0)
     )
 
-    # Right boot toe
-    right_toe = Entity(
+    # Shaft - tall section going up the calf
+    left_shaft = Entity(
         model='cube',
-        color=boot_color.tint(-0.1),
-        scale=(0.1, 0.12, 0.08),
-        parent=right_boot,
-        position=(0, 0, 0.13)
+        color=boot_color,
+        scale=(0.1, 0.08, 0.16),
+        parent=left_boot_container,
+        position=(0, 0.28, 0),
+        rotation=(0, 0, 2)  # Slight tilt outward
     )
 
-    # Accent details (buckles/straps) for uncommon+
+    # Fold/Cuff at top - folded leather look
+    left_cuff = Entity(
+        model='sphere',
+        color=boot_color.tint(0.1),
+        scale=(0.11, 0.04, 0.17),
+        parent=left_boot_container,
+        position=(0, 0.34, 0)
+    )
+
+    # ====== RIGHT BOOT ======
+    right_boot_container = Entity(parent=boots, position=(0.1, -0.1, 0), rotation=(0, 5, 0))
+
+    # Sole
+    right_sole = Entity(
+        model='cube',
+        color=boot_color.tint(-0.3),
+        scale=(0.11, 0.025, 0.22),
+        parent=right_boot_container,
+        position=(0, 0, 0)
+    )
+
+    # Heel
+    right_heel = Entity(
+        model='cube',
+        color=boot_color.tint(-0.3),
+        scale=(0.11, 0.05, 0.08),
+        parent=right_boot_container,
+        position=(0, 0.025, -0.09)
+    )
+
+    # Main foot section
+    right_foot = Entity(
+        model='cube',
+        color=boot_color,
+        scale=(0.1, 0.12, 0.2),
+        parent=right_boot_container,
+        position=(0, 0.08, 0)
+    )
+
+    # Toe cap
+    right_toe = Entity(
+        model='sphere',
+        color=boot_color.tint(-0.05),
+        scale=(0.09, 0.1, 0.11),
+        parent=right_boot_container,
+        position=(0, 0.06, 0.13)
+    )
+
+    # Ankle section
+    right_ankle = Entity(
+        model='cube',
+        color=boot_color,
+        scale=(0.11, 0.1, 0.18),
+        parent=right_boot_container,
+        position=(0, 0.19, 0)
+    )
+
+    # Shaft
+    right_shaft = Entity(
+        model='cube',
+        color=boot_color,
+        scale=(0.1, 0.08, 0.16),
+        parent=right_boot_container,
+        position=(0, 0.28, 0),
+        rotation=(0, 0, -2)  # Slight tilt outward
+    )
+
+    # Fold/Cuff at top
+    right_cuff = Entity(
+        model='sphere',
+        color=boot_color.tint(0.1),
+        scale=(0.11, 0.04, 0.17),
+        parent=right_boot_container,
+        position=(0, 0.34, 0)
+    )
+
+    # ====== DECORATIVE DETAILS ======
+    # Laces/Straps for uncommon+
     if rarity != c.RARITY_COMMON:
-        # Left boot buckle
+        # Left boot laces (3 straps down the front)
+        for i in range(3):
+            strap_y = 0.12 + (i * 0.06)
+            left_strap = Entity(
+                model='cube',
+                color=accent_color,
+                scale=(0.11, 0.015, 0.015),
+                parent=left_boot_container,
+                position=(0, strap_y, 0.1)
+            )
+
+        # Right boot laces
+        for i in range(3):
+            strap_y = 0.12 + (i * 0.06)
+            right_strap = Entity(
+                model='cube',
+                color=accent_color,
+                scale=(0.11, 0.015, 0.015),
+                parent=right_boot_container,
+                position=(0, strap_y, 0.1)
+            )
+
+    # Buckle accent for rare+
+    if rarity in [c.RARITY_RARE, c.RARITY_EPIC, c.RARITY_LEGENDARY]:
+        # Left buckle
         left_buckle = Entity(
             model='cube',
             color=accent_color,
-            scale=(0.13, 0.03, 0.02),
-            parent=left_boot,
-            position=(0, 0.05, 0.09)
+            scale=(0.04, 0.04, 0.02),
+            parent=left_boot_container,
+            position=(0, 0.18, 0.11)
         )
 
-        # Right boot buckle
+        # Right buckle
         right_buckle = Entity(
             model='cube',
             color=accent_color,
-            scale=(0.13, 0.03, 0.02),
-            parent=right_boot,
-            position=(0, 0.05, 0.09)
+            scale=(0.04, 0.04, 0.02),
+            parent=right_boot_container,
+            position=(0, 0.18, 0.11)
         )
 
     # Store animation state

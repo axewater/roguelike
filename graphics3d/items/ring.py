@@ -79,7 +79,9 @@ def create_ring_3d(position: Vec3, rarity: str) -> Entity:
         Entity: Ring 3D model
     """
     # Container entity (invisible parent)
-    ring = Entity(position=position)
+    # Rotate 270 degrees on X axis to stand ring upright with gem on top
+    # (90 would make it upright but gem below, so flip 180 more = 270 total)
+    ring = Entity(position=position, rotation_x=270)
 
     # Rarity-based colors and gem types
     if rarity == c.RARITY_COMMON:
@@ -135,22 +137,27 @@ def create_ring_3d(position: Vec3, rarity: str) -> Entity:
 
     # Gem on top (if has gem)
     if gem_color:
+        # Position gem at top of upright ring in LOCAL coordinates
+        # After rotation_x=90: local Z becomes global Y (up direction)
+        # Ring band outer edge: R + r = 0.155
+        # Setting cube (Z-size 0.04): center at Z = 0.155 + 0.02 = 0.175
+        # Gem sphere (radius 0.04): center at Z = 0.175 + 0.02 + 0.04 = 0.235
         gem = Entity(
             model='sphere',
             color=gem_color,
             scale=0.08,
             parent=ring,
-            position=(0, 0.06, 0),
+            position=(0, 0, 0.235),  # Local Z → Global Y (top of ring)
             unlit=True  # Emissive gem
         )
 
-        # Gem setting/prongs
+        # Gem setting/prongs - connects gem to ring band
         gem_setting = Entity(
             model='cube',
             color=band_color,
             scale=(0.04, 0.03, 0.04),
             parent=ring,
-            position=(0, 0.03, 0)
+            position=(0, 0, 0.175)  # Local Z → Global Y
         )
 
     # Store animation state
