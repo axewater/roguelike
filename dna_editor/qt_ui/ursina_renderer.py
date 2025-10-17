@@ -114,8 +114,8 @@ class UrsinaRenderer:
             sys.stdout = old_stdout
             sys.stderr = old_stderr
 
-            # Set window background
-            self.window.color = self.color.rgb(0.05, 0.05, 0.1)
+            # Set window background (matches sky gradient bottom)
+            self.window.color = self.color.rgb(0.9, 0.5, 0.65)
 
             # Create scene
             self._create_scene()

@@ -60,6 +60,12 @@ class TentacleCreature:
         self.attack_start_time = 0
         self.attack_camera_position = None
 
+        # Exploration animation state (coordinated tentacle reaching)
+        self.exploration_target = Vec3(0, -2, 0)  # Current shared goal position
+        self.reaching_tentacle_indices = set()  # Which tentacles are currently reaching
+        self.exploration_state = 'idle'  # 'idle', 'reaching', or 'returning'
+        self.exploration_phase_start_time = 0  # When current phase started
+
         # Create toon shader (shared across all creature parts)
         self.toon_shader = create_toon_shader()
         if self.toon_shader is None:
@@ -91,6 +97,11 @@ class TentacleCreature:
         for tentacle in self.tentacles:
             tentacle.destroy()
         self.tentacles.clear()
+
+        # Reset exploration state when rebuilding
+        self.exploration_state = 'idle'
+        self.reaching_tentacle_indices = set()
+        self.exploration_phase_start_time = 0
 
         self.algorithm = algorithm
         self.algorithm_params = algorithm_params or {}
@@ -178,8 +189,13 @@ class TentacleCreature:
 
     def update_animation(self, time, camera_position=None):
         """Update creature animations."""
-        # Import attack constants
-        from ..core.constants import ATTACK_DURATION
+        # Import attack and exploration constants
+        from ..core.constants import (
+            ATTACK_DURATION,
+            EXPLORATION_REACH_DURATION, EXPLORATION_RETURN_DURATION, EXPLORATION_IDLE_GAP,
+            EXPLORATION_TENTACLE_RATIO, EXPLORATION_TARGET_MIN_RADIUS, EXPLORATION_TARGET_MAX_RADIUS
+        )
+        import random
 
         # Handle attack state
         if self.is_attacking:
@@ -194,12 +210,78 @@ class TentacleCreature:
                 self.attack_start_time = 0
                 self.attack_camera_position = None
 
+        # Handle exploration state (only when not attacking)
+        reach_progress = 0.0
+        if not self.is_attacking:
+            # Initialize exploration phase start time on first frame
+            if self.exploration_phase_start_time == 0:
+                self.exploration_phase_start_time = time
+
+            # Calculate elapsed time in current phase
+            phase_elapsed = time - self.exploration_phase_start_time
+
+            # State machine for exploration animation
+            if self.exploration_state == 'idle':
+                # Idle gap between cycles
+                if phase_elapsed >= EXPLORATION_IDLE_GAP:
+                    # Transition to reaching: select tentacles and generate target
+                    num_tentacles = len(self.tentacles)
+                    if num_tentacles > 0:
+                        # Select 25-40% of tentacles
+                        min_reaching = max(1, int(num_tentacles * EXPLORATION_TENTACLE_RATIO[0]))
+                        max_reaching = max(1, int(num_tentacles * EXPLORATION_TENTACLE_RATIO[1]))
+                        num_reaching = random.randint(min_reaching, max_reaching)
+
+                        # Randomly select tentacles
+                        self.reaching_tentacle_indices = set(random.sample(range(num_tentacles), num_reaching))
+
+                        # Generate random target in spherical shell
+                        theta = random.random() * math.pi * 2  # Horizontal angle (0-360)
+                        phi = random.random() * math.pi * 2  # Vertical angle (0-360)
+                        radius = EXPLORATION_TARGET_MIN_RADIUS + random.random() * (
+                            EXPLORATION_TARGET_MAX_RADIUS - EXPLORATION_TARGET_MIN_RADIUS
+                        )
+
+                        self.exploration_target = Vec3(
+                            radius * math.sin(phi) * math.cos(theta),
+                            radius * math.cos(phi),
+                            radius * math.sin(phi) * math.sin(theta)
+                        )
+
+                        # Transition to reaching state
+                        self.exploration_state = 'reaching'
+                        self.exploration_phase_start_time = time
+                        reach_progress = 0.0
+
+            elif self.exploration_state == 'reaching':
+                # Reaching phase
+                reach_progress = min(phase_elapsed / EXPLORATION_REACH_DURATION, 1.0)
+
+                if phase_elapsed >= EXPLORATION_REACH_DURATION:
+                    # Transition to returning
+                    self.exploration_state = 'returning'
+                    self.exploration_phase_start_time = time
+                    reach_progress = 0.0
+
+            elif self.exploration_state == 'returning':
+                # Spring-back phase
+                reach_progress = min(phase_elapsed / EXPLORATION_RETURN_DURATION, 1.0)
+
+                if phase_elapsed >= EXPLORATION_RETURN_DURATION:
+                    # Transition to idle
+                    self.exploration_state = 'idle'
+                    self.reaching_tentacle_indices = set()
+                    self.exploration_phase_start_time = time
+
         # Pulse body (use dynamic parameters)
         scale_pulse = self.body_scale + math.sin(time * self.pulse_speed) * self.pulse_amount
         self.body.scale = scale_pulse
 
-        # Animate tentacles (pass animation and attack parameters)
-        for tentacle in self.tentacles:
+        # Animate tentacles (pass animation, attack, and exploration parameters)
+        for idx, tentacle in enumerate(self.tentacles):
+            # Check if this tentacle is currently reaching
+            is_reaching = idx in self.reaching_tentacle_indices
+
             if self.is_attacking:
                 # Pass attack data to tentacles
                 tentacle.update_animation(
@@ -209,8 +291,14 @@ class TentacleCreature:
                     camera_position=self.attack_camera_position or camera_position
                 )
             else:
-                # Normal idle animation
-                tentacle.update_animation(time, self.anim_speed, self.wave_amplitude)
+                # Normal idle animation (with optional exploration reaching)
+                tentacle.update_animation(
+                    time, self.anim_speed, self.wave_amplitude,
+                    is_reaching=is_reaching,
+                    reach_target=self.exploration_target,
+                    reach_state=self.exploration_state,
+                    reach_progress=reach_progress
+                )
 
     def destroy(self):
         """Cleanup all entities."""

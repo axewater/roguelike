@@ -83,7 +83,7 @@ def create_demon_3d(position: Vec3, enemy_color: ursina_color) -> Entity:
     # Left wing (triangular shape using cube stretched and rotated)
     left_wing = Entity(
         model='cube',
-        color=ursina_color.tint(-0.3),
+        color=enemy_color.tint(-0.3),
         scale=(0.6, 0.02, 0.35),
         parent=body,
         position=(-0.4, 0.2, -0.1),
@@ -103,7 +103,7 @@ def create_demon_3d(position: Vec3, enemy_color: ursina_color) -> Entity:
     # Right wing
     right_wing = Entity(
         model='cube',
-        color=ursina_color.tint(-0.3),
+        color=enemy_color.tint(-0.3),
         scale=(0.6, 0.02, 0.35),
         parent=body,
         position=(0.4, 0.2, -0.1),

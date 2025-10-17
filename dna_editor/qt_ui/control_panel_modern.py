@@ -4,7 +4,7 @@ Modern 3-column control panel with card-based design.
 
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QGroupBox, QLabel, QSlider,
-    QSpinBox, QComboBox, QPushButton, QColorDialog
+    QSpinBox, QComboBox, QPushButton, QColorDialog, QTabWidget
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QColor
@@ -219,10 +219,50 @@ class ModernControlPanel(QWidget):
         self._init_ui()
 
     def _init_ui(self):
-        """Initialize UI with 3-column grid layout."""
+        """Initialize UI with tabbed interface."""
         main_layout = QVBoxLayout()
-        main_layout.setSpacing(20)
-        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setSpacing(0)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Create tab widget
+        tab_widget = QTabWidget()
+        tab_widget.setStyleSheet("""
+            QTabWidget::pane {
+                border: 1px solid #3a3a3a;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #1a1a1a, stop:1 #1e1e1e);
+                border-radius: 8px;
+            }
+            QTabBar::tab {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #2d2d2d, stop:1 #252525);
+                border: 1px solid #3a3a3a;
+                border-bottom: none;
+                border-top-left-radius: 8px;
+                border-top-right-radius: 8px;
+                padding: 12px 24px;
+                margin-right: 4px;
+                color: #a0a0a0;
+                font-size: 11pt;
+                font-weight: bold;
+            }
+            QTabBar::tab:selected {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                           stop:0 #6366f1, stop:1 #8b5cf6);
+                color: white;
+            }
+            QTabBar::tab:hover:!selected {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #3a3a3a, stop:1 #323232);
+                color: #d0d0d0;
+            }
+        """)
+
+        # Tab 1: Design
+        design_tab = QWidget()
+        design_layout = QVBoxLayout()
+        design_layout.setSpacing(20)
+        design_layout.setContentsMargins(20, 20, 20, 20)
 
         # Title
         title = QLabel("CREATURE DESIGNER")
@@ -234,7 +274,7 @@ class ModernControlPanel(QWidget):
             padding: 15px;
             letter-spacing: 2px;
         """)
-        main_layout.addWidget(title)
+        design_layout.addWidget(title)
 
         # 3-column grid
         grid = QGridLayout()
@@ -249,15 +289,43 @@ class ModernControlPanel(QWidget):
         # Column 3: Branching
         grid.addWidget(self._create_branching_section(), 0, 2)
 
-        main_layout.addLayout(grid)
+        design_layout.addLayout(grid)
+
+        design_layout.addStretch()
+        design_tab.setLayout(design_layout)
+
+        # Tab 2: Animation
+        animation_tab = QWidget()
+        animation_layout = QVBoxLayout()
+        animation_layout.setSpacing(20)
+        animation_layout.setContentsMargins(20, 20, 20, 20)
+
+        # Animation title
+        anim_title = QLabel("ANIMATION CONTROLS")
+        anim_title.setFont(QFont("Arial", 22, QFont.Weight.Bold))
+        anim_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        anim_title.setStyleSheet("""
+            color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                  stop:0 #8b5cf6, stop:0.5 #a78bfa, stop:1 #06b6d4);
+            padding: 15px;
+            letter-spacing: 2px;
+        """)
+        animation_layout.addWidget(anim_title)
 
         # Full-width Animation section
-        main_layout.addWidget(self._create_animation_section())
+        animation_layout.addWidget(self._create_animation_section())
 
         # Full-width Actions
-        main_layout.addWidget(self._create_actions_section())
+        animation_layout.addWidget(self._create_actions_section())
 
-        main_layout.addStretch()
+        animation_layout.addStretch()
+        animation_tab.setLayout(animation_layout)
+
+        # Add tabs to widget
+        tab_widget.addTab(design_tab, "Design")
+        tab_widget.addTab(animation_tab, "Animation")
+
+        main_layout.addWidget(tab_widget)
         self.setLayout(main_layout)
 
     def _create_shape_section(self):

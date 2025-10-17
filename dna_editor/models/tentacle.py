@@ -218,9 +218,10 @@ class Tentacle:
             self.children.append(child)
 
     def update_animation(self, time, anim_speed=2.0, wave_amplitude=0.05,
-                         is_attacking=False, attack_start_time=0, camera_position=None):
+                         is_attacking=False, attack_start_time=0, camera_position=None,
+                         is_reaching=False, reach_target=None, reach_state='idle', reach_progress=0.0):
         """
-        Animate tentacle with wave motion or attack animation.
+        Animate tentacle with wave motion, attack animation, or exploration reaching.
 
         Args:
             time: Current animation time
@@ -229,6 +230,10 @@ class Tentacle:
             is_attacking: Whether tentacle is in attack mode
             attack_start_time: Time when attack started
             camera_position: Camera position for targeting (Vec3)
+            is_reaching: Whether tentacle is reaching for exploration target
+            reach_target: Vec3 exploration target position
+            reach_state: 'idle', 'reaching', or 'returning'
+            reach_progress: Progress through current reach phase (0-1)
         """
         # If attacking, use attack animation
         if is_attacking and camera_position is not None:
@@ -279,8 +284,38 @@ class Tentacle:
             offset_x += math.cos(spiral_angle) * twist_radius
             offset_y += math.sin(spiral_angle) * twist_radius
 
-            # Apply offset in 3D
-            segment.position = segment.base_position + Vec3(offset_x, offset_y, offset_z)
+            # Base wave offset
+            wave_offset = Vec3(offset_x, offset_y, offset_z)
+
+            # If this tentacle is reaching, add reaching offset
+            if is_reaching and reach_target is not None:
+                from ..core.constants import EXPLORATION_REACH_STRENGTH
+
+                # Calculate direction to shared target from this segment's base position
+                direction_to_target = (reach_target - segment.base_position).normalized()
+
+                # Reaching strength increases toward tip (quadratic for dramatic tip movement)
+                reach_influence = ((i / max(n, 1)) ** 1.2)
+
+                # Calculate reach offset based on state and progress
+                if reach_state == 'reaching':
+                    # Smooth ease-out curve (starts fast, slows at end)
+                    ease_t = 1.0 - (1.0 - reach_progress) ** 2
+                    reach_distance = EXPLORATION_REACH_STRENGTH * ease_t * reach_influence
+                elif reach_state == 'returning':
+                    # Fast spring-back with cubic easing (fast return)
+                    ease_t = 1.0 - (1.0 - reach_progress) ** 3
+                    reach_distance = EXPLORATION_REACH_STRENGTH * (1.0 - ease_t) * reach_influence
+                else:
+                    reach_distance = 0.0
+
+                reach_offset = direction_to_target * reach_distance
+
+                # Blend: 70% reach + 30% base wave motion (keeps tentacle alive during reach)
+                segment.position = segment.base_position + reach_offset + wave_offset * 0.3
+            else:
+                # Normal idle animation (100% wave motion)
+                segment.position = segment.base_position + wave_offset
 
         # Animate shadow spheres (follow their base positions with same multi-frequency 3D wave motion)
         for shadow in self.shadow_spheres:
@@ -317,12 +352,44 @@ class Tentacle:
             offset_x += math.cos(spiral_angle) * twist_radius
             offset_y += math.sin(spiral_angle) * twist_radius
 
-            # Apply offset to shadow in 3D
-            shadow.position = shadow.base_position + Vec3(offset_x, offset_y, offset_z)
+            # Base wave offset
+            wave_offset = Vec3(offset_x, offset_y, offset_z)
 
-        # Animate child branches (pass all parameters through, including attack state)
+            # If this tentacle is reaching, add reaching offset to shadows too
+            if is_reaching and reach_target is not None:
+                from ..core.constants import EXPLORATION_REACH_STRENGTH
+
+                # Calculate direction to shared target
+                direction_to_target = (reach_target - shadow.base_position).normalized()
+
+                # Reaching strength increases toward tip
+                reach_influence = ((i / max(n, 1)) ** 1.2)
+
+                # Calculate reach offset based on state and progress
+                if reach_state == 'reaching':
+                    ease_t = 1.0 - (1.0 - reach_progress) ** 2
+                    reach_distance = EXPLORATION_REACH_STRENGTH * ease_t * reach_influence
+                elif reach_state == 'returning':
+                    ease_t = 1.0 - (1.0 - reach_progress) ** 3
+                    reach_distance = EXPLORATION_REACH_STRENGTH * (1.0 - ease_t) * reach_influence
+                else:
+                    reach_distance = 0.0
+
+                reach_offset = direction_to_target * reach_distance
+
+                # Blend: 70% reach + 30% base wave
+                shadow.position = shadow.base_position + reach_offset + wave_offset * 0.3
+            else:
+                # Normal idle animation
+                shadow.position = shadow.base_position + wave_offset
+
+        # Animate child branches (pass all parameters through, including attack and exploration state)
         for child in self.children:
-            child.update_animation(time, anim_speed, wave_amplitude, is_attacking, attack_start_time, camera_position)
+            child.update_animation(
+                time, anim_speed, wave_amplitude,
+                is_attacking, attack_start_time, camera_position,
+                is_reaching, reach_target, reach_state, reach_progress
+            )
 
         # Apply distance constraints to keep segments connected
         # This is called once per tentacle and handles child branches recursively

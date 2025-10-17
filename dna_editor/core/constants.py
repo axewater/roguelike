@@ -84,10 +84,10 @@ SHADOW_Y = -3.45  # Shadow plane just above floor
 
 # Colors
 BODY_COLOR = (0.6, 0.3, 0.7)  # Purple
-GROUND_COLOR = (0.1, 0.1, 0.15)
+GROUND_COLOR = (0.15, 0.2, 0.25)  # Lighter blue-gray ground
 SKY_COLOR = (0.05, 0.05, 0.1)  # Legacy single color (not used with gradient)
-SKY_GRADIENT_BOTTOM = (0.02, 0.02, 0.08)  # Dark blue-purple at horizon
-SKY_GRADIENT_TOP = (0.08, 0.08, 0.15)  # Lighter blue at top
+SKY_GRADIENT_BOTTOM = (0.9, 0.5, 0.65)  # Bright warm pink/coral at horizon
+SKY_GRADIENT_TOP = (0.35, 0.65, 0.95)  # Bright cyan/sky blue at top
 DEBUG_MARKER_COLOR = (1, 1, 0)  # Yellow
 
 # Shadow (layered circles for soft shadow effect)
@@ -136,3 +136,12 @@ WIND_UP_DISTANCE = 0.3  # How far to pull back during wind-up phase
 SEGMENT_STRETCH_MAX = 1.8  # Maximum distance multiplier (180% of original spacing)
 SEGMENT_COMPRESS_MIN = 0.4  # Minimum distance multiplier (40% of original spacing)
 CONSTRAINT_ITERATIONS = 2  # Number of constraint solver passes (more = stiffer)
+
+# Exploration Animation (Coordinated Tentacle Reaching)
+EXPLORATION_REACH_DURATION = 4.0  # Seconds to reach target (smooth ease-out)
+EXPLORATION_RETURN_DURATION = 0.5  # Seconds to spring back (fast return)
+EXPLORATION_IDLE_GAP = 0.5  # Pause between cycles
+EXPLORATION_TENTACLE_RATIO = (0.25, 0.40)  # 25-40% of tentacles reach together
+EXPLORATION_TARGET_MIN_RADIUS = 1.5  # Minimum target distance from body center
+EXPLORATION_TARGET_MAX_RADIUS = 2.5  # Maximum target distance from body center
+EXPLORATION_REACH_STRENGTH = 1.5  # How far tentacles stretch toward target
