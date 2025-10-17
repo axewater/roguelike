@@ -77,6 +77,7 @@ class ModernControlPanel(QWidget):
     redo_requested = pyqtSignal()
     export_requested = pyqtSignal()
     attack_requested = pyqtSignal()
+    attack_2_requested = pyqtSignal()
 
     SPINBOX_STYLE = """
         QSpinBox {
@@ -618,8 +619,8 @@ class ModernControlPanel(QWidget):
 
         layout.addStretch()
 
-        # Attack button (prominent)
-        self.attack_btn = QPushButton("⚡ ATTACK! ⚡")
+        # Attack 1 button (prominent)
+        self.attack_btn = QPushButton("⚡ ATTACK 1 ⚡")
         self.attack_btn.setMinimumHeight(55)
         self.attack_btn.setStyleSheet("""
             QPushButton {
@@ -643,6 +644,32 @@ class ModernControlPanel(QWidget):
         """)
         self.attack_btn.clicked.connect(self.attack_requested.emit)
         layout.addWidget(self.attack_btn)
+
+        # Attack 2 button (subtle slash - orange theme)
+        self.attack_2_btn = QPushButton("⚔ ATTACK 2 ⚔")
+        self.attack_2_btn.setMinimumHeight(55)
+        self.attack_2_btn.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #ea580c, stop:1 #f59e0b);
+                border: 2px solid #fb923c;
+                font-weight: bold;
+                font-size: 14pt;
+                letter-spacing: 1px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #f97316, stop:1 #fbbf24);
+                border: 2px solid #fcd34d;
+            }
+            QPushButton:pressed {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                           stop:0 #c2410c, stop:1 #d97706);
+                border: 2px solid #f97316;
+            }
+        """)
+        self.attack_2_btn.clicked.connect(self.attack_2_requested.emit)
+        layout.addWidget(self.attack_2_btn)
 
         # Actions
         self.undo_btn = QPushButton("Undo")

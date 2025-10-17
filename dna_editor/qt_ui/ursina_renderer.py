@@ -311,11 +311,18 @@ class UrsinaRenderer:
             traceback.print_exc()
 
     def trigger_attack(self):
-        """Trigger attack animation on creature."""
+        """Trigger Attack 1 animation on creature (all tentacles whip attack)."""
         if self.creature:
             # Get camera position and pass it to creature
             camera_pos = self.camera.position
             self.creature.start_attack(camera_pos)
+
+    def trigger_attack_2(self):
+        """Trigger Attack 2 animation on creature (single tentacle slash)."""
+        if self.creature:
+            # Get camera position and pass it to creature
+            camera_pos = self.camera.position
+            self.creature.start_attack_2(camera_pos)
 
     def _update_animation(self):
         """Update creature animation and handle rendering."""
