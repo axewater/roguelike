@@ -41,7 +41,7 @@ class BlobCube:
         self.tree_depth = tree_depth
         self.parent_cube = parent_cube
         self.children = []  # Child BlobCubes
-        self.connector_tube = None  # Cylinder connecting to parent
+        self.connector_tube = None  # Tube (stretched cube) connecting to parent
 
         # Random jiggle phase offset for organic motion
         self.jiggle_phase_x = random.random() * math.pi * 2
@@ -71,7 +71,7 @@ class BlobCube:
             self._create_connector_tube(parent, base_color, transparency, toon_shader)
 
     def _create_connector_tube(self, scene_parent, base_color, transparency, toon_shader):
-        """Create cylinder connecting this cube to its parent cube."""
+        """Create tube (stretched cube) connecting this cube to its parent cube."""
         from ..core.constants import CONNECTOR_TUBE_RADIUS_RATIO, CONNECTOR_TUBE_OPACITY_MULTIPLIER
 
         # Calculate tube radius (fraction of average cube size)
@@ -86,8 +86,8 @@ class BlobCube:
         direction = (self.original_position - self.parent_cube.original_position).normalized()
         length = (self.original_position - self.parent_cube.original_position).length()
 
-        # Calculate rotation to align cylinder with direction
-        # Ursina cylinders point along Y axis by default
+        # Calculate rotation to align tube with direction
+        # Ursina cubes need to be oriented along Y axis for the connector tube
         # We need to rotate to align with direction vector
         from ursina import Vec3
         up = Vec3(0, 1, 0)
@@ -104,12 +104,12 @@ class BlobCube:
         # Create tube color (same as cube but with tube transparency)
         tube_color = color.rgba(base_color[0], base_color[1], base_color[2], 1.0 - tube_transparency)
 
-        # Create cylinder entity
+        # Create tube entity (using cube instead of cylinder, as Ursina doesn't have cylinder primitive)
         tube_params = {
-            'model': 'cylinder',
+            'model': 'cube',
             'color': tube_color,
             'position': midpoint,
-            'scale': (tube_radius, length / 2, tube_radius),  # Y scale = half length (Ursina cylinder quirk)
+            'scale': (tube_radius, length / 2, tube_radius),  # Y scale = half length
             'parent': scene_parent
         }
 
@@ -120,7 +120,7 @@ class BlobCube:
         self.connector_tube = Entity(**tube_params)
 
         # Point the cylinder from parent to child
-        self.connector_tube.look_at(self.parent_cube.entity, axis='up')
+        self.connector_tube.look_at(self.parent_cube.entity, axis=Vec3.up)
 
     def _update_connector_tube_transform(self):
         """Update connector tube position and orientation to follow animated cubes."""
@@ -133,10 +133,10 @@ class BlobCube:
 
         # Recalculate length
         length = (self.entity.position - self.parent_cube.entity.position).length()
-        self.connector_tube.scale_y = length / 2  # Ursina cylinder Y scale = half length
+        self.connector_tube.scale_y = length / 2  # Y scale = half length for proper tube sizing
 
         # Update rotation to point from parent to child
-        self.connector_tube.look_at(self.parent_cube.entity, axis='up')
+        self.connector_tube.look_at(self.parent_cube.entity, axis=Vec3.up)
 
     def update_animation(self, time, jiggle_speed, jiggle_amplitude,
                         is_attacking=False, attack_progress=0.0, attack_phase='idle'):
