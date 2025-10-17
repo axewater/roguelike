@@ -172,3 +172,40 @@ MAX_EYE_SIZE = 0.5
 EYE_BLINK_DURATION = 0.2  # Total blink time in seconds
 EYE_BLINK_INTERVAL_MIN = 3.0  # Minimum seconds between blinks
 EYE_BLINK_INTERVAL_MAX = 8.0  # Maximum seconds between blinks
+
+# ==========================================
+# BLOB CREATURE CONSTANTS
+# ==========================================
+
+# Blob defaults
+DEFAULT_NUM_CUBES = 8
+DEFAULT_CUBE_SIZE_MIN = 0.3
+DEFAULT_CUBE_SIZE_MAX = 0.8
+DEFAULT_CUBE_SPACING = 1.2
+DEFAULT_BLOB_COLOR = (0.2, 0.8, 0.4)  # Green slime
+DEFAULT_BLOB_TRANSPARENCY = 0.7  # 70% transparent
+DEFAULT_JIGGLE_SPEED = 2.0
+DEFAULT_BLOB_PULSE_AMOUNT = 0.1
+
+# Blob limits
+MIN_NUM_CUBES = 1
+MAX_NUM_CUBES = 20
+MIN_CUBE_SIZE = 0.1
+MAX_CUBE_SIZE = 1.5
+MIN_CUBE_SPACING = 0.5
+MAX_CUBE_SPACING = 2.5
+MIN_BLOB_TRANSPARENCY = 0.1  # Min 10% transparent (90% opaque)
+MAX_BLOB_TRANSPARENCY = 0.95  # Max 95% transparent (5% opaque)
+MIN_JIGGLE_SPEED = 0.5
+MAX_JIGGLE_SPEED = 5.0
+MIN_BLOB_PULSE = 0.0
+MAX_BLOB_PULSE = 0.3
+
+# Blob animation
+BLOB_JIGGLE_AMPLITUDE = 0.1  # How much each cube jiggles (world units)
+BLOB_ATTACK_DURATION = 1.2  # Total attack duration
+BLOB_ATTACK_EXPAND_END = 0.4  # Expansion phase ends
+BLOB_ATTACK_CONTRACT_END = 0.8  # Contraction phase ends
+BLOB_ATTACK_RETURN_END = 1.2  # Return to idle
+BLOB_ATTACK_EXPANSION = 1.5  # Expand to 150% of original spacing
+BLOB_ATTACK_SCALE = 1.3  # Each cube scales to 130%

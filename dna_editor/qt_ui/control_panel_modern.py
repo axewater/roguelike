@@ -73,6 +73,7 @@ class ModernControlPanel(QWidget):
     """Modern 3-column control panel."""
 
     creature_changed = pyqtSignal()
+    creature_type_changed = pyqtSignal(str)  # Emits 'tentacle' or 'blob'
     undo_requested = pyqtSignal()
     redo_requested = pyqtSignal()
     export_requested = pyqtSignal()
@@ -223,6 +224,19 @@ class ModernControlPanel(QWidget):
         self._eyeball_color = (1.0, 1.0, 1.0)
         self._pupil_color = (0.0, 0.0, 0.0)
 
+        # Creature type
+        self._creature_type = 'tentacle'  # 'tentacle' or 'blob'
+
+        # Blob parameters
+        self._num_cubes = 8
+        self._cube_size_min = 0.3
+        self._cube_size_max = 0.8
+        self._cube_spacing = 1.2
+        self._blob_color = (0.2, 0.8, 0.4)  # Green slime
+        self._blob_transparency = 0.7
+        self._jiggle_speed = 2.0
+        self._blob_pulse_amount = 0.1
+
         self._updating = False
         self._init_ui()
 
@@ -272,6 +286,21 @@ class ModernControlPanel(QWidget):
         design_layout.setSpacing(20)
         design_layout.setContentsMargins(20, 20, 20, 20)
 
+        # Creature Type Selector
+        type_selector_layout = QHBoxLayout()
+        type_label = QLabel("Creature Type:")
+        type_label.setStyleSheet("color: #e5e5e5; font-size: 12pt; font-weight: bold;")
+        type_selector_layout.addWidget(type_label)
+
+        self.creature_type_combo = QComboBox()
+        self.creature_type_combo.addItems(["Tentacle Creature", "Blob Creature"])
+        self.creature_type_combo.setMinimumHeight(40)
+        self.creature_type_combo.setStyleSheet(self.COMBOBOX_STYLE)
+        self.creature_type_combo.currentTextChanged.connect(self._on_creature_type_changed)
+        type_selector_layout.addWidget(self.creature_type_combo)
+        type_selector_layout.addStretch()
+        design_layout.addLayout(type_selector_layout)
+
         # Title
         title = QLabel("CREATURE DESIGNER")
         title.setFont(QFont("Arial", 22, QFont.Weight.Bold))
@@ -284,23 +313,53 @@ class ModernControlPanel(QWidget):
         """)
         design_layout.addWidget(title)
 
-        # 3-column grid (row 1)
-        grid = QGridLayout()
-        grid.setSpacing(20)
+        # ===== TENTACLE CREATURE SECTIONS =====
+        self.tentacle_container = QWidget()
+        tentacle_layout = QVBoxLayout()
+        tentacle_layout.setContentsMargins(0, 0, 0, 0)
+
+        tentacle_grid = QGridLayout()
+        tentacle_grid.setSpacing(20)
 
         # Column 1: Shape & Algorithm
-        grid.addWidget(self._create_shape_section(), 0, 0)
+        tentacle_grid.addWidget(self._create_shape_section(), 0, 0)
 
         # Column 2: Appearance
-        grid.addWidget(self._create_appearance_section(), 0, 1)
+        tentacle_grid.addWidget(self._create_appearance_section(), 0, 1)
 
         # Column 3: Branching
-        grid.addWidget(self._create_branching_section(), 0, 2)
+        tentacle_grid.addWidget(self._create_branching_section(), 0, 2)
 
         # Row 2: Eyes section (full width, spanning 3 columns)
-        grid.addWidget(self._create_eyes_section(), 1, 0, 1, 3)
+        tentacle_grid.addWidget(self._create_eyes_section(), 1, 0, 1, 3)
 
-        design_layout.addLayout(grid)
+        tentacle_layout.addLayout(tentacle_grid)
+        self.tentacle_container.setLayout(tentacle_layout)
+
+        # ===== BLOB CREATURE SECTIONS =====
+        self.blob_container = QWidget()
+        blob_layout = QVBoxLayout()
+        blob_layout.setContentsMargins(0, 0, 0, 0)
+
+        blob_grid = QGridLayout()
+        blob_grid.setSpacing(20)
+
+        # Column 1: Blob Shape
+        blob_grid.addWidget(self._create_blob_shape_section(), 0, 0)
+
+        # Column 2: Blob Appearance
+        blob_grid.addWidget(self._create_blob_appearance_section(), 0, 1)
+
+        # Column 3: Blob Animation
+        blob_grid.addWidget(self._create_blob_animation_section(), 0, 2)
+
+        blob_layout.addLayout(blob_grid)
+        self.blob_container.setLayout(blob_layout)
+        self.blob_container.setVisible(False)  # Hidden by default
+
+        # Add both containers to design layout
+        design_layout.addWidget(self.tentacle_container)
+        design_layout.addWidget(self.blob_container)
 
         design_layout.addStretch()
         design_tab.setLayout(design_layout)
@@ -791,6 +850,140 @@ class ModernControlPanel(QWidget):
         label.setWordWrap(True)
         return label
 
+    # ===== BLOB CREATURE SECTIONS =====
+
+    def _create_blob_shape_section(self):
+        """Create Blob Shape card."""
+        group = QGroupBox("BLOB SHAPE")
+        group.setMinimumWidth(280)
+        layout = QVBoxLayout()
+        layout.setSpacing(12)
+        layout.setContentsMargins(15, 15, 15, 15)
+
+        # Number of Cubes
+        layout.addWidget(self._create_label("Number of Cubes"))
+        self.num_cubes_spin = QSpinBox()
+        self.num_cubes_spin.setRange(1, 20)
+        self.num_cubes_spin.setValue(self._num_cubes)
+        self.num_cubes_spin.setMinimumHeight(35)
+        self.num_cubes_spin.setButtonSymbols(QSpinBox.ButtonSymbols.UpDownArrows)
+        self.num_cubes_spin.setStyleSheet(self.SPINBOX_STYLE)
+        self.num_cubes_spin.valueChanged.connect(self._on_num_cubes_changed)
+        layout.addWidget(self.num_cubes_spin)
+        layout.addSpacing(8)
+
+        # Cube Spacing
+        layout.addWidget(self._create_label("Cube Spacing"))
+        self.cube_spacing_slider = QSlider(Qt.Orientation.Horizontal)
+        self.cube_spacing_slider.setRange(50, 250)  # 0.5 to 2.5
+        self.cube_spacing_slider.setValue(120)  # 1.2 default
+        self.cube_spacing_slider.setMinimumHeight(30)
+        self.cube_spacing_slider.valueChanged.connect(self._on_cube_spacing_changed)
+        layout.addWidget(self.cube_spacing_slider)
+        self.cube_spacing_label = QLabel("1.20")
+        self.cube_spacing_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.cube_spacing_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.cube_spacing_label)
+
+        layout.addStretch()
+        group.setLayout(layout)
+        return group
+
+    def _create_blob_appearance_section(self):
+        """Create Blob Appearance card."""
+        group = QGroupBox("BLOB APPEARANCE")
+        group.setMinimumWidth(280)
+        layout = QVBoxLayout()
+        layout.setSpacing(12)
+        layout.setContentsMargins(15, 15, 15, 15)
+
+        # Blob Color
+        layout.addWidget(self._create_label("Blob Color"))
+        self.blob_color_button = ColorButton(self._blob_color)
+        self.blob_color_button.colorChanged.connect(self._on_blob_color_changed)
+        layout.addWidget(self.blob_color_button)
+
+        # Transparency
+        layout.addWidget(self._create_label("Transparency"))
+        self.blob_transparency_slider = QSlider(Qt.Orientation.Horizontal)
+        self.blob_transparency_slider.setRange(10, 95)  # 10-95%
+        self.blob_transparency_slider.setValue(70)  # 70% default
+        self.blob_transparency_slider.setMinimumHeight(30)
+        self.blob_transparency_slider.valueChanged.connect(self._on_blob_transparency_changed)
+        layout.addWidget(self.blob_transparency_slider)
+        self.blob_transparency_label = QLabel("70%")
+        self.blob_transparency_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.blob_transparency_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.blob_transparency_label)
+
+        # Cube Size Min
+        layout.addWidget(self._create_label("Min Cube Size"))
+        self.cube_size_min_slider = QSlider(Qt.Orientation.Horizontal)
+        self.cube_size_min_slider.setRange(10, 150)  # 0.1 to 1.5
+        self.cube_size_min_slider.setValue(30)  # 0.3 default
+        self.cube_size_min_slider.setMinimumHeight(30)
+        self.cube_size_min_slider.valueChanged.connect(self._on_cube_size_changed)
+        layout.addWidget(self.cube_size_min_slider)
+        self.cube_size_min_label = QLabel("0.30")
+        self.cube_size_min_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.cube_size_min_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.cube_size_min_label)
+
+        # Cube Size Max
+        layout.addWidget(self._create_label("Max Cube Size"))
+        self.cube_size_max_slider = QSlider(Qt.Orientation.Horizontal)
+        self.cube_size_max_slider.setRange(10, 150)  # 0.1 to 1.5
+        self.cube_size_max_slider.setValue(80)  # 0.8 default
+        self.cube_size_max_slider.setMinimumHeight(30)
+        self.cube_size_max_slider.valueChanged.connect(self._on_cube_size_changed)
+        layout.addWidget(self.cube_size_max_slider)
+        self.cube_size_max_label = QLabel("0.80")
+        self.cube_size_max_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.cube_size_max_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.cube_size_max_label)
+
+        layout.addStretch()
+        group.setLayout(layout)
+        return group
+
+    def _create_blob_animation_section(self):
+        """Create Blob Animation card."""
+        group = QGroupBox("BLOB ANIMATION")
+        group.setMinimumWidth(280)
+        layout = QVBoxLayout()
+        layout.setSpacing(12)
+        layout.setContentsMargins(15, 15, 15, 15)
+
+        # Jiggle Speed
+        layout.addWidget(self._create_label("Jiggle Speed"))
+        self.jiggle_speed_slider = QSlider(Qt.Orientation.Horizontal)
+        self.jiggle_speed_slider.setRange(50, 500)  # 0.5 to 5.0
+        self.jiggle_speed_slider.setValue(200)  # 2.0 default
+        self.jiggle_speed_slider.setMinimumHeight(30)
+        self.jiggle_speed_slider.valueChanged.connect(self._on_jiggle_speed_changed)
+        layout.addWidget(self.jiggle_speed_slider)
+        self.jiggle_speed_label = QLabel("2.0x")
+        self.jiggle_speed_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.jiggle_speed_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.jiggle_speed_label)
+
+        # Pulse Amount
+        layout.addWidget(self._create_label("Pulse Amount"))
+        self.blob_pulse_slider = QSlider(Qt.Orientation.Horizontal)
+        self.blob_pulse_slider.setRange(0, 30)  # 0 to 0.3
+        self.blob_pulse_slider.setValue(10)  # 0.1 default
+        self.blob_pulse_slider.setMinimumHeight(30)
+        self.blob_pulse_slider.valueChanged.connect(self._on_blob_pulse_changed)
+        layout.addWidget(self.blob_pulse_slider)
+        self.blob_pulse_label = QLabel("0.10")
+        self.blob_pulse_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.blob_pulse_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.blob_pulse_label)
+
+        layout.addStretch()
+        group.setLayout(layout)
+        return group
+
     # Event handlers
     def _on_tentacles_changed(self, value):
         if not self._updating:
@@ -907,6 +1100,64 @@ class ModernControlPanel(QWidget):
             self._pupil_color = rgb_tuple
             self.creature_changed.emit()
 
+    # ==== BLOB EVENT HANDLERS ====
+
+    def _on_creature_type_changed(self, text):
+        """Handle creature type selection change."""
+        if not self._updating:
+            # Convert display name to internal type
+            self._creature_type = 'tentacle' if text == "Tentacle Creature" else 'blob'
+
+            # Show/hide appropriate containers
+            self.tentacle_container.setVisible(self._creature_type == 'tentacle')
+            self.blob_container.setVisible(self._creature_type == 'blob')
+
+            # Emit signals
+            self.creature_type_changed.emit(self._creature_type)
+            self.creature_changed.emit()
+
+    def _on_num_cubes_changed(self, value):
+        if not self._updating:
+            self._num_cubes = value
+            self.creature_changed.emit()
+
+    def _on_cube_spacing_changed(self, value):
+        if not self._updating:
+            self._cube_spacing = value / 100.0
+            self.cube_spacing_label.setText(f"{self._cube_spacing:.2f}")
+            self.creature_changed.emit()
+
+    def _on_blob_color_changed(self, rgb_tuple):
+        if not self._updating:
+            self._blob_color = rgb_tuple
+            self.creature_changed.emit()
+
+    def _on_blob_transparency_changed(self, value):
+        if not self._updating:
+            self._blob_transparency = value / 100.0
+            self.blob_transparency_label.setText(f"{int(value)}%")
+            self.creature_changed.emit()
+
+    def _on_cube_size_changed(self):
+        if not self._updating:
+            self._cube_size_min = self.cube_size_min_slider.value() / 100.0
+            self._cube_size_max = self.cube_size_max_slider.value() / 100.0
+            self.cube_size_min_label.setText(f"{self._cube_size_min:.2f}")
+            self.cube_size_max_label.setText(f"{self._cube_size_max:.2f}")
+            self.creature_changed.emit()
+
+    def _on_jiggle_speed_changed(self, value):
+        if not self._updating:
+            self._jiggle_speed = value / 100.0
+            self.jiggle_speed_label.setText(f"{self._jiggle_speed:.1f}x")
+            self.creature_changed.emit()
+
+    def _on_blob_pulse_changed(self, value):
+        if not self._updating:
+            self._blob_pulse_amount = value / 100.0
+            self.blob_pulse_label.setText(f"{self._blob_pulse_amount:.2f}")
+            self.creature_changed.emit()
+
     def _update_branch_info(self):
         """Update branch info label."""
         if self._branch_count == 1:
@@ -943,6 +1194,8 @@ class ModernControlPanel(QWidget):
     def get_state(self):
         """Get current state."""
         return {
+            'creature_type': self._creature_type,
+            # Tentacle parameters
             'num_tentacles': self._num_tentacles,
             'segments': self._segments,
             'algorithm': self._algorithm,
@@ -962,7 +1215,16 @@ class ModernControlPanel(QWidget):
             'eye_size_min': self._eye_size_min,
             'eye_size_max': self._eye_size_max,
             'eyeball_color': self._eyeball_color,
-            'pupil_color': self._pupil_color
+            'pupil_color': self._pupil_color,
+            # Blob parameters
+            'num_cubes': self._num_cubes,
+            'cube_size_min': self._cube_size_min,
+            'cube_size_max': self._cube_size_max,
+            'cube_spacing': self._cube_spacing,
+            'blob_color': self._blob_color,
+            'blob_transparency': self._blob_transparency,
+            'jiggle_speed': self._jiggle_speed,
+            'blob_pulse_amount': self._blob_pulse_amount
         }
 
     def get_algorithm_params(self):
@@ -979,11 +1241,15 @@ class ModernControlPanel(QWidget):
         """Restore state."""
         self._updating = True
 
-        self._num_tentacles = state['num_tentacles']
-        self._segments = state['segments']
-        self._algorithm = state['algorithm']
-        self._thickness_base = state['thickness_base']
-        self._taper_factor = state['taper_factor']
+        # Creature type
+        self._creature_type = state.get('creature_type', 'tentacle')
+
+        # Tentacle parameters
+        self._num_tentacles = state.get('num_tentacles', 2)
+        self._segments = state.get('segments', 12)
+        self._algorithm = state.get('algorithm', 'bezier')
+        self._thickness_base = state.get('thickness_base', 0.25)
+        self._taper_factor = state.get('taper_factor', 0.6)
         self._branch_depth = state.get('branch_depth', 0)
         self._branch_count = state.get('branch_count', 1)
         self._body_scale = state.get('body_scale', 1.2)
@@ -999,7 +1265,25 @@ class ModernControlPanel(QWidget):
         self._eyeball_color = state.get('eyeball_color', (1.0, 1.0, 1.0))
         self._pupil_color = state.get('pupil_color', (0.0, 0.0, 0.0))
 
-        # Update UI
+        # Blob parameters
+        self._num_cubes = state.get('num_cubes', 8)
+        self._cube_size_min = state.get('cube_size_min', 0.3)
+        self._cube_size_max = state.get('cube_size_max', 0.8)
+        self._cube_spacing = state.get('cube_spacing', 1.2)
+        self._blob_color = state.get('blob_color', (0.2, 0.8, 0.4))
+        self._blob_transparency = state.get('blob_transparency', 0.7)
+        self._jiggle_speed = state.get('jiggle_speed', 2.0)
+        self._blob_pulse_amount = state.get('blob_pulse_amount', 0.1)
+
+        # Update creature type selector
+        display_name = "Tentacle Creature" if self._creature_type == 'tentacle' else "Blob Creature"
+        self.creature_type_combo.setCurrentText(display_name)
+
+        # Show/hide appropriate containers
+        self.tentacle_container.setVisible(self._creature_type == 'tentacle')
+        self.blob_container.setVisible(self._creature_type == 'blob')
+
+        # Update tentacle UI
         self.tentacles_spin.setValue(self._num_tentacles)
         self.segments_spin.setValue(self._segments)
         self.algorithm_combo.setCurrentText(self._algorithm.capitalize())
@@ -1020,7 +1304,17 @@ class ModernControlPanel(QWidget):
         self.eyeball_color_button.set_color(self._eyeball_color)
         self.pupil_color_button.set_color(self._pupil_color)
 
-        params = state['params']
+        # Update blob UI
+        self.num_cubes_spin.setValue(self._num_cubes)
+        self.cube_spacing_slider.setValue(int(self._cube_spacing * 100))
+        self.blob_color_button.set_color(self._blob_color)
+        self.blob_transparency_slider.setValue(int(self._blob_transparency * 100))
+        self.cube_size_min_slider.setValue(int(self._cube_size_min * 100))
+        self.cube_size_max_slider.setValue(int(self._cube_size_max * 100))
+        self.jiggle_speed_slider.setValue(int(self._jiggle_speed * 100))
+        self.blob_pulse_slider.setValue(int(self._blob_pulse_amount * 100))
+
+        params = state.get('params', {})
         if self._algorithm == 'bezier':
             self._bezier_control_strength = params.get('control_strength', 0.4)
             self.bezier_slider.setValue(int(self._bezier_control_strength * 100))

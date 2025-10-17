@@ -255,15 +255,24 @@ class UrsinaRenderer:
             intensity=0.3  # Reduced from 0.4 to 0.3
         )
 
-    def rebuild_creature(self, num_tentacles, segments, algorithm, params, thickness_base, taper_factor,
-                        branch_depth=0, branch_count=1, body_scale=1.2, tentacle_color=(0.6, 0.3, 0.7),
-                        hue_shift=0.1, anim_speed=2.0, wave_amplitude=0.05, pulse_speed=1.5, pulse_amount=0.05,
+    def rebuild_creature(self, creature_type='tentacle',
+                        # Tentacle parameters
+                        num_tentacles=2, segments=12, algorithm='bezier', params=None,
+                        thickness_base=0.25, taper_factor=0.6, branch_depth=0, branch_count=1,
+                        body_scale=1.2, tentacle_color=(0.6, 0.3, 0.7), hue_shift=0.1,
+                        anim_speed=2.0, wave_amplitude=0.05, pulse_speed=1.5, pulse_amount=0.05,
                         num_eyes=3, eye_size_min=0.1, eye_size_max=0.25,
-                        eyeball_color=(1.0, 1.0, 1.0), pupil_color=(0.0, 0.0, 0.0)):
+                        eyeball_color=(1.0, 1.0, 1.0), pupil_color=(0.0, 0.0, 0.0),
+                        # Blob parameters
+                        num_cubes=8, cube_size_min=0.3, cube_size_max=0.8,
+                        cube_spacing=1.2, blob_color=(0.2, 0.8, 0.4), blob_transparency=0.7,
+                        jiggle_speed=2.0, blob_pulse_amount=0.1):
         """
         Rebuild creature with new parameters.
 
         Args:
+            creature_type: 'tentacle' or 'blob'
+            [Tentacle parameters]
             num_tentacles: Number of tentacles
             segments: Segments per tentacle
             algorithm: 'bezier' or 'fourier'
@@ -284,38 +293,65 @@ class UrsinaRenderer:
             eye_size_max: Maximum eye size
             eyeball_color: Eyeball color (RGB tuple 0-1)
             pupil_color: Pupil color (RGB tuple 0-1)
+            [Blob parameters]
+            num_cubes: Number of cubes
+            cube_size_min: Minimum cube size
+            cube_size_max: Maximum cube size
+            cube_spacing: Cube spacing
+            blob_color: Blob color (RGB tuple 0-1)
+            blob_transparency: Transparency (0-1)
+            jiggle_speed: Jiggle animation speed
+            blob_pulse_amount: Pulse intensity
         """
         try:
-            # Import creature model (use relative import)
-            from ..models.creature import TentacleCreature
-
             # Destroy old creature
             if self.creature:
                 self.creature.destroy()
 
-            # Create new creature
-            self.creature = TentacleCreature(
-                num_tentacles=num_tentacles,
-                segments_per_tentacle=segments,
-                algorithm=algorithm,
-                algorithm_params=params,
-                thickness_base=thickness_base,
-                taper_factor=taper_factor,
-                branch_depth=branch_depth,
-                branch_count=branch_count,
-                body_scale=body_scale,
-                tentacle_color=tentacle_color,
-                hue_shift=hue_shift,
-                anim_speed=anim_speed,
-                wave_amplitude=wave_amplitude,
-                pulse_speed=pulse_speed,
-                pulse_amount=pulse_amount,
-                num_eyes=num_eyes,
-                eye_size_min=eye_size_min,
-                eye_size_max=eye_size_max,
-                eyeball_color=eyeball_color,
-                pupil_color=pupil_color
-            )
+            if creature_type == 'tentacle':
+                # Import and create tentacle creature
+                from ..models.creature import TentacleCreature
+
+                self.creature = TentacleCreature(
+                    num_tentacles=num_tentacles,
+                    segments_per_tentacle=segments,
+                    algorithm=algorithm,
+                    algorithm_params=params,
+                    thickness_base=thickness_base,
+                    taper_factor=taper_factor,
+                    branch_depth=branch_depth,
+                    branch_count=branch_count,
+                    body_scale=body_scale,
+                    tentacle_color=tentacle_color,
+                    hue_shift=hue_shift,
+                    anim_speed=anim_speed,
+                    wave_amplitude=wave_amplitude,
+                    pulse_speed=pulse_speed,
+                    pulse_amount=pulse_amount,
+                    num_eyes=num_eyes,
+                    eye_size_min=eye_size_min,
+                    eye_size_max=eye_size_max,
+                    eyeball_color=eyeball_color,
+                    pupil_color=pupil_color
+                )
+
+            elif creature_type == 'blob':
+                # Import and create blob creature
+                from ..models.blob_creature import BlobCreature
+
+                self.creature = BlobCreature(
+                    num_cubes=num_cubes,
+                    cube_size_min=cube_size_min,
+                    cube_size_max=cube_size_max,
+                    cube_spacing=cube_spacing,
+                    blob_color=blob_color,
+                    transparency=blob_transparency,
+                    jiggle_speed=jiggle_speed,
+                    pulse_amount=blob_pulse_amount
+                )
+
+            else:
+                print(f"ERROR: Unknown creature type '{creature_type}'")
 
         except Exception as e:
             print(f"ERROR: Failed to rebuild creature: {e}")

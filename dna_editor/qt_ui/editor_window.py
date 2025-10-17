@@ -335,12 +335,14 @@ class EditorWindow(QMainWindow):
     def _save_state(self, state):
         """Save state for undo/redo."""
         self.state_manager.save_state(
-            num_tentacles=state['num_tentacles'],
-            segments=state['segments'],
-            algorithm=state['algorithm'],
-            params=state['params'],
-            thickness_base=state['thickness_base'],
-            taper_factor=state['taper_factor'],
+            creature_type=state.get('creature_type', 'tentacle'),
+            # Tentacle parameters
+            num_tentacles=state.get('num_tentacles', 2),
+            segments=state.get('segments', 12),
+            algorithm=state.get('algorithm', 'bezier'),
+            params=state.get('params', {}),
+            thickness_base=state.get('thickness_base', 0.25),
+            taper_factor=state.get('taper_factor', 0.6),
             branch_depth=state.get('branch_depth', 0),
             branch_count=state.get('branch_count', 1),
             body_scale=state.get('body_scale', 1.2),
@@ -354,7 +356,16 @@ class EditorWindow(QMainWindow):
             eye_size_min=state.get('eye_size_min', 0.1),
             eye_size_max=state.get('eye_size_max', 0.25),
             eyeball_color=state.get('eyeball_color', (1.0, 1.0, 1.0)),
-            pupil_color=state.get('pupil_color', (0.0, 0.0, 0.0))
+            pupil_color=state.get('pupil_color', (0.0, 0.0, 0.0)),
+            # Blob parameters
+            num_cubes=state.get('num_cubes', 8),
+            cube_size_min=state.get('cube_size_min', 0.3),
+            cube_size_max=state.get('cube_size_max', 0.8),
+            cube_spacing=state.get('cube_spacing', 1.2),
+            blob_color=state.get('blob_color', (0.2, 0.8, 0.4)),
+            blob_transparency=state.get('blob_transparency', 0.7),
+            jiggle_speed=state.get('jiggle_speed', 2.0),
+            blob_pulse_amount=state.get('blob_pulse_amount', 0.1)
         )
 
     def _on_undo(self):
@@ -376,12 +387,14 @@ class EditorWindow(QMainWindow):
     def _rebuild_creature_from_state(self, state):
         """Rebuild creature from state dict."""
         self.renderer.rebuild_creature(
-            num_tentacles=state['num_tentacles'],
-            segments=state['segments'],
-            algorithm=state['algorithm'],
-            params=state['params'],
-            thickness_base=state['thickness_base'],
-            taper_factor=state['taper_factor'],
+            creature_type=state.get('creature_type', 'tentacle'),
+            # Tentacle parameters
+            num_tentacles=state.get('num_tentacles', 2),
+            segments=state.get('segments', 12),
+            algorithm=state.get('algorithm', 'bezier'),
+            params=state.get('params', {}),
+            thickness_base=state.get('thickness_base', 0.25),
+            taper_factor=state.get('taper_factor', 0.6),
             branch_depth=state.get('branch_depth', 0),
             branch_count=state.get('branch_count', 1),
             body_scale=state.get('body_scale', 1.2),
@@ -395,7 +408,16 @@ class EditorWindow(QMainWindow):
             eye_size_min=state.get('eye_size_min', 0.1),
             eye_size_max=state.get('eye_size_max', 0.25),
             eyeball_color=state.get('eyeball_color', (1.0, 1.0, 1.0)),
-            pupil_color=state.get('pupil_color', (0.0, 0.0, 0.0))
+            pupil_color=state.get('pupil_color', (0.0, 0.0, 0.0)),
+            # Blob parameters
+            num_cubes=state.get('num_cubes', 8),
+            cube_size_min=state.get('cube_size_min', 0.3),
+            cube_size_max=state.get('cube_size_max', 0.8),
+            cube_spacing=state.get('cube_spacing', 1.2),
+            blob_color=state.get('blob_color', (0.2, 0.8, 0.4)),
+            blob_transparency=state.get('blob_transparency', 0.7),
+            jiggle_speed=state.get('jiggle_speed', 2.0),
+            blob_pulse_amount=state.get('blob_pulse_amount', 0.1)
         )
 
     def _update_undo_redo_state(self):
@@ -422,30 +444,48 @@ class EditorWindow(QMainWindow):
         """Handle export to JSON."""
         # Get current state
         state = self.control_panel.get_state()
+        creature_type = state.get('creature_type', 'tentacle')
 
-        # Create DNA config dict
+        # Create DNA config dict with creature type
         dna_config = {
-            'num_tentacles': state['num_tentacles'],
-            'segments_per_tentacle': state['segments'],
-            'algorithm': state['algorithm'],
-            'algorithm_params': state['params'],
-            'thickness_base': state['thickness_base'],
-            'taper_factor': state['taper_factor'],
-            'branch_depth': state.get('branch_depth', 0),
-            'branch_count': state.get('branch_count', 1),
-            'body_scale': state.get('body_scale', 1.2),
-            'tentacle_color': state.get('tentacle_color', (0.6, 0.3, 0.7)),
-            'hue_shift': state.get('hue_shift', 0.1),
-            'anim_speed': state.get('anim_speed', 2.0),
-            'wave_amplitude': state.get('wave_amplitude', 0.05),
-            'pulse_speed': state.get('pulse_speed', 1.5),
-            'pulse_amount': state.get('pulse_amount', 0.05),
-            'num_eyes': state.get('num_eyes', 3),
-            'eye_size_min': state.get('eye_size_min', 0.1),
-            'eye_size_max': state.get('eye_size_max', 0.25),
-            'eyeball_color': state.get('eyeball_color', (1.0, 1.0, 1.0)),
-            'pupil_color': state.get('pupil_color', (0.0, 0.0, 0.0))
+            'creature_type': creature_type
         }
+
+        # Add type-specific parameters
+        if creature_type == 'tentacle':
+            dna_config.update({
+                'num_tentacles': state['num_tentacles'],
+                'segments_per_tentacle': state['segments'],
+                'algorithm': state['algorithm'],
+                'algorithm_params': state['params'],
+                'thickness_base': state['thickness_base'],
+                'taper_factor': state['taper_factor'],
+                'branch_depth': state.get('branch_depth', 0),
+                'branch_count': state.get('branch_count', 1),
+                'body_scale': state.get('body_scale', 1.2),
+                'tentacle_color': state.get('tentacle_color', (0.6, 0.3, 0.7)),
+                'hue_shift': state.get('hue_shift', 0.1),
+                'anim_speed': state.get('anim_speed', 2.0),
+                'wave_amplitude': state.get('wave_amplitude', 0.05),
+                'pulse_speed': state.get('pulse_speed', 1.5),
+                'pulse_amount': state.get('pulse_amount', 0.05),
+                'num_eyes': state.get('num_eyes', 3),
+                'eye_size_min': state.get('eye_size_min', 0.1),
+                'eye_size_max': state.get('eye_size_max', 0.25),
+                'eyeball_color': state.get('eyeball_color', (1.0, 1.0, 1.0)),
+                'pupil_color': state.get('pupil_color', (0.0, 0.0, 0.0))
+            })
+        elif creature_type == 'blob':
+            dna_config.update({
+                'num_cubes': state.get('num_cubes', 8),
+                'cube_size_min': state.get('cube_size_min', 0.3),
+                'cube_size_max': state.get('cube_size_max', 0.8),
+                'cube_spacing': state.get('cube_spacing', 1.2),
+                'blob_color': state.get('blob_color', (0.2, 0.8, 0.4)),
+                'blob_transparency': state.get('blob_transparency', 0.7),
+                'jiggle_speed': state.get('jiggle_speed', 2.0),
+                'blob_pulse_amount': state.get('blob_pulse_amount', 0.1)
+            })
 
         # Open save dialog
         file_path, _ = QFileDialog.getSaveFileName(
@@ -478,20 +518,22 @@ class EditorWindow(QMainWindow):
         QMessageBox.about(
             self,
             "About DNA Editor",
-            "<h2>DNA Editor - Creature Tentacle Generator</h2>"
-            "<p>Interactive 3D tool for designing procedural tentacle creatures "
-            "using mathematical curve algorithms.</p>"
-            "<p><b>Algorithms:</b></p>"
+            "<h2>DNA Editor - Procedural Creature Designer</h2>"
+            "<p>Interactive 3D tool for designing procedural creatures "
+            "with real-time parameter adjustment.</p>"
+            "<p><b>Creature Types:</b></p>"
             "<ul>"
-            "<li><b>Bezier Curves</b> - Smooth cubic polynomial curves</li>"
-            "<li><b>Fourier Series</b> - Wave composition for organic shapes</li>"
+            "<li><b>Tentacle Creature</b> - Mathematical curve-based tentacles (Bezier/Fourier)</li>"
+            "<li><b>Blob Creature</b> - Translucent slime cube clusters</li>"
             "</ul>"
             "<p><b>Controls:</b></p>"
             "<ul>"
+            "<li>Switch between creature types</li>"
             "<li>Adjust parameters with sliders</li>"
-            "<li>Use presets for quick configurations</li>"
+            "<li>Use presets for quick configurations (Tentacle)</li>"
             "<li>Undo/Redo (Ctrl+Z / Ctrl+Y)</li>"
             "<li>Export to JSON (Ctrl+E)</li>"
+            "<li>Test attack animations</li>"
             "</ul>"
             "<p><b>Camera:</b></p>"
             "<ul>"
