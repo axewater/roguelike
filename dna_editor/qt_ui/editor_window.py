@@ -349,7 +349,12 @@ class EditorWindow(QMainWindow):
             anim_speed=state.get('anim_speed', 2.0),
             wave_amplitude=state.get('wave_amplitude', 0.05),
             pulse_speed=state.get('pulse_speed', 1.5),
-            pulse_amount=state.get('pulse_amount', 0.05)
+            pulse_amount=state.get('pulse_amount', 0.05),
+            num_eyes=state.get('num_eyes', 3),
+            eye_size_min=state.get('eye_size_min', 0.1),
+            eye_size_max=state.get('eye_size_max', 0.25),
+            eyeball_color=state.get('eyeball_color', (1.0, 1.0, 1.0)),
+            pupil_color=state.get('pupil_color', (0.0, 0.0, 0.0))
         )
 
     def _on_undo(self):
@@ -385,7 +390,12 @@ class EditorWindow(QMainWindow):
             anim_speed=state.get('anim_speed', 2.0),
             wave_amplitude=state.get('wave_amplitude', 0.05),
             pulse_speed=state.get('pulse_speed', 1.5),
-            pulse_amount=state.get('pulse_amount', 0.05)
+            pulse_amount=state.get('pulse_amount', 0.05),
+            num_eyes=state.get('num_eyes', 3),
+            eye_size_min=state.get('eye_size_min', 0.1),
+            eye_size_max=state.get('eye_size_max', 0.25),
+            eyeball_color=state.get('eyeball_color', (1.0, 1.0, 1.0)),
+            pupil_color=state.get('pupil_color', (0.0, 0.0, 0.0))
         )
 
     def _update_undo_redo_state(self):
@@ -429,7 +439,12 @@ class EditorWindow(QMainWindow):
             'anim_speed': state.get('anim_speed', 2.0),
             'wave_amplitude': state.get('wave_amplitude', 0.05),
             'pulse_speed': state.get('pulse_speed', 1.5),
-            'pulse_amount': state.get('pulse_amount', 0.05)
+            'pulse_amount': state.get('pulse_amount', 0.05),
+            'num_eyes': state.get('num_eyes', 3),
+            'eye_size_min': state.get('eye_size_min', 0.1),
+            'eye_size_max': state.get('eye_size_max', 0.25),
+            'eyeball_color': state.get('eyeball_color', (1.0, 1.0, 1.0)),
+            'pupil_color': state.get('pupil_color', (0.0, 0.0, 0.0))
         }
 
         # Open save dialog

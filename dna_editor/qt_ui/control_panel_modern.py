@@ -216,6 +216,13 @@ class ModernControlPanel(QWidget):
         self._pulse_speed = 1.5
         self._pulse_amount = 0.05
 
+        # Eye parameters
+        self._num_eyes = 3
+        self._eye_size_min = 0.1
+        self._eye_size_max = 0.25
+        self._eyeball_color = (1.0, 1.0, 1.0)
+        self._pupil_color = (0.0, 0.0, 0.0)
+
         self._updating = False
         self._init_ui()
 
@@ -277,7 +284,7 @@ class ModernControlPanel(QWidget):
         """)
         design_layout.addWidget(title)
 
-        # 3-column grid
+        # 3-column grid (row 1)
         grid = QGridLayout()
         grid.setSpacing(20)
 
@@ -289,6 +296,9 @@ class ModernControlPanel(QWidget):
 
         # Column 3: Branching
         grid.addWidget(self._create_branching_section(), 0, 2)
+
+        # Row 2: Eyes section (full width, spanning 3 columns)
+        grid.addWidget(self._create_eyes_section(), 1, 0, 1, 3)
 
         design_layout.addLayout(grid)
 
@@ -531,6 +541,75 @@ class ModernControlPanel(QWidget):
         layout.addWidget(self.branch_info_label)
 
         layout.addStretch()
+        group.setLayout(layout)
+        return group
+
+    def _create_eyes_section(self):
+        """Create Eyes card (full width)."""
+        group = QGroupBox("EYES")
+        layout = QHBoxLayout()
+        layout.setSpacing(25)
+        layout.setContentsMargins(15, 15, 15, 15)
+
+        # Num Eyes
+        eyes_layout = QVBoxLayout()
+        eyes_layout.addWidget(self._create_label("Number of Eyes"))
+        self.num_eyes_spin = QSpinBox()
+        self.num_eyes_spin.setRange(0, 12)
+        self.num_eyes_spin.setValue(self._num_eyes)
+        self.num_eyes_spin.setMinimumHeight(35)
+        self.num_eyes_spin.setButtonSymbols(QSpinBox.ButtonSymbols.UpDownArrows)
+        self.num_eyes_spin.setStyleSheet(self.SPINBOX_STYLE)
+        self.num_eyes_spin.valueChanged.connect(self._on_num_eyes_changed)
+        eyes_layout.addWidget(self.num_eyes_spin)
+        layout.addLayout(eyes_layout)
+
+        # Min Eye Size
+        min_size_layout = QVBoxLayout()
+        min_size_layout.addWidget(self._create_label("Min Size"))
+        self.eye_size_min_slider = QSlider(Qt.Orientation.Horizontal)
+        self.eye_size_min_slider.setRange(5, 50)
+        self.eye_size_min_slider.setValue(10)
+        self.eye_size_min_slider.setMinimumHeight(30)
+        self.eye_size_min_slider.valueChanged.connect(self._on_eye_size_changed)
+        min_size_layout.addWidget(self.eye_size_min_slider)
+        self.eye_size_min_label = QLabel("0.10")
+        self.eye_size_min_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.eye_size_min_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        min_size_layout.addWidget(self.eye_size_min_label)
+        layout.addLayout(min_size_layout)
+
+        # Max Eye Size
+        max_size_layout = QVBoxLayout()
+        max_size_layout.addWidget(self._create_label("Max Size"))
+        self.eye_size_max_slider = QSlider(Qt.Orientation.Horizontal)
+        self.eye_size_max_slider.setRange(5, 50)
+        self.eye_size_max_slider.setValue(25)
+        self.eye_size_max_slider.setMinimumHeight(30)
+        self.eye_size_max_slider.valueChanged.connect(self._on_eye_size_changed)
+        max_size_layout.addWidget(self.eye_size_max_slider)
+        self.eye_size_max_label = QLabel("0.25")
+        self.eye_size_max_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.eye_size_max_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        max_size_layout.addWidget(self.eye_size_max_label)
+        layout.addLayout(max_size_layout)
+
+        # Eyeball Color
+        eyeball_color_layout = QVBoxLayout()
+        eyeball_color_layout.addWidget(self._create_label("Eyeball Color"))
+        self.eyeball_color_button = ColorButton(self._eyeball_color)
+        self.eyeball_color_button.colorChanged.connect(self._on_eyeball_color_changed)
+        eyeball_color_layout.addWidget(self.eyeball_color_button)
+        layout.addLayout(eyeball_color_layout)
+
+        # Pupil Color
+        pupil_color_layout = QVBoxLayout()
+        pupil_color_layout.addWidget(self._create_label("Pupil Color"))
+        self.pupil_color_button = ColorButton(self._pupil_color)
+        self.pupil_color_button.colorChanged.connect(self._on_pupil_color_changed)
+        pupil_color_layout.addWidget(self.pupil_color_button)
+        layout.addLayout(pupil_color_layout)
+
         group.setLayout(layout)
         return group
 
@@ -805,6 +884,29 @@ class ModernControlPanel(QWidget):
             self.pulse_amt_label.setText(f"{self._pulse_amount:.2f}")
             self.creature_changed.emit()
 
+    def _on_num_eyes_changed(self, value):
+        if not self._updating:
+            self._num_eyes = value
+            self.creature_changed.emit()
+
+    def _on_eye_size_changed(self):
+        if not self._updating:
+            self._eye_size_min = self.eye_size_min_slider.value() / 100.0
+            self._eye_size_max = self.eye_size_max_slider.value() / 100.0
+            self.eye_size_min_label.setText(f"{self._eye_size_min:.2f}")
+            self.eye_size_max_label.setText(f"{self._eye_size_max:.2f}")
+            self.creature_changed.emit()
+
+    def _on_eyeball_color_changed(self, rgb_tuple):
+        if not self._updating:
+            self._eyeball_color = rgb_tuple
+            self.creature_changed.emit()
+
+    def _on_pupil_color_changed(self, rgb_tuple):
+        if not self._updating:
+            self._pupil_color = rgb_tuple
+            self.creature_changed.emit()
+
     def _update_branch_info(self):
         """Update branch info label."""
         if self._branch_count == 1:
@@ -855,7 +957,12 @@ class ModernControlPanel(QWidget):
             'anim_speed': self._anim_speed,
             'wave_amplitude': self._wave_amplitude,
             'pulse_speed': self._pulse_speed,
-            'pulse_amount': self._pulse_amount
+            'pulse_amount': self._pulse_amount,
+            'num_eyes': self._num_eyes,
+            'eye_size_min': self._eye_size_min,
+            'eye_size_max': self._eye_size_max,
+            'eyeball_color': self._eyeball_color,
+            'pupil_color': self._pupil_color
         }
 
     def get_algorithm_params(self):
@@ -886,6 +993,11 @@ class ModernControlPanel(QWidget):
         self._wave_amplitude = state.get('wave_amplitude', 0.05)
         self._pulse_speed = state.get('pulse_speed', 1.5)
         self._pulse_amount = state.get('pulse_amount', 0.05)
+        self._num_eyes = state.get('num_eyes', 3)
+        self._eye_size_min = state.get('eye_size_min', 0.1)
+        self._eye_size_max = state.get('eye_size_max', 0.25)
+        self._eyeball_color = state.get('eyeball_color', (1.0, 1.0, 1.0))
+        self._pupil_color = state.get('pupil_color', (0.0, 0.0, 0.0))
 
         # Update UI
         self.tentacles_spin.setValue(self._num_tentacles)
@@ -902,6 +1014,11 @@ class ModernControlPanel(QWidget):
         self.wave_amp_slider.setValue(int(self._wave_amplitude * 100))
         self.pulse_speed_slider.setValue(int(self._pulse_speed * 100))
         self.pulse_amt_slider.setValue(int(self._pulse_amount * 100))
+        self.num_eyes_spin.setValue(self._num_eyes)
+        self.eye_size_min_slider.setValue(int(self._eye_size_min * 100))
+        self.eye_size_max_slider.setValue(int(self._eye_size_max * 100))
+        self.eyeball_color_button.set_color(self._eyeball_color)
+        self.pupil_color_button.set_color(self._pupil_color)
 
         params = state['params']
         if self._algorithm == 'bezier':

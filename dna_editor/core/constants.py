@@ -154,3 +154,21 @@ EXPLORATION_TENTACLE_RATIO = (0.25, 0.40)  # 25-40% of tentacles reach together
 EXPLORATION_TARGET_MIN_RADIUS = 1.5  # Minimum target distance from body center
 EXPLORATION_TARGET_MAX_RADIUS = 2.5  # Maximum target distance from body center
 EXPLORATION_REACH_STRENGTH = 1.5  # How far tentacles stretch toward target
+
+# Eye defaults
+DEFAULT_NUM_EYES = 3
+DEFAULT_EYE_SIZE_MIN = 0.1
+DEFAULT_EYE_SIZE_MAX = 0.25
+DEFAULT_EYEBALL_COLOR = (1.0, 1.0, 1.0)  # White
+DEFAULT_PUPIL_COLOR = (0.0, 0.0, 0.0)  # Black
+
+# Eye limits
+MIN_NUM_EYES = 0
+MAX_NUM_EYES = 12
+MIN_EYE_SIZE = 0.05
+MAX_EYE_SIZE = 0.5
+
+# Eye animation
+EYE_BLINK_DURATION = 0.2  # Total blink time in seconds
+EYE_BLINK_INTERVAL_MIN = 3.0  # Minimum seconds between blinks
+EYE_BLINK_INTERVAL_MAX = 8.0  # Maximum seconds between blinks

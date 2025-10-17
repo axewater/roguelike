@@ -18,7 +18,9 @@ class StateManager:
     def save_state(self, num_tentacles, segments, algorithm, params,
                    thickness_base, taper_factor, branch_depth=0, branch_count=1,
                    body_scale=1.2, tentacle_color=(0.6, 0.3, 0.7), hue_shift=0.1,
-                   anim_speed=2.0, wave_amplitude=0.05, pulse_speed=1.5, pulse_amount=0.05):
+                   anim_speed=2.0, wave_amplitude=0.05, pulse_speed=1.5, pulse_amount=0.05,
+                   num_eyes=3, eye_size_min=0.1, eye_size_max=0.25,
+                   eyeball_color=(1.0, 1.0, 1.0), pupil_color=(0.0, 0.0, 0.0)):
         """
         Save current state to history.
 
@@ -38,6 +40,11 @@ class StateManager:
             wave_amplitude: Wave motion intensity
             pulse_speed: Body pulse breathing speed
             pulse_amount: Body pulse expansion amount
+            num_eyes: Number of eyes on upper hemisphere
+            eye_size_min: Minimum eye size
+            eye_size_max: Maximum eye size
+            eyeball_color: Eyeball color (RGB tuple 0-1)
+            pupil_color: Pupil color (RGB tuple 0-1)
         """
         state = {
             'num_tentacles': num_tentacles,
@@ -54,7 +61,12 @@ class StateManager:
             'anim_speed': anim_speed,
             'wave_amplitude': wave_amplitude,
             'pulse_speed': pulse_speed,
-            'pulse_amount': pulse_amount
+            'pulse_amount': pulse_amount,
+            'num_eyes': num_eyes,
+            'eye_size_min': eye_size_min,
+            'eye_size_max': eye_size_max,
+            'eyeball_color': eyeball_color,
+            'pupil_color': pupil_color
         }
 
         # Clear future history if we're not at the end
@@ -113,7 +125,12 @@ class StateManager:
             'anim_speed': state.get('anim_speed', 2.0),
             'wave_amplitude': state.get('wave_amplitude', 0.05),
             'pulse_speed': state.get('pulse_speed', 1.5),
-            'pulse_amount': state.get('pulse_amount', 0.05)
+            'pulse_amount': state.get('pulse_amount', 0.05),
+            'num_eyes': state.get('num_eyes', 3),
+            'eye_size_min': state.get('eye_size_min', 0.1),
+            'eye_size_max': state.get('eye_size_max', 0.25),
+            'eyeball_color': state.get('eyeball_color', (1.0, 1.0, 1.0)),
+            'pupil_color': state.get('pupil_color', (0.0, 0.0, 0.0))
         }
 
     def can_undo(self):

@@ -4,7 +4,9 @@ TentacleCreature model - creature with body and tentacles.
 
 from ursina import Entity, Vec3, color, destroy
 import math
+import random
 from .tentacle import Tentacle
+from .eye import Eye
 from ..core.constants import BODY_COLOR, BODY_SCALE, BODY_PULSE_AMOUNT, BODY_PULSE_SPEED
 from ..shaders import create_toon_shader
 
@@ -15,7 +17,9 @@ class TentacleCreature:
     def __init__(self, num_tentacles=2, segments_per_tentacle=12, algorithm='bezier',
                  algorithm_params=None, thickness_base=0.25, taper_factor=0.6,
                  branch_depth=0, branch_count=1, body_scale=1.2, tentacle_color=(0.6, 0.3, 0.7),
-                 hue_shift=0.1, anim_speed=2.0, wave_amplitude=0.05, pulse_speed=1.5, pulse_amount=0.05):
+                 hue_shift=0.1, anim_speed=2.0, wave_amplitude=0.05, pulse_speed=1.5, pulse_amount=0.05,
+                 num_eyes=3, eye_size_min=0.1, eye_size_max=0.25,
+                 eyeball_color=(1.0, 1.0, 1.0), pupil_color=(0.0, 0.0, 0.0)):
         """
         Create a tentacle creature.
 
@@ -35,10 +39,16 @@ class TentacleCreature:
             wave_amplitude: Wave motion intensity
             pulse_speed: Body pulse breathing speed
             pulse_amount: Body pulse expansion amount
+            num_eyes: Number of eyes on upper hemisphere
+            eye_size_min: Minimum eye size
+            eye_size_max: Maximum eye size
+            eyeball_color: Eyeball color (RGB tuple 0-1)
+            pupil_color: Pupil color (RGB tuple 0-1)
         """
         # Create root entity (no parent = defaults to scene)
         self.root = Entity(position=(0, 0, 0))
         self.tentacles = []
+        self.eyes = []
         self.algorithm = algorithm
         self.algorithm_params = algorithm_params or {}
         self.thickness_base = thickness_base
@@ -54,6 +64,13 @@ class TentacleCreature:
         self.wave_amplitude = wave_amplitude
         self.pulse_speed = pulse_speed
         self.pulse_amount = pulse_amount
+
+        # Store eye parameters
+        self.num_eyes = num_eyes
+        self.eye_size_min = eye_size_min
+        self.eye_size_max = eye_size_max
+        self.eyeball_color = eyeball_color
+        self.pupil_color = pupil_color
 
         # Attack animation state (Attack 1 - All tentacles)
         self.is_attacking = False
@@ -91,18 +108,25 @@ class TentacleCreature:
 
         self.body = Entity(**body_params)
 
-        # Generate tentacles
+        # Generate tentacles and eyes
         self.rebuild(num_tentacles, segments_per_tentacle, algorithm,
-                    algorithm_params, thickness_base, taper_factor, branch_depth, branch_count)
+                    algorithm_params, thickness_base, taper_factor, branch_depth, branch_count,
+                    num_eyes, eye_size_min, eye_size_max, eyeball_color, pupil_color)
 
     def rebuild(self, num_tentacles, segments_per_tentacle, algorithm,
                 algorithm_params=None, thickness_base=0.25, taper_factor=0.6,
-                branch_depth=0, branch_count=1):
-        """Rebuild tentacles with new parameters."""
+                branch_depth=0, branch_count=1, num_eyes=3, eye_size_min=0.1, eye_size_max=0.25,
+                eyeball_color=(1.0, 1.0, 1.0), pupil_color=(0.0, 0.0, 0.0)):
+        """Rebuild tentacles and eyes with new parameters."""
         # Clear existing tentacles
         for tentacle in self.tentacles:
             tentacle.destroy()
         self.tentacles.clear()
+
+        # Clear existing eyes
+        for eye in self.eyes:
+            eye.destroy()
+        self.eyes.clear()
 
         # Reset exploration state when rebuilding
         self.exploration_state = 'idle'
@@ -115,6 +139,13 @@ class TentacleCreature:
         self.taper_factor = taper_factor
         self.branch_depth = branch_depth
         self.branch_count = branch_count
+
+        # Store eye parameters
+        self.num_eyes = num_eyes
+        self.eye_size_min = eye_size_min
+        self.eye_size_max = eye_size_max
+        self.eyeball_color = eyeball_color
+        self.pupil_color = pupil_color
 
         # Create new tentacles with Fibonacci sphere distribution
         body_radius = self.body.scale_x / 2
@@ -181,6 +212,49 @@ class TentacleCreature:
             )
 
             self.tentacles.append(tentacle)
+
+        # Create eyes on upper hemisphere using Fibonacci sphere distribution
+        body_radius = self.body.scale_x / 2
+
+        # Golden angle in radians (for natural spiral distribution)
+        GOLDEN_ANGLE = math.pi * (3 - math.sqrt(5))  # ~137.508 degrees
+
+        for i in range(num_eyes):
+            # Fibonacci sphere distribution (biased toward upper hemisphere)
+            # Y coordinate (upper hemisphere: 0.2 to 0.8 range)
+            y_normalized = 0.2 + (i / max(num_eyes - 1, 1) if num_eyes > 1 else 0) * 0.6
+
+            # Radius at this Y level (on unit sphere)
+            radius_at_y = math.sqrt(max(0, 1 - y_normalized * y_normalized))
+
+            # Angle using golden ratio for natural spiral
+            angle = i * GOLDEN_ANGLE
+
+            # Convert to Cartesian coordinates
+            x_normalized = radius_at_y * math.cos(angle)
+            z_normalized = radius_at_y * math.sin(angle)
+
+            # Scale by body radius and position on body surface
+            position = Vec3(
+                x_normalized * body_radius * 0.95,
+                y_normalized * body_radius * 0.95,
+                z_normalized * body_radius * 0.95
+            )
+
+            # Random size within range
+            eye_size = random.uniform(eye_size_min, eye_size_max)
+
+            # Create eye with dynamic parameters and shared shader
+            eye = Eye(
+                position=position,
+                size=eye_size,
+                eyeball_color=eyeball_color,
+                pupil_color=pupil_color,
+                parent=self.root,
+                toon_shader=self.toon_shader
+            )
+
+            self.eyes.append(eye)
 
     def start_attack(self, camera_position):
         """
@@ -314,6 +388,10 @@ class TentacleCreature:
         scale_pulse = self.body_scale + math.sin(time * self.pulse_speed) * self.pulse_amount
         self.body.scale = scale_pulse
 
+        # Animate eyes (blinking)
+        for eye in self.eyes:
+            eye.update_animation(time)
+
         # Animate tentacles (pass animation, attack, and exploration parameters)
         for idx, tentacle in enumerate(self.tentacles):
             # Check if this tentacle is currently reaching
@@ -351,5 +429,7 @@ class TentacleCreature:
         """Cleanup all entities."""
         for tentacle in self.tentacles:
             tentacle.destroy()
+        for eye in self.eyes:
+            eye.destroy()
         # Properly destroy the root and all children
         destroy(self.root)
