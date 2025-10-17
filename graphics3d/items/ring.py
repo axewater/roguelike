@@ -4,9 +4,67 @@ Ring 3D model - Accessory equipment with rarity variants
 Procedurally generated 3D model using Ursina primitives.
 """
 
-from ursina import Entity, Vec3, color as ursina_color
+from ursina import Entity, Vec3, Mesh, color as ursina_color
+import math
 import constants as c
 from graphics3d.utils import rgb_to_ursina_color
+
+
+def generate_torus_mesh(major_radius=0.12, minor_radius=0.035,
+                        segments_major=18, segments_minor=12):
+    """
+    Generate a procedural torus (donut) mesh using parametric equations
+
+    Args:
+        major_radius: Distance from center to tube center (R)
+        minor_radius: Tube thickness/radius (r)
+        segments_major: Number of segments around major circle
+        segments_minor: Number of segments around minor (tube) circle
+
+    Returns:
+        Mesh: Ursina Mesh object with torus geometry
+    """
+    vertices = []
+    triangles = []
+    normals = []
+
+    R = major_radius
+    r = minor_radius
+
+    # Generate vertices using parametric torus equations
+    for i in range(segments_major + 1):
+        u = (i / segments_major) * 2 * math.pi
+
+        for j in range(segments_minor + 1):
+            v = (j / segments_minor) * 2 * math.pi
+
+            # Parametric torus equations
+            x = (R + r * math.cos(v)) * math.cos(u)
+            y = r * math.sin(v)
+            z = (R + r * math.cos(v)) * math.sin(u)
+
+            vertices.append(Vec3(x, y, z))
+
+            # Normal vector (perpendicular to torus surface)
+            nx = math.cos(v) * math.cos(u)
+            ny = math.sin(v)
+            nz = math.cos(v) * math.sin(u)
+            normals.append(Vec3(nx, ny, nz).normalized())
+
+    # Generate triangle indices (two triangles per quad)
+    for i in range(segments_major):
+        for j in range(segments_minor):
+            # Current quad corners
+            current = i * (segments_minor + 1) + j
+            next_row = (i + 1) * (segments_minor + 1) + j
+
+            # Triangle 1
+            triangles.append((current, next_row, current + 1))
+
+            # Triangle 2
+            triangles.append((current + 1, next_row, next_row + 1))
+
+    return Mesh(vertices=vertices, triangles=triangles, normals=normals)
 
 
 def create_ring_3d(position: Vec3, rarity: str) -> Entity:
@@ -59,31 +117,20 @@ def create_ring_3d(position: Vec3, rarity: str) -> Entity:
             unlit=True
         )
 
-    # Ring band (torus approximation using rotated cubes)
-    # Create 8 small cubes arranged in a circle
-    num_segments = 8
-    for i in range(num_segments):
-        angle = (i / num_segments) * 360
-        x = 0.12 * (i % 2) * 0.5  # Slight variation
-        z = 0.12 * ((i + 1) % 2) * 0.5
+    # Ring band - smooth torus mesh (donut shape)
+    torus_mesh = generate_torus_mesh(
+        major_radius=0.12,  # Ring outer radius
+        minor_radius=0.035,  # Tube thickness
+        segments_major=18,  # Segments around major circle (smoothness)
+        segments_minor=12   # Segments around tube (roundness)
+    )
 
-        segment = Entity(
-            model='cube',
-            color=band_color,
-            scale=(0.05, 0.04, 0.05),
-            parent=ring,
-            position=(x, 0, z),
-            rotation=(0, angle, 0)
-        )
-
-    # Inner core to make it look more ring-like
-    core = Entity(
-        model='cube',
+    # Create ring band entity with torus mesh
+    band = Entity(
+        model=torus_mesh,
         color=band_color,
-        scale=(0.15, 0.03, 0.15),
         parent=ring,
-        position=(0, 0, 0),
-        rotation=(0, 45, 0)
+        position=(0, 0, 0)
     )
 
     # Gem on top (if has gem)

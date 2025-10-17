@@ -238,6 +238,14 @@ class ModernControlPanel(QWidget):
         self._jiggle_speed = 2.0
         self._blob_pulse_amount = 0.1
 
+        # Polyp parameters
+        self._num_spheres = 4
+        self._base_sphere_size = 0.8
+        self._polyp_color = (0.6, 0.3, 0.7)
+        self._curve_intensity = 0.4
+        self._polyp_tentacles_per_sphere = 6
+        self._polyp_segments = 12
+
         self._updating = False
         self._init_ui()
 
@@ -358,9 +366,31 @@ class ModernControlPanel(QWidget):
         self.blob_container.setLayout(blob_layout)
         self.blob_container.setVisible(False)  # Hidden by default
 
-        # Add both containers to design layout
+        # ===== POLYP CREATURE SECTIONS =====
+        self.polyp_container = QWidget()
+        polyp_layout = QVBoxLayout()
+        polyp_layout.setContentsMargins(0, 0, 0, 0)
+
+        polyp_grid = QGridLayout()
+        polyp_grid.setSpacing(20)
+
+        # Column 1: Spine Shape
+        polyp_grid.addWidget(self._create_polyp_spine_section(), 0, 0)
+
+        # Column 2: Tentacles
+        polyp_grid.addWidget(self._create_polyp_tentacles_section(), 0, 1)
+
+        # Column 3: Appearance
+        polyp_grid.addWidget(self._create_polyp_appearance_section(), 0, 2)
+
+        polyp_layout.addLayout(polyp_grid)
+        self.polyp_container.setLayout(polyp_layout)
+        self.polyp_container.setVisible(False)  # Hidden by default
+
+        # Add all containers to design layout
         design_layout.addWidget(self.tentacle_container)
         design_layout.addWidget(self.blob_container)
+        design_layout.addWidget(self.polyp_container)
 
         design_layout.addStretch()
         design_tab.setLayout(design_layout)
@@ -1004,6 +1034,115 @@ class ModernControlPanel(QWidget):
         group.setLayout(layout)
         return group
 
+    # ===== POLYP CREATURE SECTIONS =====
+
+    def _create_polyp_spine_section(self):
+        """Create Polyp Spine Shape card."""
+        group = QGroupBox("SPINE SHAPE")
+        group.setMinimumWidth(280)
+        layout = QVBoxLayout()
+        layout.setSpacing(12)
+        layout.setContentsMargins(15, 15, 15, 15)
+
+        # Number of Spheres (3-5)
+        layout.addWidget(self._create_label("Spheres in Spine"))
+        self.num_spheres_spin = QSpinBox()
+        self.num_spheres_spin.setRange(3, 5)
+        self.num_spheres_spin.setValue(self._num_spheres)
+        self.num_spheres_spin.setMinimumHeight(35)
+        self.num_spheres_spin.setStyleSheet(self.SPINBOX_STYLE)
+        self.num_spheres_spin.valueChanged.connect(self._on_num_spheres_changed)
+        layout.addWidget(self.num_spheres_spin)
+        layout.addSpacing(8)
+
+        # Base Sphere Size (0.4-1.5)
+        layout.addWidget(self._create_label("Root Sphere Size"))
+        self.base_sphere_slider = QSlider(Qt.Orientation.Horizontal)
+        self.base_sphere_slider.setRange(40, 150)  # 0.4 to 1.5
+        self.base_sphere_slider.setValue(80)  # 0.8 default
+        self.base_sphere_slider.setMinimumHeight(30)
+        self.base_sphere_slider.valueChanged.connect(self._on_base_sphere_changed)
+        layout.addWidget(self.base_sphere_slider)
+        self.base_sphere_label = QLabel("0.80")
+        self.base_sphere_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.base_sphere_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.base_sphere_label)
+
+        # Curve Intensity (0-1)
+        layout.addWidget(self._create_label("Spine Curve Amount"))
+        self.curve_intensity_slider = QSlider(Qt.Orientation.Horizontal)
+        self.curve_intensity_slider.setRange(0, 100)  # 0 to 1.0
+        self.curve_intensity_slider.setValue(40)  # 0.4 default
+        self.curve_intensity_slider.setMinimumHeight(30)
+        self.curve_intensity_slider.valueChanged.connect(self._on_curve_intensity_changed)
+        layout.addWidget(self.curve_intensity_slider)
+        self.curve_intensity_label = QLabel("0.40")
+        self.curve_intensity_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.curve_intensity_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.curve_intensity_label)
+
+        layout.addStretch()
+        group.setLayout(layout)
+        return group
+
+    def _create_polyp_tentacles_section(self):
+        """Create Polyp Tentacles card."""
+        group = QGroupBox("TENTACLES")
+        group.setMinimumWidth(280)
+        layout = QVBoxLayout()
+        layout.setSpacing(12)
+        layout.setContentsMargins(15, 15, 15, 15)
+
+        # Tentacles per Sphere (3-12)
+        layout.addWidget(self._create_label("Tentacles per Sphere"))
+        self.polyp_tentacles_spin = QSpinBox()
+        self.polyp_tentacles_spin.setRange(3, 12)
+        self.polyp_tentacles_spin.setValue(self._polyp_tentacles_per_sphere)
+        self.polyp_tentacles_spin.setMinimumHeight(35)
+        self.polyp_tentacles_spin.setStyleSheet(self.SPINBOX_STYLE)
+        self.polyp_tentacles_spin.valueChanged.connect(self._on_polyp_tentacles_changed)
+        layout.addWidget(self.polyp_tentacles_spin)
+        layout.addSpacing(8)
+
+        # Tentacle Segments (5-20)
+        layout.addWidget(self._create_label("Tentacle Length (Segments)"))
+        self.polyp_segments_spin = QSpinBox()
+        self.polyp_segments_spin.setRange(5, 20)
+        self.polyp_segments_spin.setValue(self._polyp_segments)
+        self.polyp_segments_spin.setMinimumHeight(35)
+        self.polyp_segments_spin.setStyleSheet(self.SPINBOX_STYLE)
+        self.polyp_segments_spin.valueChanged.connect(self._on_polyp_segments_changed)
+        layout.addWidget(self.polyp_segments_spin)
+        layout.addSpacing(8)
+
+        # Info label
+        self.polyp_info_label = QLabel("More segments = longer tentacles")
+        self.polyp_info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.polyp_info_label.setStyleSheet("color: #06b6d4; font-size: 10pt; font-style: italic; padding: 8px; background-color: #164e63; border-radius: 8px; margin-top: 10px; border: 1px solid #0891b2;")
+        layout.addWidget(self.polyp_info_label)
+
+        layout.addStretch()
+        group.setLayout(layout)
+        return group
+
+    def _create_polyp_appearance_section(self):
+        """Create Polyp Appearance card."""
+        group = QGroupBox("APPEARANCE")
+        group.setMinimumWidth(280)
+        layout = QVBoxLayout()
+        layout.setSpacing(12)
+        layout.setContentsMargins(15, 15, 15, 15)
+
+        # Spine Color
+        layout.addWidget(self._create_label("Spine & Tentacle Color"))
+        self.polyp_color_button = ColorButton(self._polyp_color)
+        self.polyp_color_button.colorChanged.connect(self._on_polyp_color_changed)
+        layout.addWidget(self.polyp_color_button)
+
+        layout.addStretch()
+        group.setLayout(layout)
+        return group
+
     # Event handlers
     def _on_tentacles_changed(self, value):
         if not self._updating:
@@ -1136,7 +1275,7 @@ class ModernControlPanel(QWidget):
             # Show/hide appropriate containers
             self.tentacle_container.setVisible(self._creature_type == 'tentacle')
             self.blob_container.setVisible(self._creature_type == 'blob')
-            # Polyp uses tentacle controls for now (similar parameters)
+            self.polyp_container.setVisible(self._creature_type == 'polyp')
 
             # Emit signals
             self.creature_type_changed.emit(self._creature_type)
@@ -1196,6 +1335,40 @@ class ModernControlPanel(QWidget):
         if not self._updating:
             self._blob_pulse_amount = value / 100.0
             self.blob_pulse_label.setText(f"{self._blob_pulse_amount:.2f}")
+            self.creature_changed.emit()
+
+    # ==== POLYP EVENT HANDLERS ====
+
+    def _on_num_spheres_changed(self, value):
+        if not self._updating:
+            self._num_spheres = value
+            self.creature_changed.emit()
+
+    def _on_base_sphere_changed(self, value):
+        if not self._updating:
+            self._base_sphere_size = value / 100.0
+            self.base_sphere_label.setText(f"{self._base_sphere_size:.2f}")
+            self.creature_changed.emit()
+
+    def _on_polyp_color_changed(self, rgb_tuple):
+        if not self._updating:
+            self._polyp_color = rgb_tuple
+            self.creature_changed.emit()
+
+    def _on_curve_intensity_changed(self, value):
+        if not self._updating:
+            self._curve_intensity = value / 100.0
+            self.curve_intensity_label.setText(f"{self._curve_intensity:.2f}")
+            self.creature_changed.emit()
+
+    def _on_polyp_tentacles_changed(self, value):
+        if not self._updating:
+            self._polyp_tentacles_per_sphere = value
+            self.creature_changed.emit()
+
+    def _on_polyp_segments_changed(self, value):
+        if not self._updating:
+            self._polyp_segments = value
             self.creature_changed.emit()
 
     def _update_branch_info(self):
@@ -1265,7 +1438,14 @@ class ModernControlPanel(QWidget):
             'blob_color': self._blob_color,
             'blob_transparency': self._blob_transparency,
             'jiggle_speed': self._jiggle_speed,
-            'blob_pulse_amount': self._blob_pulse_amount
+            'blob_pulse_amount': self._blob_pulse_amount,
+            # Polyp parameters
+            'num_spheres': self._num_spheres,
+            'base_sphere_size': self._base_sphere_size,
+            'polyp_color': self._polyp_color,
+            'curve_intensity': self._curve_intensity,
+            'polyp_tentacles_per_sphere': self._polyp_tentacles_per_sphere,
+            'polyp_segments': self._polyp_segments
         }
 
     def get_algorithm_params(self):
@@ -1317,13 +1497,27 @@ class ModernControlPanel(QWidget):
         self._jiggle_speed = state.get('jiggle_speed', 2.0)
         self._blob_pulse_amount = state.get('blob_pulse_amount', 0.1)
 
+        # Polyp parameters
+        self._num_spheres = state.get('num_spheres', 4)
+        self._base_sphere_size = state.get('base_sphere_size', 0.8)
+        self._polyp_color = state.get('polyp_color', (0.6, 0.3, 0.7))
+        self._curve_intensity = state.get('curve_intensity', 0.4)
+        self._polyp_tentacles_per_sphere = state.get('polyp_tentacles_per_sphere', 6)
+        self._polyp_segments = state.get('polyp_segments', 12)
+
         # Update creature type selector
-        display_name = "Tentacle Creature" if self._creature_type == 'tentacle' else "Blob Creature"
+        if self._creature_type == 'tentacle':
+            display_name = "Tentacle Creature"
+        elif self._creature_type == 'blob':
+            display_name = "Blob Creature"
+        else:  # polyp
+            display_name = "Polyp Creature"
         self.creature_type_combo.setCurrentText(display_name)
 
         # Show/hide appropriate containers
         self.tentacle_container.setVisible(self._creature_type == 'tentacle')
         self.blob_container.setVisible(self._creature_type == 'blob')
+        self.polyp_container.setVisible(self._creature_type == 'polyp')
 
         # Update tentacle UI
         self.tentacles_spin.setValue(self._num_tentacles)
@@ -1356,6 +1550,14 @@ class ModernControlPanel(QWidget):
         self.cube_size_max_slider.setValue(int(self._cube_size_max * 100))
         self.jiggle_speed_slider.setValue(int(self._jiggle_speed * 100))
         self.blob_pulse_slider.setValue(int(self._blob_pulse_amount * 100))
+
+        # Update polyp UI
+        self.num_spheres_spin.setValue(self._num_spheres)
+        self.base_sphere_slider.setValue(int(self._base_sphere_size * 100))
+        self.polyp_color_button.set_color(self._polyp_color)
+        self.curve_intensity_slider.setValue(int(self._curve_intensity * 100))
+        self.polyp_tentacles_spin.setValue(self._polyp_tentacles_per_sphere)
+        self.polyp_segments_spin.setValue(self._polyp_segments)
 
         # Update branch info label
         self._update_blob_branch_info()

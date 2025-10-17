@@ -367,12 +367,13 @@ class EditorWindow(QMainWindow):
             blob_transparency=state.get('blob_transparency', 0.7),
             jiggle_speed=state.get('jiggle_speed', 2.0),
             blob_pulse_amount=state.get('blob_pulse_amount', 0.1),
-            # Polyp parameters (reuses tentacle UI values)
-            num_spheres=state.get('num_tentacles', 4),
-            polyp_color=state.get('tentacle_color', (0.6, 0.3, 0.7)),
-            polyp_curve_intensity=0.4,
-            polyp_anim_speed=state.get('anim_speed', 2.0),
-            polyp_pulse=state.get('pulse_amount', 0.08)
+            # Polyp parameters
+            num_spheres=state.get('num_spheres', 4),
+            base_sphere_size=state.get('base_sphere_size', 0.8),
+            polyp_color=state.get('polyp_color', (0.6, 0.3, 0.7)),
+            curve_intensity=state.get('curve_intensity', 0.4),
+            polyp_tentacles_per_sphere=state.get('polyp_tentacles_per_sphere', 6),
+            polyp_segments=state.get('polyp_segments', 12)
         )
 
     def _on_undo(self):
@@ -426,12 +427,13 @@ class EditorWindow(QMainWindow):
             blob_transparency=state.get('blob_transparency', 0.7),
             jiggle_speed=state.get('jiggle_speed', 2.0),
             blob_pulse_amount=state.get('blob_pulse_amount', 0.1),
-            # Polyp parameters (reuses tentacle UI values)
-            num_spheres=state.get('num_tentacles', 4),
-            polyp_color=state.get('tentacle_color', (0.6, 0.3, 0.7)),
-            polyp_curve_intensity=0.4,
-            polyp_anim_speed=state.get('anim_speed', 2.0),
-            polyp_pulse=state.get('pulse_amount', 0.08)
+            # Polyp parameters
+            num_spheres=state.get('num_spheres', 4),
+            base_sphere_size=state.get('base_sphere_size', 0.8),
+            polyp_color=state.get('polyp_color', (0.6, 0.3, 0.7)),
+            curve_intensity=state.get('curve_intensity', 0.4),
+            polyp_tentacles_per_sphere=state.get('polyp_tentacles_per_sphere', 6),
+            polyp_segments=state.get('polyp_segments', 12)
         )
 
     def _update_undo_redo_state(self):
@@ -501,6 +503,18 @@ class EditorWindow(QMainWindow):
                 'jiggle_speed': state.get('jiggle_speed', 2.0),
                 'blob_pulse_amount': state.get('blob_pulse_amount', 0.1)
             })
+        elif creature_type == 'polyp':
+            dna_config.update({
+                'num_spheres': state.get('num_spheres', 4),
+                'base_sphere_size': state.get('base_sphere_size', 0.8),
+                'polyp_color': state.get('polyp_color', (0.6, 0.3, 0.7)),
+                'curve_intensity': state.get('curve_intensity', 0.4),
+                'tentacles_per_sphere': state.get('polyp_tentacles_per_sphere', 6),
+                'segments_per_tentacle': state.get('polyp_segments', 12),
+                'algorithm': state.get('algorithm', 'bezier'),
+                'thickness_base': state.get('thickness_base', 0.2),
+                'taper_factor': state.get('taper_factor', 0.6)
+            })
 
         # Open save dialog
         file_path, _ = QFileDialog.getSaveFileName(
@@ -540,6 +554,7 @@ class EditorWindow(QMainWindow):
             "<ul>"
             "<li><b>Tentacle Creature</b> - Mathematical curve-based tentacles (Bezier/Fourier)</li>"
             "<li><b>Blob Creature</b> - Translucent slime cube clusters</li>"
+            "<li><b>Polyp Creature</b> - Organic spine with spheres and tentacles</li>"
             "</ul>"
             "<p><b>Controls:</b></p>"
             "<ul>"

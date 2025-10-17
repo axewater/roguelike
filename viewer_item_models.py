@@ -84,15 +84,12 @@ class OrbitCamera:
         """
         camera_changed = False
 
-        # Mouse drag to orbit (use held_keys like DNA Editor does)
+        # Mouse drag to orbit horizontally (use held_keys like DNA Editor does)
         if held_keys['left mouse']:
             # Use mouse.velocity for smooth rotation (automatic delta calculation!)
-            self.camera_angle += mouse.velocity[0] * 200  # Horizontal rotation
-            self.camera_height += mouse.velocity[1] * 5   # Vertical movement
+            self.camera_angle += mouse.velocity[0] * 200  # Horizontal rotation only
+            # Vertical mouse movement disabled - camera stays on horizontal plane
             camera_changed = True
-
-        # Clamp camera height
-        self.camera_height = max(self.min_height, min(self.max_height, self.camera_height))
 
         # Update camera position if anything changed
         if camera_changed:

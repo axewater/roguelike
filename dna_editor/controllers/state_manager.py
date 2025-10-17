@@ -28,13 +28,13 @@ class StateManager:
                    cube_spacing=1.2, blob_color=(0.2, 0.8, 0.4), blob_transparency=0.7,
                    jiggle_speed=2.0, blob_pulse_amount=0.1,
                    # Polyp parameters
-                   num_spheres=4, polyp_color=(0.6, 0.3, 0.7), polyp_curve_intensity=0.4,
-                   polyp_anim_speed=2.0, polyp_pulse=0.08):
+                   num_spheres=4, base_sphere_size=0.8, polyp_color=(0.6, 0.3, 0.7),
+                   curve_intensity=0.4, polyp_tentacles_per_sphere=6, polyp_segments=12):
         """
         Save current state to history.
 
         Args:
-            creature_type: 'tentacle' or 'blob'
+            creature_type: 'tentacle', 'blob', or 'polyp'
             [Tentacle parameters]
             num_tentacles: Number of tentacles
             segments: Segments per tentacle
@@ -66,6 +66,13 @@ class StateManager:
             blob_transparency: Transparency (0-1)
             jiggle_speed: Jiggle animation speed
             blob_pulse_amount: Pulse intensity
+            [Polyp parameters]
+            num_spheres: Number of spheres in spine
+            base_sphere_size: Size of root sphere
+            polyp_color: Spine/tentacle color (RGB tuple 0-1)
+            curve_intensity: Spine curve amount (0-1)
+            polyp_tentacles_per_sphere: Number of tentacles per sphere
+            polyp_segments: Segments per tentacle (length)
         """
         state = {
             'creature_type': creature_type,
@@ -102,10 +109,11 @@ class StateManager:
             'blob_pulse_amount': blob_pulse_amount,
             # Polyp parameters
             'num_spheres': num_spheres,
+            'base_sphere_size': base_sphere_size,
             'polyp_color': polyp_color,
-            'polyp_curve_intensity': polyp_curve_intensity,
-            'polyp_anim_speed': polyp_anim_speed,
-            'polyp_pulse': polyp_pulse
+            'curve_intensity': curve_intensity,
+            'polyp_tentacles_per_sphere': polyp_tentacles_per_sphere,
+            'polyp_segments': polyp_segments
         }
 
         # Clear future history if we're not at the end
@@ -184,10 +192,11 @@ class StateManager:
             'blob_pulse_amount': state.get('blob_pulse_amount', 0.1),
             # Polyp parameters
             'num_spheres': state.get('num_spheres', 4),
+            'base_sphere_size': state.get('base_sphere_size', 0.8),
             'polyp_color': state.get('polyp_color', (0.6, 0.3, 0.7)),
-            'polyp_curve_intensity': state.get('polyp_curve_intensity', 0.4),
-            'polyp_anim_speed': state.get('polyp_anim_speed', 2.0),
-            'polyp_pulse': state.get('polyp_pulse', 0.08)
+            'curve_intensity': state.get('curve_intensity', 0.4),
+            'polyp_tentacles_per_sphere': state.get('polyp_tentacles_per_sphere', 6),
+            'polyp_segments': state.get('polyp_segments', 12)
         }
 
     def can_undo(self):

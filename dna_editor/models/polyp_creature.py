@@ -386,13 +386,10 @@ class PolypCreature:
             # Create tentacles for this sphere
             num_tentacles = self.tentacles_per_sphere[i] if i < len(self.tentacles_per_sphere) else 4
 
-            # Segments follow Fibonacci-like progression (8, 8, 10, 13)
-            fibonacci_segments = [8, 8, 10, 13, 13]
-            segments = fibonacci_segments[min(i, len(fibonacci_segments) - 1)]
-
+            # Use the configured segments_per_tentacle parameter
             sphere.create_tentacles(
                 num_tentacles=num_tentacles,
-                segments_per_tentacle=segments,
+                segments_per_tentacle=self.segments_per_tentacle,
                 algorithm=self.tentacle_algorithm,
                 algorithm_params=self.algorithm_params,
                 thickness_base=self.thickness_base / (1 + i * 0.2),  # Thinner tentacles on smaller spheres
