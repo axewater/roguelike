@@ -114,9 +114,9 @@ class MedusaCreature:
         body_radius = self.body.scale_x / 2
 
         for i in range(num_tentacles):
-            # Fibonacci sphere distribution (full sphere - medusa tendrils all around)
-            # Y coordinate: -0.9 to 0.9 (full range, slightly biased downward)
-            y_normalized = -0.9 + (i / max(num_tentacles - 1, 1)) * 1.8
+            # Fibonacci sphere distribution (top hemisphere - medusa tentacles pointing upward)
+            # Y coordinate: 0.0 to 1.0 (top hemisphere only)
+            y_normalized = 0.0 + (i / max(num_tentacles - 1, 1)) * 1.0
 
             # Clamp to sphere bounds
             y_normalized = max(-1.0, min(1.0, y_normalized))
@@ -138,12 +138,12 @@ class MedusaCreature:
                 z_normalized * body_radius * 0.90
             )
 
-            # Target position (flowing outward and downward from anchor)
-            # Medusa tentacles are longer and flow more dramatically
-            target_distance = 2.5
+            # Target position (flowing outward and upward from anchor)
+            # Medusa tentacles are shorter to show eyes on tips
+            target_distance = 0.625  # 25% of original length
             target = Vec3(
                 x_normalized * target_distance * 1.2,
-                y_normalized * body_radius - 2.5,  # Flow down
+                y_normalized * body_radius + 0.625,  # Flow upward (25% of original)
                 z_normalized * target_distance * 1.2
             )
 
