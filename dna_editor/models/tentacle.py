@@ -612,31 +612,48 @@ class Tentacle:
         distance_to_camera = anchor_to_camera.length()
         direction_to_camera = anchor_to_camera.normalized() if distance_to_camera > 0.001 else Vec3(0, 0, -1)
 
+        # Calculate upward direction for wind-up (lift tentacle up like raising an arm)
+        up_direction = Vec3(0, 1, 0)
+
         # Determine attack phase and calculate phase-specific motion
         if attack_t < ATTACK_2_WIND_UP_END / ATTACK_2_DURATION:
-            # Phase 1: Brief wind-up (pull back slightly)
+            # Phase 1: Wind-up - LIFT UP dramatically (like raising arm to strike)
             phase_t = attack_t / (ATTACK_2_WIND_UP_END / ATTACK_2_DURATION)
-            # Smooth ease-in
-            ease_t = phase_t * phase_t
-            base_offset = -direction_to_camera * (WIND_UP_DISTANCE * 0.5) * ease_t
-            slash_intensity = 0.1
+            # Smooth ease-in with extra snap at end
+            ease_t = phase_t * phase_t * (3 - 2 * phase_t)
+
+            # Pull back slightly AND lift up significantly
+            pullback = -direction_to_camera * WIND_UP_DISTANCE * ease_t
+            lift_up = up_direction * 1.2 * ease_t  # Lift 1.2 units upward
+            base_offset = pullback + lift_up
+            slash_intensity = 0.2
 
         elif attack_t < ATTACK_2_SLASH_END / ATTACK_2_DURATION:
-            # Phase 2: Slash (fast forward motion)
+            # Phase 2: SLASH - Really lash out toward camera aggressively
             phase_t = (attack_t - ATTACK_2_WIND_UP_END / ATTACK_2_DURATION) / ((ATTACK_2_SLASH_END - ATTACK_2_WIND_UP_END) / ATTACK_2_DURATION)
-            # Quick ease-out
-            ease_t = 1.0 - (1.0 - phase_t) ** 2
-            slash_distance = 1.2  # Direct slash distance
-            base_offset = direction_to_camera * slash_distance * ease_t - direction_to_camera * (WIND_UP_DISTANCE * 0.5)
-            slash_intensity = 1.5 * ease_t
+            # Explosive ease-out (fast start, slow end)
+            ease_t = 1.0 - (1.0 - phase_t) ** 3
+
+            # Much more aggressive slash distance
+            slash_distance = 2.0  # Increased from 1.2 to 2.0
+
+            # Start position: up and back
+            wind_up_offset = -direction_to_camera * WIND_UP_DISTANCE + up_direction * 1.2
+
+            # End position: far forward toward camera and down (slashing arc)
+            slash_offset = direction_to_camera * slash_distance + up_direction * (-0.3 * ease_t)  # Arc downward as it slashes
+
+            base_offset = wind_up_offset + slash_offset * ease_t
+            slash_intensity = 2.5 * ease_t  # Increased from 1.5 to 2.5
 
         else:
             # Phase 3: Return (quick return to idle)
             phase_t = (attack_t - ATTACK_2_SLASH_END / ATTACK_2_DURATION) / ((ATTACK_2_RETURN_END - ATTACK_2_SLASH_END) / ATTACK_2_DURATION)
             # Fast ease-out
             ease_t = 1.0 - (1.0 - phase_t) ** 2
-            slash_distance = 1.2
-            remaining_offset = direction_to_camera * slash_distance - direction_to_camera * (WIND_UP_DISTANCE * 0.5)
+            slash_distance = 2.0
+            # Return from full extension
+            remaining_offset = direction_to_camera * slash_distance - direction_to_camera * WIND_UP_DISTANCE + up_direction * (-0.3)
             base_offset = remaining_offset * (1.0 - ease_t)
             slash_intensity = 0.0
 

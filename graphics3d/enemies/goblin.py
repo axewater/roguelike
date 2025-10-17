@@ -82,44 +82,80 @@ def create_goblin_3d(position: Vec3, enemy_color: ursina_color) -> Entity:
         unlit=True
     )
 
-    # Left arm nub (small sphere at shoulder)
+    # Left shoulder joint
+    left_shoulder = Entity(
+        model='sphere',
+        color=enemy_color.tint(-0.08),
+        scale=0.18,
+        parent=body,
+        position=(-0.45, 0.2, 0)  # At body edge
+    )
+
+    # Right shoulder joint
+    right_shoulder = Entity(
+        model='sphere',
+        color=enemy_color.tint(-0.08),
+        scale=0.18,
+        parent=body,
+        position=(0.45, 0.2, 0)  # At body edge
+    )
+
+    # Left arm (4x original size)
     # Body X radius is 0.4, so position at x=-0.5 to clear it
     left_arm = Entity(
         model='sphere',
         color=enemy_color.tint(-0.05),
-        scale=(0.12, 0.25, 0.12),  # Stretched vertically
+        scale=(0.48, 1.0, 0.48),  # 4x larger, stretched vertically
         parent=body,
-        position=(-0.5, 0.15, 0),  # Outside body, at shoulder height
+        position=(-0.7, 0.0, 0),  # Further out, hangs down
         rotation=(0, 0, 15)
     )
 
-    # Right arm nub
+    # Right arm (4x original size)
     right_arm = Entity(
         model='sphere',
         color=enemy_color.tint(-0.05),
-        scale=(0.12, 0.25, 0.12),
+        scale=(0.48, 1.0, 0.48),
         parent=body,
-        position=(0.5, 0.15, 0),  # Outside body, at shoulder height
+        position=(0.7, 0.0, 0),  # Further out, hangs down
         rotation=(0, 0, -15)
     )
 
-    # Left leg nub
+    # Left hip joint
+    left_hip = Entity(
+        model='sphere',
+        color=enemy_color.tint(-0.12),
+        scale=0.2,
+        parent=body,
+        position=(-0.2, -0.5, 0)  # At body bottom
+    )
+
+    # Right hip joint
+    right_hip = Entity(
+        model='sphere',
+        color=enemy_color.tint(-0.12),
+        scale=0.2,
+        parent=body,
+        position=(0.2, -0.5, 0)  # At body bottom
+    )
+
+    # Left leg (4x original size)
     # Body Y radius is 0.5, bottom at y=-0.5, so position at y=-0.65 to clear it
     left_leg = Entity(
         model='sphere',
         color=enemy_color.tint(-0.1),
-        scale=(0.15, 0.2, 0.15),
+        scale=(0.6, 0.8, 0.6),  # 4x larger
         parent=body,
-        position=(-0.2, -0.65, 0)  # Below body, wider stance
+        position=(-0.2, -1.0, 0)  # Below body, adjusted for larger size
     )
 
-    # Right leg nub
+    # Right leg (4x original size)
     right_leg = Entity(
         model='sphere',
         color=enemy_color.tint(-0.1),
-        scale=(0.15, 0.2, 0.15),
+        scale=(0.6, 0.8, 0.6),  # 4x larger
         parent=body,
-        position=(0.2, -0.65, 0)  # Below body, wider stance
+        position=(0.2, -1.0, 0)  # Below body, adjusted for larger size
     )
 
     # Crude club weapon in right "hand" (positioned away from body)
