@@ -16,6 +16,8 @@ docs_archive_*/
 *.pz
 *.pstats
 *.blend1
-models/
+*.obj
+*.fbx
+*.blend
 textures/
 ursina_cache/

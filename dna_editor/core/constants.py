@@ -131,3 +131,8 @@ CURL_TWIST_FACTOR = 0.5  # How much twist increases per segment
 
 # Wind-up motion (pull back before strike)
 WIND_UP_DISTANCE = 0.3  # How far to pull back during wind-up phase
+
+# Segment distance constraints (keep tentacles connected)
+SEGMENT_STRETCH_MAX = 1.8  # Maximum distance multiplier (180% of original spacing)
+SEGMENT_COMPRESS_MIN = 0.4  # Minimum distance multiplier (40% of original spacing)
+CONSTRAINT_ITERATIONS = 2  # Number of constraint solver passes (more = stiffer)
