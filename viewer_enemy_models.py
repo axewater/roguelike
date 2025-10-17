@@ -73,17 +73,6 @@ class OrbitCamera:
         # Clamp camera height
         self.camera_height = max(self.min_height, min(self.max_height, self.camera_height))
 
-        # Scroll to zoom (use held_keys like DNA Editor does)
-        if held_keys['scroll up']:
-            self.camera_distance -= 0.5
-            camera_changed = True
-        if held_keys['scroll down']:
-            self.camera_distance += 0.5
-            camera_changed = True
-
-        # Clamp distance
-        self.camera_distance = max(self.min_distance, min(self.max_distance, self.camera_distance))
-
         # Update camera position if anything changed
         if camera_changed:
             self.update_camera_position()
@@ -95,6 +84,17 @@ class OrbitCamera:
             self.camera_distance = 12.0
             self.update_camera_position()
             held_keys['r'] = False  # Reset key state
+
+    def handle_scroll(self, key):
+        """Handle scroll input for zoom (must be called from input() function)"""
+        if key == 'scroll up':
+            self.camera_distance -= 0.5
+            self.camera_distance = max(self.min_distance, min(self.max_distance, self.camera_distance))
+            self.update_camera_position()
+        elif key == 'scroll down':
+            self.camera_distance += 0.5
+            self.camera_distance = max(self.min_distance, min(self.max_distance, self.camera_distance))
+            self.update_camera_position()
 
 
 def create_enemy_grid():
@@ -220,6 +220,21 @@ def update():
     if held_keys['escape']:
         print("Exiting viewer...")
         sys.exit(0)
+
+
+def input(key):
+    """
+    Global input function - called automatically by Ursina on input events.
+    Must be defined at module level for Ursina to find it.
+    This is where scroll events are handled (they don't work with held_keys).
+    """
+    global orbit_cam
+
+    if orbit_cam is None:
+        return
+
+    # Handle scroll for zoom (scroll is momentary, not "held")
+    orbit_cam.handle_scroll(key)
 
 
 def main():

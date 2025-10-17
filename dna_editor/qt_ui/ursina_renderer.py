@@ -8,6 +8,43 @@ without Qt widget dependencies.
 from PyQt6.QtCore import QTimer
 import sys
 import os
+from PIL import Image
+import numpy as np
+
+
+def create_radial_gradient_texture(size=256, max_opacity=200, falloff_power=2):
+    """
+    Create a circular gradient texture (black center, transparent edges).
+
+    Args:
+        size: Texture resolution (size x size pixels)
+        max_opacity: Maximum opacity at center (0-255)
+        falloff_power: Gradient curve (1=linear, 2=quadratic, 3=cubic)
+
+    Returns:
+        PIL Image with RGBA channels
+    """
+    img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+    pixels = np.array(img)
+
+    center = size / 2
+    max_dist = center  # Radius to edge
+
+    for y in range(size):
+        for x in range(size):
+            # Distance from center
+            dist = ((x - center)**2 + (y - center)**2)**0.5
+
+            # Normalize to 0-1, inverted (center=1, edge=0)
+            if dist <= max_dist:
+                alpha = 1 - (dist / max_dist)
+                # Apply easing curve for softer falloff
+                alpha = alpha ** falloff_power
+                pixels[y, x] = [0, 0, 0, int(alpha * max_opacity)]
+            else:
+                pixels[y, x] = [0, 0, 0, 0]
+
+    return Image.fromarray(pixels)
 
 
 class UrsinaRenderer:
@@ -23,7 +60,7 @@ class UrsinaRenderer:
         # Scene components
         self.ground = None
         self.sky = None
-        self.shadow_layers = []
+        self.shadow = None
         self.lighting = {}
 
         # Camera orbit state
@@ -76,7 +113,7 @@ class UrsinaRenderer:
             # Import Ursina (will use our config)
             from ursina import Ursina, Entity, camera, Sky, color, held_keys, mouse
             from ursina import AmbientLight, DirectionalLight, PointLight
-            from ursina import window
+            from ursina import window, Texture
             import math
 
             # Restore stdout/stderr after imports
@@ -94,6 +131,7 @@ class UrsinaRenderer:
             self.DirectionalLight = DirectionalLight
             self.PointLight = PointLight
             self.window = window
+            self.Texture = Texture
             self.math = math
 
             # Suppress Ursina initialization output temporarily
@@ -138,9 +176,7 @@ class UrsinaRenderer:
         """Create scene elements (ground, sky, lighting)."""
         # Import constants
         from ..core.constants import (
-            GROUND_Y, SHADOW_Y, GROUND_COLOR,
-            SHADOW_LAYERS, SHADOW_BASE_SIZE, SHADOW_SIZE_STEP,
-            SHADOW_BASE_OPACITY, SHADOW_OPACITY_STEP,
+            GROUND_Y, GROUND_COLOR, SHADOW_Y,
             SKY_GRADIENT_BOTTOM, SKY_GRADIENT_TOP
         )
 
@@ -150,6 +186,24 @@ class UrsinaRenderer:
             scale=20,
             color=self.color.rgb(*GROUND_COLOR),
             position=(0, GROUND_Y, 0)
+        )
+
+        # Shadow (radial gradient circle just above ground)
+        shadow_pil_image = create_radial_gradient_texture(
+            size=256,
+            max_opacity=180,  # Semi-transparent
+            falloff_power=2   # Quadratic falloff for soft edges
+        )
+        # Convert PIL Image to Ursina Texture
+        shadow_texture = self.Texture(shadow_pil_image)
+
+        self.shadow = self.Entity(
+            model='plane',
+            scale=3.5,
+            texture=shadow_texture,
+            position=(0, SHADOW_Y, 0),
+            unlit=True  # Ignore lighting, keep pure black
+            # Note: Ursina will handle alpha blending automatically
         )
 
         # Simple single-layer sky using Ursina's built-in Sky
@@ -200,28 +254,6 @@ class UrsinaRenderer:
             color=self.color.rgb(1.0, 0.96, 0.92),
             intensity=0.3  # Reduced from 0.4 to 0.3
         )
-
-        # Layered circle shadow for soft shadow effect
-        # Create multiple circular layers: largest/lightest to smallest/darkest
-        self.shadow_layers = []
-        for i in range(SHADOW_LAYERS):
-            # Calculate size (largest to smallest)
-            layer_size = SHADOW_BASE_SIZE - (i * SHADOW_SIZE_STEP)
-
-            # Calculate opacity (lightest for largest, darkest for smallest)
-            # Reverse the opacity so: largest circle = most transparent, smallest = darkest
-            layer_opacity = SHADOW_BASE_OPACITY - ((SHADOW_LAYERS - 1 - i) * SHADOW_OPACITY_STEP)
-            layer_opacity = max(5, layer_opacity)  # Minimum opacity of 5
-
-            # Create circular shadow layer (sphere scaled very flat)
-            shadow_layer = self.Entity(
-                model='sphere',
-                scale=(layer_size, 0.01, layer_size),  # Very flat sphere = circle
-                color=self.color.rgba(0, 0, 0, layer_opacity),
-                position=(0, SHADOW_Y + i * 0.001, 0),  # Slight offset to prevent z-fighting
-                unlit=True
-            )
-            self.shadow_layers.append(shadow_layer)
 
     def rebuild_creature(self, num_tentacles, segments, algorithm, params, thickness_base, taper_factor,
                         branch_depth=0, branch_count=1, body_scale=1.2, tentacle_color=(0.6, 0.3, 0.7),
