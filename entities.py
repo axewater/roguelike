@@ -218,6 +218,22 @@ class Player(Entity):
             self.gold += gold_amount
             return  # Don't add to inventory
 
+        # Treasure chests add 10x gold to score
+        if item.item_type == c.ITEM_TREASURE_CHEST:
+            base_value = c.ITEM_EFFECTS[c.ITEM_TREASURE_CHEST]["gold_value"]
+            # Rarity multiplier: common=1, uncommon=2, rare=5, epic=10, legendary=25
+            rarity_multipliers = {
+                c.RARITY_COMMON: 1,
+                c.RARITY_UNCOMMON: 2,
+                c.RARITY_RARE: 5,
+                c.RARITY_EPIC: 10,
+                c.RARITY_LEGENDARY: 25
+            }
+            multiplier = rarity_multipliers.get(item.rarity, 1)
+            gold_amount = base_value * multiplier
+            self.gold += gold_amount
+            return  # Don't add to inventory
+
         # Equipment is automatically equipped
         if item.item_type in c.EQUIPMENT_TYPES:
             slot = c.EQUIPMENT_TYPES[item.item_type]

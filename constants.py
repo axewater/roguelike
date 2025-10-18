@@ -224,6 +224,7 @@ ITEM_SHIELD = "shield"
 ITEM_BOOTS = "boots"
 ITEM_RING = "ring"
 ITEM_GOLD_COIN = "gold_coin"
+ITEM_TREASURE_CHEST = "treasure_chest"
 
 # Equipment slots
 SLOT_WEAPON = "weapon"
@@ -277,6 +278,7 @@ ITEM_EFFECTS = {
     ITEM_BOOTS: {"defense": 1},
     ITEM_RING: {"attack": 2, "defense": 1},
     ITEM_GOLD_COIN: {"gold_value": 1},  # Base gold value (multiplied by rarity)
+    ITEM_TREASURE_CHEST: {"gold_value": 10},  # 10x gold coins (multiplied by rarity)
 }
 
 # Dungeon generation

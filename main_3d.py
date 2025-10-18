@@ -94,11 +94,9 @@ class AnimationManager3DProxy:
         self.anim_3d.add_floating_text(x, y, text, rgb, is_crit)
 
     def add_flash_effect(self, x, y, color=None):
-        if color:
-            rgb = self.qcolor_to_rgb(color)
-            self.anim_3d.add_flash_effect(x, y, rgb)
-        else:
-            self.anim_3d.add_flash_effect(x, y)
+        # Disabled in 3D - the white flash effect looks jarring in first-person
+        # Blood particles and sound effects still play via separate methods
+        pass
 
     def add_particle_burst(self, x, y, color, count=8, particle_type="square"):
         rgb = self.qcolor_to_rgb(color)

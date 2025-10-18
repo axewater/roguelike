@@ -200,6 +200,260 @@ class DragonSegment:
         destroy(self.entity)
 
 
+class DragonHorn:
+    """Rigid curved horn extending from dragon's head, using Bezier curves and sphere chains."""
+
+    def __init__(self, anchor_point, target_point, num_segments, base_thickness,
+                 horn_color, parent, toon_shader=None):
+        """
+        Create a dragon horn.
+
+        Args:
+            anchor_point: Vec3 starting position (on head surface)
+            target_point: Vec3 ending position (horn tip)
+            num_segments: Number of spheres along horn (typically 3)
+            base_thickness: Thickness at anchor point (tapers to tip using golden ratio)
+            horn_color: RGB tuple (0-1) for horn
+            parent: Parent entity
+            toon_shader: Optional toon shader
+        """
+        self.anchor_point = anchor_point
+        self.target_point = target_point
+        self.num_segments = num_segments
+        self.base_thickness = base_thickness
+        self.horn_color = horn_color
+
+        # Generate horn curve using Bezier (rigid curve for horns)
+        # Use lower control_strength for more rigid, less wavy horns
+        curve_points = bezier_curve(
+            anchor=anchor_point,
+            target=target_point,
+            num_points=num_segments,
+            control_strength=0.25  # Rigid curve for horns
+        )
+
+        # Create sphere chain with golden ratio tapering
+        self.spheres = []
+        self.tubes = []
+        self.base_positions = []  # Store for animation
+
+        # Golden ratio for tapering
+        PHI = 1.618033988749895
+
+        for i, point in enumerate(curve_points):
+            # Calculate size with golden ratio taper (thick base → thin tip)
+            t = i / max(num_segments - 1, 1)
+            # Golden taper: 1.0 at base → 1/PHI² at tip
+            taper_factor = 1.0 - (t * (1.0 - 1.0 / (PHI ** 2)))
+            sphere_size = base_thickness * taper_factor
+
+            # Create sphere
+            sphere_params = {
+                'model': 'sphere',
+                'color': color.rgb(*horn_color),
+                'position': point,
+                'scale': sphere_size,
+                'parent': parent
+            }
+
+            if toon_shader is not None:
+                sphere_params['shader'] = toon_shader
+
+            sphere = Entity(**sphere_params)
+            self.spheres.append(sphere)
+            self.base_positions.append(Vec3(point))
+
+            # Create connector tube to previous sphere
+            if i > 0:
+                prev_sphere = self.spheres[i - 1]
+                midpoint = (sphere.position + prev_sphere.position) / 2
+                length = (sphere.position - prev_sphere.position).length()
+
+                # Tube radius (average of both sphere sizes)
+                avg_size = (sphere_size + prev_sphere.scale[0]) / 2
+                tube_radius = avg_size * 0.7  # Thick tubes for solid horns
+
+                tube_params = {
+                    'model': 'cube',
+                    'color': color.rgb(*horn_color),
+                    'position': midpoint,
+                    'scale': (tube_radius, length / 2, tube_radius),
+                    'parent': parent
+                }
+
+                if toon_shader is not None:
+                    tube_params['shader'] = toon_shader
+
+                tube = Entity(**tube_params)
+                tube.look_at(prev_sphere, axis=Vec3.up)
+                self.tubes.append(tube)
+
+    def update_animation(self, time, head_position):
+        """
+        Update horn animation (minimal movement - horns are rigid).
+
+        Args:
+            time: Current animation time
+            head_position: Current position of dragon's head (to track)
+        """
+        # Calculate head offset from initial anchor point
+        head_offset = head_position - self.anchor_point
+
+        # Horns move rigidly with head (no sway like whiskers)
+        for i, sphere in enumerate(self.spheres):
+            # Base position follows head movement exactly
+            sphere.position = self.base_positions[i] + head_offset
+
+            # Update connector tubes
+            if i > 0:
+                tube = self.tubes[i - 1]
+                prev_sphere = self.spheres[i - 1]
+
+                # Recalculate tube position and orientation
+                midpoint = (sphere.position + prev_sphere.position) / 2
+                tube.position = midpoint
+
+                length = (sphere.position - prev_sphere.position).length()
+                tube.scale_y = length / 2
+
+                tube.look_at(prev_sphere, axis=Vec3.up)
+
+    def destroy(self):
+        """Cleanup horn entities."""
+        for sphere in self.spheres:
+            destroy(sphere)
+        for tube in self.tubes:
+            destroy(tube)
+
+
+class DragonSpike:
+    """Sharp spike extending upward from dragon's back (one per body segment)."""
+
+    def __init__(self, anchor_point, segment_size, spike_color, parent, toon_shader=None):
+        """
+        Create a dragon spine spike.
+
+        Args:
+            anchor_point: Vec3 starting position (on segment top)
+            segment_size: Size of the parent segment (for proportional sizing)
+            spike_color: RGB tuple (0-1) for spike
+            parent: Parent entity
+            toon_shader: Optional toon shader
+        """
+        self.anchor_point = anchor_point
+        self.segment_size = segment_size
+        self.spike_color = spike_color
+
+        # Golden ratio for sizing
+        PHI = 1.618033988749895
+
+        # Spike dimensions (proportional to segment size)
+        spike_base_thickness = segment_size / (PHI ** 2)  # Smaller than horns for delicate look
+        spike_length = segment_size * PHI  # Length proportional to segment
+
+        # Target point (spike points straight upward)
+        target_point = anchor_point + Vec3(0, spike_length, 0)
+
+        # Generate spike curve (minimal curve for sharp spikes)
+        num_segments = 2  # Simple 2-segment spike (base + tip)
+        curve_points = bezier_curve(
+            anchor=anchor_point,
+            target=target_point,
+            num_points=num_segments,
+            control_strength=0.15  # Very rigid for sharp spikes
+        )
+
+        # Create sphere chain with golden ratio tapering
+        self.spheres = []
+        self.tubes = []
+        self.base_positions = []  # Store for animation
+
+        for i, point in enumerate(curve_points):
+            # Calculate size with golden ratio taper (thick base → sharp tip)
+            t = i / max(num_segments - 1, 1)
+            # Golden taper: 1.0 at base → 1/PHI at tip
+            taper_factor = 1.0 - (t * (1.0 - 1.0 / PHI))
+            sphere_size = spike_base_thickness * taper_factor
+
+            # Create sphere
+            sphere_params = {
+                'model': 'sphere',
+                'color': color.rgb(*spike_color),
+                'position': point,
+                'scale': sphere_size,
+                'parent': parent
+            }
+
+            if toon_shader is not None:
+                sphere_params['shader'] = toon_shader
+
+            sphere = Entity(**sphere_params)
+            self.spheres.append(sphere)
+            self.base_positions.append(Vec3(point))
+
+            # Create connector tube to previous sphere
+            if i > 0:
+                prev_sphere = self.spheres[i - 1]
+                midpoint = (sphere.position + prev_sphere.position) / 2
+                length = (sphere.position - prev_sphere.position).length()
+
+                # Tube radius (average of both sphere sizes)
+                avg_size = (sphere_size + prev_sphere.scale[0]) / 2
+                tube_radius = avg_size * 0.75  # Thick tubes for solid spikes
+
+                tube_params = {
+                    'model': 'cube',
+                    'color': color.rgb(*spike_color),
+                    'position': midpoint,
+                    'scale': (tube_radius, length / 2, tube_radius),
+                    'parent': parent
+                }
+
+                if toon_shader is not None:
+                    tube_params['shader'] = toon_shader
+
+                tube = Entity(**tube_params)
+                tube.look_at(prev_sphere, axis=Vec3.up)
+                self.tubes.append(tube)
+
+    def update_animation(self, time, segment_position):
+        """
+        Update spike animation (rigid - follows segment exactly).
+
+        Args:
+            time: Current animation time
+            segment_position: Current position of parent segment (to track)
+        """
+        # Calculate segment offset from initial anchor point
+        segment_offset = segment_position - self.anchor_point
+
+        # Spikes move rigidly with segment (no independent motion)
+        for i, sphere in enumerate(self.spheres):
+            # Base position follows segment movement exactly
+            sphere.position = self.base_positions[i] + segment_offset
+
+            # Update connector tubes
+            if i > 0:
+                tube = self.tubes[i - 1]
+                prev_sphere = self.spheres[i - 1]
+
+                # Recalculate tube position and orientation
+                midpoint = (sphere.position + prev_sphere.position) / 2
+                tube.position = midpoint
+
+                length = (sphere.position - prev_sphere.position).length()
+                tube.scale_y = length / 2
+
+                tube.look_at(prev_sphere, axis=Vec3.up)
+
+    def destroy(self):
+        """Cleanup spike entities."""
+        for sphere in self.spheres:
+            destroy(sphere)
+        for tube in self.tubes:
+            destroy(tube)
+
+
 class DragonWhisker:
     """Thin curved whisker extending from dragon's head, using Bezier curves and sphere chains."""
 
@@ -348,7 +602,8 @@ class DragonCreature:
                  weave_amplitude=0.5, bob_amplitude=0.3, anim_speed=1.5,
                  num_eyes=2, eye_size=0.15, eyeball_color=(255, 200, 50), pupil_color=(20, 0, 0),
                  mouth_size=0.25, mouth_color=(20, 0, 0),
-                 num_whiskers_per_side=2, whisker_segments=4, whisker_thickness=0.05):
+                 num_whiskers_per_side=2, whisker_segments=4, whisker_thickness=0.05,
+                 spine_spike_color=(100, 20, 20)):
         """
         Create a dragon creature.
 
@@ -371,6 +626,7 @@ class DragonCreature:
             num_whiskers_per_side: Number of whiskers on each side (0-3)
             whisker_segments: Segments per whisker (3-6)
             whisker_thickness: Base whisker thickness (0.03-0.08)
+            spine_spike_color: RGB tuple for spine spikes (0-255 range)
         """
         # Create root entity
         self.root = Entity(position=(0, 0, 0))
@@ -378,6 +634,8 @@ class DragonCreature:
         self.eyes = []
         self.eye_offsets = []  # Vec3 offsets from head center for each eye
         self.whiskers = []  # Dragon whiskers
+        self.horns = []  # Dragon horns
+        self.spikes = []  # Spine spikes (one per body segment)
         self.mouth_sphere = None
         self.fire_particles = []  # Active fire particles
 
@@ -401,6 +659,7 @@ class DragonCreature:
         self.num_whiskers_per_side = num_whiskers_per_side
         self.whisker_segments = whisker_segments
         self.whisker_thickness = whisker_thickness
+        self.spine_spike_color = (spine_spike_color[0] / 255.0, spine_spike_color[1] / 255.0, spine_spike_color[2] / 255.0)
 
         # Attack animation state
         self.is_attacking = False
@@ -501,6 +760,12 @@ class DragonCreature:
 
         # Create whiskers on head segment
         self._create_whiskers()
+
+        # Create horns on head segment
+        self._create_horns()
+
+        # Create spine spikes on body segments
+        self._create_spines()
 
     def _create_eyes(self):
         """Create eyes on the dragon's head segment."""
@@ -697,11 +962,124 @@ class DragonCreature:
 
                 self.whiskers.append(whisker)
 
+    def _create_horns(self):
+        """Create horns on the dragon's head segment (top sides, pointing backward and upward)."""
+        # Clear existing horns
+        for horn in self.horns:
+            horn.destroy()
+        self.horns.clear()
+
+        if len(self.segments) == 0:
+            return
+
+        # Get head segment
+        head_segment = self.segments[0]
+        head_position = head_segment.base_position
+        head_radius = head_segment.size / 2
+
+        # Horn color: slightly darker than head for contrast
+        horn_color = (
+            self.head_color[0] * 0.85,
+            self.head_color[1] * 0.85,
+            self.head_color[2] * 0.85
+        )
+
+        # Golden ratio for sizing
+        PHI = 1.618033988749895
+
+        # Horn base thickness relative to head size (using golden ratio)
+        horn_base_thickness = head_radius / PHI  # ≈ 0.618 of head radius
+
+        # Create 2 horns (left and right) positioned on top-sides of head
+        for side_idx, side_sign in enumerate([1, -1]):  # 1 = left, -1 = right
+            # Horn position using spherical coordinates
+            # Top-side of head: theta = ±60° from center (left/right)
+            #                   phi = 30° from top (upper sides)
+            theta_degrees = 60 * side_sign  # 60° left or right
+            phi_degrees = 30  # 30° from top (upper head)
+
+            # Convert to radians
+            theta = math.radians(theta_degrees)
+            phi = math.radians(phi_degrees)
+
+            # Convert spherical to Cartesian on head surface
+            x_normalized = math.sin(phi) * math.sin(theta)
+            y_normalized = math.cos(phi)  # Positive Y is up
+            z_normalized = -math.sin(phi) * math.cos(theta)  # Negative Z is forward
+
+            # Anchor point on head surface
+            anchor_offset = Vec3(
+                x_normalized * head_radius * 0.90,
+                y_normalized * head_radius * 0.90,
+                z_normalized * head_radius * 0.90
+            )
+            anchor_point = head_position + anchor_offset
+
+            # Calculate target point (horn tip)
+            # Horns curve backward and upward from anchor
+            # Use golden ratio for horn length
+            horn_length = head_radius * PHI  # Length proportional to head size
+
+            # Target direction: upward and backward
+            target_direction = Vec3(
+                x_normalized * 0.3,  # Slight outward flare
+                0.8,  # Mostly upward
+                0.6  # Backward (positive Z in dragon coords)
+            ).normalized()
+
+            target_point = anchor_point + target_direction * horn_length
+
+            # Create horn with 3 segments
+            horn = DragonHorn(
+                anchor_point=anchor_point,
+                target_point=target_point,
+                num_segments=3,  # As requested: 3 segments
+                base_thickness=horn_base_thickness,
+                horn_color=horn_color,
+                parent=self.root,
+                toon_shader=self.toon_shader
+            )
+
+            self.horns.append(horn)
+
+    def _create_spines(self):
+        """Create spine spikes along dragon's back (one per body segment, excluding head)."""
+        # Clear existing spikes
+        for spike in self.spikes:
+            spike.destroy()
+        self.spikes.clear()
+
+        if len(self.segments) <= 1:  # Need at least 2 segments (head + 1 body)
+            return
+
+        # Create one spike per body segment (skip head segment at i=0)
+        for i in range(1, len(self.segments)):
+            segment = self.segments[i]
+            segment_position = segment.base_position
+            segment_size = segment.size
+
+            # Anchor point on top of segment (positive Y direction)
+            # Position spike at segment's top surface
+            anchor_offset = Vec3(0, segment_size / 2, 0)
+            anchor_point = segment_position + anchor_offset
+
+            # Create spike
+            spike = DragonSpike(
+                anchor_point=anchor_point,
+                segment_size=segment_size,
+                spike_color=self.spine_spike_color,
+                parent=self.root,
+                toon_shader=self.toon_shader
+            )
+
+            self.spikes.append(spike)
+
     def rebuild(self, num_segments, segment_thickness, taper_factor, head_scale,
                 body_color, head_color, weave_amplitude, bob_amplitude, anim_speed,
                 num_eyes=2, eye_size=0.15, eyeball_color=(255, 200, 50), pupil_color=(20, 0, 0),
                 mouth_size=0.25, mouth_color=(20, 0, 0),
-                num_whiskers_per_side=2, whisker_segments=4, whisker_thickness=0.05):
+                num_whiskers_per_side=2, whisker_segments=4, whisker_thickness=0.05,
+                spine_spike_color=(100, 20, 20)):
         """
         Rebuild dragon with new parameters.
 
@@ -724,6 +1102,7 @@ class DragonCreature:
             num_whiskers_per_side: Number of whiskers on each side (0-3)
             whisker_segments: Segments per whisker (3-6)
             whisker_thickness: Base whisker thickness (0.03-0.08)
+            spine_spike_color: RGB tuple for spine spikes (0-255 range)
         """
         self.num_segments = num_segments
         self.segment_thickness = segment_thickness
@@ -743,6 +1122,7 @@ class DragonCreature:
         self.num_whiskers_per_side = num_whiskers_per_side
         self.whisker_segments = whisker_segments
         self.whisker_thickness = whisker_thickness
+        self.spine_spike_color = (spine_spike_color[0] / 255.0, spine_spike_color[1] / 255.0, spine_spike_color[2] / 255.0)
 
         # Regenerate dragon
         self._generate_dragon()
@@ -934,6 +1314,27 @@ class DragonCreature:
             for whisker in self.whiskers:
                 whisker.update_animation(time, current_head_position)
 
+        # Update horn positions to follow head movement
+        if len(self.horns) > 0 and len(self.segments) > 0:
+            head_segment = self.segments[0]
+            # Get current head position (including animation offset)
+            current_head_position = head_segment.entity.position
+
+            for horn in self.horns:
+                horn.update_animation(time, current_head_position)
+
+        # Update spine spike positions to follow body segment movement
+        if len(self.spikes) > 0 and len(self.segments) > 1:
+            # Each spike corresponds to a body segment (skip head at i=0)
+            for i, spike in enumerate(self.spikes):
+                # Spike i corresponds to segment i+1 (since we skip the head)
+                segment_index = i + 1
+                if segment_index < len(self.segments):
+                    segment = self.segments[segment_index]
+                    # Get current segment position (including animation offset)
+                    current_segment_position = segment.entity.position
+                    spike.update_animation(time, current_segment_position)
+
         # Update and spawn fire particles during attack strike phase
         if self.is_attacking and attack_progress >= 0.4 and attack_progress < 0.7:
             # Spawn fire particles during strike phase (peak spawning at 0.5-0.6)
@@ -1014,6 +1415,10 @@ class DragonCreature:
             eye.destroy()
         for whisker in self.whiskers:
             whisker.destroy()
+        for horn in self.horns:
+            horn.destroy()
+        for spike in self.spikes:
+            spike.destroy()
         if self.mouth_sphere is not None:
             destroy(self.mouth_sphere)
         for particle in self.fire_particles:

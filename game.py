@@ -115,6 +115,7 @@ class Game:
     def _spawn_enemies(self):
         """Spawn enemies on current level"""
         self.enemies = []
+        self.rooms_with_enemies = set()  # Track rooms that have enemies
         level_modifier = 1.0 + (self.current_level - 1) * 0.15
 
         num_enemies = min(20, c.ENEMIES_PER_LEVEL_BASE + self.current_level)
@@ -152,10 +153,15 @@ class Game:
             enemy = Enemy(x, y, enemy_type, level_modifier, starting_room)
             self.enemies.append(enemy)
 
+            # Track rooms with enemies
+            if starting_room is not None:
+                self.rooms_with_enemies.add(starting_room)
+
     def _spawn_items(self):
         """Spawn items on current level"""
         self.items = []
 
+        # Regular item spawning
         for _ in range(c.ITEMS_PER_LEVEL):
             # Choose item type
             item_types = [c.ITEM_HEALTH_POTION, c.ITEM_SWORD, c.ITEM_SHIELD, c.ITEM_BOOTS, c.ITEM_RING, c.ITEM_GOLD_COIN]
@@ -173,6 +179,31 @@ class Game:
             x, y = self._get_spawn_position()
             item = Item(x, y, item_type, rarity, affixes)
             self.items.append(item)
+
+        # Spawn treasure chests in rooms with enemies (as rewards)
+        if hasattr(self, 'rooms_with_enemies') and self.rooms_with_enemies:
+            # Spawn 1-2 chests per level in enemy rooms
+            num_chests = min(2, max(1, len(self.rooms_with_enemies) // 3))
+
+            # Select random rooms with enemies
+            rooms_for_chests = random.sample(list(self.rooms_with_enemies),
+                                            min(num_chests, len(self.rooms_with_enemies)))
+
+            for room in rooms_for_chests:
+                # Spawn chest in random position within this room
+                x, y = room.get_random_point()
+
+                # Ensure position is not occupied
+                attempts = 0
+                while self._is_position_occupied(x, y) and attempts < 10:
+                    x, y = room.get_random_point()
+                    attempts += 1
+
+                # Determine rarity (chests use same rarity system)
+                rarity = self._determine_item_rarity()
+
+                chest = Item(x, y, c.ITEM_TREASURE_CHEST, rarity, {})
+                self.items.append(chest)
 
     def _determine_item_rarity(self) -> str:
         """Determine item rarity based on dungeon level"""
@@ -504,6 +535,14 @@ class Game:
                     msg_type = "gold"
                     # Play coin sound
                     self.audio_manager.play_coin()
+                elif item.item_type == c.ITEM_TREASURE_CHEST:
+                    msg_type = "gold"  # Use gold message type for treasure
+                    # Play coin sound (could add special treasure sound later)
+                    self.audio_manager.play_coin()
+                    # Add particle burst for treasure
+                    from PyQt6.QtGui import QColor
+                    self.anim_manager.add_particle_burst(self.player.x, self.player.y,
+                                                        QColor(255, 215, 0), count=12, particle_type="star")
                 else:
                     # Use rarity-based event type for loot
                     if item.rarity in [c.RARITY_LEGENDARY, c.RARITY_EPIC]:
@@ -543,6 +582,19 @@ class Game:
                     multiplier = rarity_multipliers.get(item.rarity, 1)
                     gold_amount = base_value * multiplier
                     self.add_message(f"Picked up {gold_amount} gold!", msg_type)
+                elif item.item_type == c.ITEM_TREASURE_CHEST:
+                    # Calculate gold amount for treasure chest
+                    base_value = c.ITEM_EFFECTS[c.ITEM_TREASURE_CHEST]["gold_value"]
+                    rarity_multipliers = {
+                        c.RARITY_COMMON: 1,
+                        c.RARITY_UNCOMMON: 2,
+                        c.RARITY_RARE: 5,
+                        c.RARITY_EPIC: 10,
+                        c.RARITY_LEGENDARY: 25
+                    }
+                    multiplier = rarity_multipliers.get(item.rarity, 1)
+                    gold_amount = base_value * multiplier
+                    self.add_message(f"Found treasure chest with {gold_amount} gold!", msg_type)
                 else:
                     self.add_message(f"Picked up {item.get_name()}!", msg_type)
 
