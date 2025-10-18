@@ -41,8 +41,9 @@ class StateManager:
                    dragon_bob_amplitude=0.3, dragon_anim_speed=1.5,
                    dragon_num_eyes=2, dragon_eye_size=0.15,
                    dragon_eyeball_color=(255, 200, 50), dragon_pupil_color=(20, 0, 0),
-                   dragon_num_horns=2, dragon_horn_branch_depth=1, dragon_horn_branch_count=2,
-                   dragon_horn_base_size=0.15, dragon_horn_color=(255, 220, 180)):
+                   dragon_mouth_size=0.25, dragon_mouth_color=(20, 0, 0),
+                   dragon_num_whiskers_per_side=2, dragon_whisker_segments=4,
+                   dragon_whisker_thickness=0.05):
         """
         Save current state to history.
 
@@ -159,11 +160,11 @@ class StateManager:
             'dragon_eye_size': dragon_eye_size,
             'dragon_eyeball_color': dragon_eyeball_color,
             'dragon_pupil_color': dragon_pupil_color,
-            'dragon_num_horns': dragon_num_horns,
-            'dragon_horn_branch_depth': dragon_horn_branch_depth,
-            'dragon_horn_branch_count': dragon_horn_branch_count,
-            'dragon_horn_base_size': dragon_horn_base_size,
-            'dragon_horn_color': dragon_horn_color
+            'dragon_mouth_size': dragon_mouth_size,
+            'dragon_mouth_color': dragon_mouth_color,
+            'dragon_num_whiskers_per_side': dragon_num_whiskers_per_side,
+            'dragon_whisker_segments': dragon_whisker_segments,
+            'dragon_whisker_thickness': dragon_whisker_thickness
         }
 
         # Clear future history if we're not at the end
@@ -270,11 +271,11 @@ class StateManager:
             'dragon_eye_size': state.get('dragon_eye_size', 0.15),
             'dragon_eyeball_color': state.get('dragon_eyeball_color', (255, 200, 50)),
             'dragon_pupil_color': state.get('dragon_pupil_color', (20, 0, 0)),
-            'dragon_num_horns': state.get('dragon_num_horns', 2),
-            'dragon_horn_branch_depth': state.get('dragon_horn_branch_depth', 1),
-            'dragon_horn_branch_count': state.get('dragon_horn_branch_count', 2),
-            'dragon_horn_base_size': state.get('dragon_horn_base_size', 0.15),
-            'dragon_horn_color': state.get('dragon_horn_color', (255, 220, 180))
+            'dragon_mouth_size': state.get('dragon_mouth_size', 0.25),
+            'dragon_mouth_color': state.get('dragon_mouth_color', (20, 0, 0)),
+            'dragon_num_whiskers_per_side': state.get('dragon_num_whiskers_per_side', 2),
+            'dragon_whisker_segments': state.get('dragon_whisker_segments', 4),
+            'dragon_whisker_thickness': state.get('dragon_whisker_thickness', 0.05)
         }
 
     def can_undo(self):

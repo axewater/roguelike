@@ -158,8 +158,8 @@ class Game:
 
         for _ in range(c.ITEMS_PER_LEVEL):
             # Choose item type
-            item_types = [c.ITEM_HEALTH_POTION, c.ITEM_SWORD, c.ITEM_SHIELD, c.ITEM_BOOTS, c.ITEM_RING]
-            weights = [5, 3, 2, 2, 2]  # Health potions more common
+            item_types = [c.ITEM_HEALTH_POTION, c.ITEM_SWORD, c.ITEM_SHIELD, c.ITEM_BOOTS, c.ITEM_RING, c.ITEM_GOLD_COIN]
+            weights = [5, 3, 2, 2, 2, 10]  # Gold coins most common (score tracking)
             item_type = random.choices(item_types, weights=weights)[0]
 
             # Determine rarity based on dungeon level
@@ -500,6 +500,10 @@ class Game:
                     self.anim_manager.add_heal_sparkles(self.player.x, self.player.y)
                     # Play potion sound
                     self.audio_manager.play_potion()
+                elif item.item_type == c.ITEM_GOLD_COIN:
+                    msg_type = "gold"
+                    # Play coin sound
+                    self.audio_manager.play_coin()
                 else:
                     # Use rarity-based event type for loot
                     if item.rarity in [c.RARITY_LEGENDARY, c.RARITY_EPIC]:
@@ -525,7 +529,22 @@ class Game:
                     elif item.rarity == c.RARITY_RARE:
                         self.audio_manager.play_voice_rare()
 
-                self.add_message(f"Picked up {item.get_name()}!", msg_type)
+                # Display appropriate message
+                if item.item_type == c.ITEM_GOLD_COIN:
+                    # Calculate gold amount for message
+                    base_value = c.ITEM_EFFECTS[c.ITEM_GOLD_COIN]["gold_value"]
+                    rarity_multipliers = {
+                        c.RARITY_COMMON: 1,
+                        c.RARITY_UNCOMMON: 2,
+                        c.RARITY_RARE: 5,
+                        c.RARITY_EPIC: 10,
+                        c.RARITY_LEGENDARY: 25
+                    }
+                    multiplier = rarity_multipliers.get(item.rarity, 1)
+                    gold_amount = base_value * multiplier
+                    self.add_message(f"Picked up {gold_amount} gold!", msg_type)
+                else:
+                    self.add_message(f"Picked up {item.get_name()}!", msg_type)
 
     def _descend_stairs(self):
         """Descend to next level"""

@@ -28,11 +28,11 @@ class DragonPanel(BaseCreaturePanel):
         self._dragon_eye_size = 0.15
         self._dragon_eyeball_color = (255, 200, 50)  # RGB 0-255
         self._dragon_pupil_color = (20, 0, 0)  # RGB 0-255
-        self._dragon_num_horns = 2
-        self._dragon_horn_branch_depth = 1
-        self._dragon_horn_branch_count = 2
-        self._dragon_horn_base_size = 0.15
-        self._dragon_horn_color = (255, 220, 180)  # RGB 0-255
+        self._dragon_mouth_size = 0.25
+        self._dragon_mouth_color = (20, 0, 0)  # RGB 0-255
+        self._dragon_num_whiskers_per_side = 2
+        self._dragon_whisker_segments = 4
+        self._dragon_whisker_thickness = 0.05
 
         self._init_ui()
 
@@ -54,8 +54,11 @@ class DragonPanel(BaseCreaturePanel):
         # Row 2: Eyes section (full width, spanning 3 columns)
         layout.addWidget(self._create_dragon_eyes_section(), 1, 0, 1, 3)
 
-        # Row 3: Horns section (full width, spanning 3 columns)
-        layout.addWidget(self._create_dragon_horns_section(), 2, 0, 1, 3)
+        # Row 3: Mouth section (full width, spanning 3 columns)
+        layout.addWidget(self._create_dragon_mouth_section(), 2, 0, 1, 3)
+
+        # Row 4: Whiskers section (full width, spanning 3 columns)
+        layout.addWidget(self._create_dragon_whiskers_section(), 3, 0, 1, 3)
 
         self.setLayout(layout)
 
@@ -212,53 +215,67 @@ class DragonPanel(BaseCreaturePanel):
         group.setLayout(layout)
         return group
 
-    def _create_dragon_horns_section(self):
-        """Create Dragon Horns card (full width)."""
-        group = self._create_card("DRAGON HORNS")
+    def _create_dragon_mouth_section(self):
+        """Create Dragon Mouth card."""
+        group = self._create_card("DRAGON MOUTH")
         layout = QHBoxLayout()
         layout.setSpacing(25)
         layout.setContentsMargins(15, 15, 15, 15)
 
-        # Number of Horns
-        horns_layout = QVBoxLayout()
-        horns_layout.addWidget(self._create_label("Number of Horns"))
-        self.dragon_num_horns_spin = self._create_spinbox(0, 4, self._dragon_num_horns, self._on_dragon_num_horns_changed)
-        horns_layout.addWidget(self.dragon_num_horns_spin)
-        layout.addLayout(horns_layout)
+        # Mouth Size
+        mouth_size_layout = QVBoxLayout()
+        mouth_size_layout.addWidget(self._create_label("Mouth Size"))
+        self.dragon_mouth_size_slider = self._create_slider(25, 50, 25, self._on_dragon_mouth_size_changed)
+        mouth_size_layout.addWidget(self.dragon_mouth_size_slider)
+        self.dragon_mouth_size_label = QLabel("0.25")
+        self.dragon_mouth_size_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.dragon_mouth_size_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        mouth_size_layout.addWidget(self.dragon_mouth_size_label)
+        layout.addLayout(mouth_size_layout)
 
-        # Horn Branch Depth
-        branch_depth_layout = QVBoxLayout()
-        branch_depth_layout.addWidget(self._create_label("Branch Depth"))
-        self.dragon_horn_branch_depth_spin = self._create_spinbox(0, 2, self._dragon_horn_branch_depth, self._on_dragon_horn_branch_depth_changed)
-        branch_depth_layout.addWidget(self.dragon_horn_branch_depth_spin)
-        layout.addLayout(branch_depth_layout)
+        # Mouth Color
+        mouth_color_layout = QVBoxLayout()
+        mouth_color_layout.addWidget(self._create_label("Mouth Cavity Color"))
+        mouth_color_01 = tuple(c / 255.0 for c in self._dragon_mouth_color)
+        self.dragon_mouth_color_button = ColorButton(mouth_color_01)
+        self.dragon_mouth_color_button.colorChanged.connect(self._on_dragon_mouth_color_changed)
+        mouth_color_layout.addWidget(self.dragon_mouth_color_button)
+        layout.addLayout(mouth_color_layout)
 
-        # Horn Branch Count
-        branch_count_layout = QVBoxLayout()
-        branch_count_layout.addWidget(self._create_label("Branches per Segment"))
-        self.dragon_horn_branch_count_spin = self._create_spinbox(1, 3, self._dragon_horn_branch_count, self._on_dragon_horn_branch_count_changed)
-        branch_count_layout.addWidget(self.dragon_horn_branch_count_spin)
-        layout.addLayout(branch_count_layout)
+        group.setLayout(layout)
+        return group
 
-        # Horn Base Size
-        horn_size_layout = QVBoxLayout()
-        horn_size_layout.addWidget(self._create_label("Horn Size"))
-        self.dragon_horn_size_slider = self._create_slider(5, 40, 15, self._on_dragon_horn_size_changed)
-        horn_size_layout.addWidget(self.dragon_horn_size_slider)
-        self.dragon_horn_size_label = QLabel("0.15")
-        self.dragon_horn_size_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.dragon_horn_size_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
-        horn_size_layout.addWidget(self.dragon_horn_size_label)
-        layout.addLayout(horn_size_layout)
+    def _create_dragon_whiskers_section(self):
+        """Create Dragon Whiskers card."""
+        group = self._create_card("WHISKERS")
+        layout = QHBoxLayout()
+        layout.setSpacing(15)
+        layout.setContentsMargins(15, 15, 15, 15)
 
-        # Horn Color
-        horn_color_layout = QVBoxLayout()
-        horn_color_layout.addWidget(self._create_label("Horn Color"))
-        horn_color_01 = tuple(c / 255.0 for c in self._dragon_horn_color)
-        self.dragon_horn_color_button = ColorButton(horn_color_01)
-        self.dragon_horn_color_button.colorChanged.connect(self._on_dragon_horn_color_changed)
-        horn_color_layout.addWidget(self.dragon_horn_color_button)
-        layout.addLayout(horn_color_layout)
+        # Number of Whiskers Per Side (0-3)
+        whisker_count_layout = QVBoxLayout()
+        whisker_count_layout.addWidget(self._create_label("Whiskers Per Side"))
+        self.dragon_num_whiskers_spin = self._create_spinbox(0, 3, self._dragon_num_whiskers_per_side, self._on_dragon_num_whiskers_changed)
+        whisker_count_layout.addWidget(self.dragon_num_whiskers_spin)
+        layout.addLayout(whisker_count_layout)
+
+        # Whisker Segments (3-6)
+        whisker_segments_layout = QVBoxLayout()
+        whisker_segments_layout.addWidget(self._create_label("Whisker Segments"))
+        self.dragon_whisker_segments_spin = self._create_spinbox(3, 6, self._dragon_whisker_segments, self._on_dragon_whisker_segments_changed)
+        whisker_segments_layout.addWidget(self.dragon_whisker_segments_spin)
+        layout.addLayout(whisker_segments_layout)
+
+        # Whisker Thickness (0.03-0.08)
+        whisker_thickness_layout = QVBoxLayout()
+        whisker_thickness_layout.addWidget(self._create_label("Whisker Thickness"))
+        self.dragon_whisker_thickness_slider = self._create_slider(3, 8, 5, self._on_dragon_whisker_thickness_changed)
+        whisker_thickness_layout.addWidget(self.dragon_whisker_thickness_slider)
+        self.dragon_whisker_thickness_label = QLabel("0.05")
+        self.dragon_whisker_thickness_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.dragon_whisker_thickness_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        whisker_thickness_layout.addWidget(self.dragon_whisker_thickness_label)
+        layout.addLayout(whisker_thickness_layout)
 
         group.setLayout(layout)
         return group
@@ -327,26 +344,27 @@ class DragonPanel(BaseCreaturePanel):
         self._dragon_pupil_color = (int(color[0] * 255), int(color[1] * 255), int(color[2] * 255))
         self._emit_change()
 
-    def _on_dragon_num_horns_changed(self, value):
-        self._dragon_num_horns = value
+    def _on_dragon_mouth_size_changed(self, value):
+        self._dragon_mouth_size = value / 100.0
+        self.dragon_mouth_size_label.setText(f"{self._dragon_mouth_size:.2f}")
         self._emit_change()
 
-    def _on_dragon_horn_branch_depth_changed(self, value):
-        self._dragon_horn_branch_depth = value
-        self._emit_change()
-
-    def _on_dragon_horn_branch_count_changed(self, value):
-        self._dragon_horn_branch_count = value
-        self._emit_change()
-
-    def _on_dragon_horn_size_changed(self, value):
-        self._dragon_horn_base_size = value / 100.0
-        self.dragon_horn_size_label.setText(f"{self._dragon_horn_base_size:.2f}")
-        self._emit_change()
-
-    def _on_dragon_horn_color_changed(self, color):
+    def _on_dragon_mouth_color_changed(self, color):
         # Convert 0-1 to 0-255
-        self._dragon_horn_color = (int(color[0] * 255), int(color[1] * 255), int(color[2] * 255))
+        self._dragon_mouth_color = (int(color[0] * 255), int(color[1] * 255), int(color[2] * 255))
+        self._emit_change()
+
+    def _on_dragon_num_whiskers_changed(self, value):
+        self._dragon_num_whiskers_per_side = value
+        self._emit_change()
+
+    def _on_dragon_whisker_segments_changed(self, value):
+        self._dragon_whisker_segments = value
+        self._emit_change()
+
+    def _on_dragon_whisker_thickness_changed(self, value):
+        self._dragon_whisker_thickness = value / 100.0
+        self.dragon_whisker_thickness_label.setText(f"{self._dragon_whisker_thickness:.2f}")
         self._emit_change()
 
     def get_state(self):
@@ -365,11 +383,11 @@ class DragonPanel(BaseCreaturePanel):
             'dragon_eye_size': self._dragon_eye_size,
             'dragon_eyeball_color': self._dragon_eyeball_color,
             'dragon_pupil_color': self._dragon_pupil_color,
-            'dragon_num_horns': self._dragon_num_horns,
-            'dragon_horn_branch_depth': self._dragon_horn_branch_depth,
-            'dragon_horn_branch_count': self._dragon_horn_branch_count,
-            'dragon_horn_base_size': self._dragon_horn_base_size,
-            'dragon_horn_color': self._dragon_horn_color,
+            'dragon_mouth_size': self._dragon_mouth_size,
+            'dragon_mouth_color': self._dragon_mouth_color,
+            'dragon_num_whiskers_per_side': self._dragon_num_whiskers_per_side,
+            'dragon_whisker_segments': self._dragon_whisker_segments,
+            'dragon_whisker_thickness': self._dragon_whisker_thickness,
         }
 
     def set_state(self, state):
@@ -390,11 +408,11 @@ class DragonPanel(BaseCreaturePanel):
         self._dragon_eye_size = state.get('dragon_eye_size', 0.15)
         self._dragon_eyeball_color = state.get('dragon_eyeball_color', (255, 200, 50))
         self._dragon_pupil_color = state.get('dragon_pupil_color', (20, 0, 0))
-        self._dragon_num_horns = state.get('dragon_num_horns', 2)
-        self._dragon_horn_branch_depth = state.get('dragon_horn_branch_depth', 1)
-        self._dragon_horn_branch_count = state.get('dragon_horn_branch_count', 2)
-        self._dragon_horn_base_size = state.get('dragon_horn_base_size', 0.15)
-        self._dragon_horn_color = state.get('dragon_horn_color', (255, 220, 180))
+        self._dragon_mouth_size = state.get('dragon_mouth_size', 0.25)
+        self._dragon_mouth_color = state.get('dragon_mouth_color', (20, 0, 0))
+        self._dragon_num_whiskers_per_side = state.get('dragon_num_whiskers_per_side', 2)
+        self._dragon_whisker_segments = state.get('dragon_whisker_segments', 4)
+        self._dragon_whisker_thickness = state.get('dragon_whisker_thickness', 0.05)
 
         # Update UI
         self.dragon_segments_spin.setValue(self._dragon_segments)
@@ -420,12 +438,14 @@ class DragonPanel(BaseCreaturePanel):
         pupil_color_01 = tuple(c / 255.0 for c in self._dragon_pupil_color)
         self.dragon_pupil_color_button.set_color(pupil_color_01)
 
-        # Horn parameters
-        self.dragon_num_horns_spin.setValue(self._dragon_num_horns)
-        self.dragon_horn_branch_depth_spin.setValue(self._dragon_horn_branch_depth)
-        self.dragon_horn_branch_count_spin.setValue(self._dragon_horn_branch_count)
-        self.dragon_horn_size_slider.setValue(int(self._dragon_horn_base_size * 100))
-        horn_color_01 = tuple(c / 255.0 for c in self._dragon_horn_color)
-        self.dragon_horn_color_button.set_color(horn_color_01)
+        # Mouth parameters
+        self.dragon_mouth_size_slider.setValue(int(self._dragon_mouth_size * 100))
+        mouth_color_01 = tuple(c / 255.0 for c in self._dragon_mouth_color)
+        self.dragon_mouth_color_button.set_color(mouth_color_01)
+
+        # Whisker parameters
+        self.dragon_num_whiskers_spin.setValue(self._dragon_num_whiskers_per_side)
+        self.dragon_whisker_segments_spin.setValue(self._dragon_whisker_segments)
+        self.dragon_whisker_thickness_slider.setValue(int(self._dragon_whisker_thickness * 100))
 
         self._updating = False

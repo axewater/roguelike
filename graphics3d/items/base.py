@@ -27,6 +27,7 @@ def create_item_model_3d(item_type: str, rarity: str, position: Vec3) -> Entity:
     from graphics3d.items.health_potion import create_health_potion_3d
     from graphics3d.items.boots import create_boots_3d
     from graphics3d.items.ring import create_ring_3d
+    from graphics3d.items.gold_coin import create_gold_coin_3d
 
     # Create model based on type
     if item_type == c.ITEM_SWORD:
@@ -39,6 +40,8 @@ def create_item_model_3d(item_type: str, rarity: str, position: Vec3) -> Entity:
         return create_boots_3d(position, rarity)
     elif item_type == c.ITEM_RING:
         return create_ring_3d(position, rarity)
+    elif item_type == c.ITEM_GOLD_COIN:
+        return create_gold_coin_3d(position, rarity)
     else:
         # Fallback: generic cube
         from ursina import color as ursina_color

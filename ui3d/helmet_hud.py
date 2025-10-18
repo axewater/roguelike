@@ -86,6 +86,7 @@ class HelmetHUD3D:
         self.xp_bar_bg: Optional[Entity] = None
         self.xp_bar_fill: Optional[Entity] = None
         self.xp_text: Optional[Text] = None
+        self.gold_text: Optional[Text] = None
 
         # ===== TOP-RIGHT PANEL (Equipment) =====
         self.top_right_panel: Optional[Entity] = None
@@ -119,6 +120,7 @@ class HelmetHUD3D:
         self._last_xp = 0
         self._last_xp_to_next = 0
         self._last_level = 0
+        self._last_gold = 0
         self._last_weapon = None
         self._last_armor = None
         self._last_accessory = None
@@ -248,6 +250,18 @@ class HelmetHUD3D:
             position=(pos_x + 0.01, xp_bar_y - 0.055, -10),  # Low z-level (in front)
             scale=1.0,
             color=color.white,
+            origin=(-0.5, 0.5),
+            eternal=True
+        )
+
+        # Gold counter (below XP bar)
+        gold_y = xp_bar_y - 0.10
+        self.gold_text = Text(
+            text="Gold: 0",
+            parent=self.parent,
+            position=(pos_x + 0.01, gold_y, -10),
+            scale=1.2,  # Larger to emphasize score
+            color=color.rgb(1.0, 0.84, 0.0),  # Gold color
             origin=(-0.5, 0.5),
             eternal=True
         )
@@ -554,6 +568,11 @@ class HelmetHUD3D:
             self.xp_text.text = f"{player.xp}/{player.xp_to_next_level} XP"
             self._last_xp = player.xp
             self._last_xp_to_next = player.xp_to_next_level
+
+        # Gold counter
+        if player.gold != self._last_gold:
+            self.gold_text.text = f"Gold: {player.gold}"
+            self._last_gold = player.gold
 
     def _update_equipment(self):
         """Update top-right equipment panel"""

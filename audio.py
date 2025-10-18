@@ -465,6 +465,13 @@ class AudioManager:
         stairs = synth.generate_sweep(500, 250, 0.4, 0.4)
         self.sounds['stairs'] = synth.array_to_sound(stairs)
 
+        # Coin pickup - high-pitched metallic clink
+        coin = synth.combine_waves(
+            synth.generate_sine_wave(1200, 0.08, 0.3),  # High bright tone
+            synth.generate_sine_wave(1800, 0.06, 0.15)  # Even higher overtone
+        )
+        self.sounds['coin'] = synth.array_to_sound(coin)
+
         # === UI SOUNDS ===
 
         # Level up - fanfare
@@ -709,6 +716,10 @@ class AudioManager:
     def play_potion(self):
         """Play potion drinking sound"""
         self.play_sound('potion_drink', volume=0.8)
+
+    def play_coin(self):
+        """Play coin pickup sound"""
+        self.play_sound('coin', volume=0.7, pitch_variation=0.1)
 
     def play_equip(self):
         """Play equipment sound"""

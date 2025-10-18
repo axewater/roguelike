@@ -126,6 +126,7 @@ class Player(Entity):
         self.xp = 0
         self.xp_to_next_level = 50
         self.inventory = []
+        self.gold = 0  # Track gold collected as score
 
         # Equipment slots
         self.equipment = {
@@ -199,6 +200,22 @@ class Player(Entity):
         # Consumables are used immediately
         if item.item_type == c.ITEM_HEALTH_POTION:
             self.heal(c.ITEM_EFFECTS[c.ITEM_HEALTH_POTION]["heal"])
+            return  # Don't add to inventory
+
+        # Gold coins add to score
+        if item.item_type == c.ITEM_GOLD_COIN:
+            base_value = c.ITEM_EFFECTS[c.ITEM_GOLD_COIN]["gold_value"]
+            # Rarity multiplier: common=1, uncommon=2, rare=5, epic=10, legendary=25
+            rarity_multipliers = {
+                c.RARITY_COMMON: 1,
+                c.RARITY_UNCOMMON: 2,
+                c.RARITY_RARE: 5,
+                c.RARITY_EPIC: 10,
+                c.RARITY_LEGENDARY: 25
+            }
+            multiplier = rarity_multipliers.get(item.rarity, 1)
+            gold_amount = base_value * multiplier
+            self.gold += gold_amount
             return  # Don't add to inventory
 
         # Equipment is automatically equipped
