@@ -33,7 +33,14 @@ class StateManager:
                    # Starfish parameters
                    num_arms=5, arm_segments=6, central_body_size=0.8, arm_base_thickness=0.4,
                    starfish_color=(0.9, 0.5, 0.3), curl_factor=0.3, starfish_anim_speed=1.5,
-                   starfish_pulse_amount=0.06):
+                   starfish_pulse_amount=0.06,
+                   # Dragon parameters
+                   dragon_segments=15, dragon_thickness=0.3, dragon_taper=0.6,
+                   dragon_head_scale=3.0, dragon_body_color=(200, 40, 40),
+                   dragon_head_color=(255, 200, 50), dragon_weave_amplitude=0.5,
+                   dragon_bob_amplitude=0.3, dragon_anim_speed=1.5,
+                   dragon_num_eyes=2, dragon_eye_size=0.15,
+                   dragon_eyeball_color=(255, 200, 50), dragon_pupil_color=(20, 0, 0)):
         """
         Save current state to history.
 
@@ -135,7 +142,21 @@ class StateManager:
             'starfish_color': starfish_color,
             'curl_factor': curl_factor,
             'starfish_anim_speed': starfish_anim_speed,
-            'starfish_pulse_amount': starfish_pulse_amount
+            'starfish_pulse_amount': starfish_pulse_amount,
+            # Dragon parameters
+            'dragon_segments': dragon_segments,
+            'dragon_thickness': dragon_thickness,
+            'dragon_taper': dragon_taper,
+            'dragon_head_scale': dragon_head_scale,
+            'dragon_body_color': dragon_body_color,
+            'dragon_head_color': dragon_head_color,
+            'dragon_weave_amplitude': dragon_weave_amplitude,
+            'dragon_bob_amplitude': dragon_bob_amplitude,
+            'dragon_anim_speed': dragon_anim_speed,
+            'dragon_num_eyes': dragon_num_eyes,
+            'dragon_eye_size': dragon_eye_size,
+            'dragon_eyeball_color': dragon_eyeball_color,
+            'dragon_pupil_color': dragon_pupil_color
         }
 
         # Clear future history if we're not at the end
@@ -227,7 +248,21 @@ class StateManager:
             'starfish_color': state.get('starfish_color', (0.9, 0.5, 0.3)),
             'curl_factor': state.get('curl_factor', 0.3),
             'starfish_anim_speed': state.get('starfish_anim_speed', 1.5),
-            'starfish_pulse_amount': state.get('starfish_pulse_amount', 0.06)
+            'starfish_pulse_amount': state.get('starfish_pulse_amount', 0.06),
+            # Dragon parameters
+            'dragon_segments': state.get('dragon_segments', 15),
+            'dragon_thickness': state.get('dragon_thickness', 0.3),
+            'dragon_taper': state.get('dragon_taper', 0.6),
+            'dragon_head_scale': state.get('dragon_head_scale', 3.0),
+            'dragon_body_color': state.get('dragon_body_color', (200, 40, 40)),
+            'dragon_head_color': state.get('dragon_head_color', (255, 200, 50)),
+            'dragon_weave_amplitude': state.get('dragon_weave_amplitude', 0.5),
+            'dragon_bob_amplitude': state.get('dragon_bob_amplitude', 0.3),
+            'dragon_anim_speed': state.get('dragon_anim_speed', 1.5),
+            'dragon_num_eyes': state.get('dragon_num_eyes', 2),
+            'dragon_eye_size': state.get('dragon_eye_size', 0.15),
+            'dragon_eyeball_color': state.get('dragon_eyeball_color', (255, 200, 50)),
+            'dragon_pupil_color': state.get('dragon_pupil_color', (20, 0, 0))
         }
 
     def can_undo(self):

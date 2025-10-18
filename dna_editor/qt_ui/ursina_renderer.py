@@ -287,7 +287,9 @@ class UrsinaRenderer:
                         dragon_segments=15, dragon_thickness=0.3, dragon_taper=0.6,
                         dragon_head_scale=3.0, dragon_body_color=(200, 40, 40),
                         dragon_head_color=(255, 200, 50), dragon_weave_amplitude=0.5,
-                        dragon_bob_amplitude=0.3, dragon_anim_speed=1.5):
+                        dragon_bob_amplitude=0.3, dragon_anim_speed=1.5,
+                        dragon_num_eyes=2, dragon_eye_size=0.15,
+                        dragon_eyeball_color=(255, 200, 50), dragon_pupil_color=(20, 0, 0)):
         """
         Rebuild creature with new parameters.
 
@@ -468,7 +470,11 @@ class UrsinaRenderer:
                     head_color=dragon_head_color,  # RGB 0-255
                     weave_amplitude=dragon_weave_amplitude,
                     bob_amplitude=dragon_bob_amplitude,
-                    anim_speed=dragon_anim_speed
+                    anim_speed=dragon_anim_speed,
+                    num_eyes=dragon_num_eyes,
+                    eye_size=dragon_eye_size,
+                    eyeball_color=dragon_eyeball_color,  # RGB 0-255
+                    pupil_color=dragon_pupil_color  # RGB 0-255
                 )
 
             else:

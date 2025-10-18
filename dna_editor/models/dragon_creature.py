@@ -6,6 +6,7 @@ Chain of spheres forming a snake-like body with smooth weaving/bobbing animation
 from ursina import Entity, Vec3, color, destroy
 import math
 import random
+from .eye import Eye
 
 
 class DragonSegment:
@@ -110,7 +111,8 @@ class DragonCreature:
 
     def __init__(self, num_segments=15, segment_thickness=0.3, taper_factor=0.6,
                  head_scale=3.0, body_color=(200, 40, 40), head_color=(255, 200, 50),
-                 weave_amplitude=0.5, bob_amplitude=0.3, anim_speed=1.5):
+                 weave_amplitude=0.5, bob_amplitude=0.3, anim_speed=1.5,
+                 num_eyes=2, eye_size=0.15, eyeball_color=(255, 200, 50), pupil_color=(20, 0, 0)):
         """
         Create a dragon creature.
 
@@ -124,10 +126,16 @@ class DragonCreature:
             weave_amplitude: Side-to-side motion intensity (0.0-1.0)
             bob_amplitude: Up-down motion intensity (0.0-1.0)
             anim_speed: Animation speed multiplier (0.5-5.0)
+            num_eyes: Number of eyes on head (0-8)
+            eye_size: Size of each eye (0.05-0.3)
+            eyeball_color: RGB tuple for eyeball (0-255 range)
+            pupil_color: RGB tuple for pupil (0-255 range)
         """
         # Create root entity
         self.root = Entity(position=(0, 0, 0))
         self.segments = []
+        self.eyes = []
+        self.eye_offsets = []  # Vec3 offsets from head center for each eye
 
         # Store parameters
         self.num_segments = num_segments
@@ -140,6 +148,10 @@ class DragonCreature:
         self.weave_amplitude = weave_amplitude
         self.bob_amplitude = bob_amplitude
         self.anim_speed = anim_speed
+        self.num_eyes = num_eyes
+        self.eye_size = eye_size
+        self.eyeball_color = (eyeball_color[0] / 255.0, eyeball_color[1] / 255.0, eyeball_color[2] / 255.0)
+        self.pupil_color = (pupil_color[0] / 255.0, pupil_color[1] / 255.0, pupil_color[2] / 255.0)
 
         # Attack animation state
         self.is_attacking = False
@@ -232,8 +244,79 @@ class DragonCreature:
             self.segments.append(segment)
             previous_segment = segment
 
+        # Create eyes on head segment
+        self._create_eyes()
+
+    def _create_eyes(self):
+        """Create eyes on the dragon's head segment."""
+        # Clear existing eyes and offsets
+        for eye in self.eyes:
+            eye.destroy()
+        self.eyes.clear()
+        self.eye_offsets.clear()
+
+        if self.num_eyes == 0 or len(self.segments) == 0:
+            return
+
+        # Get head segment (first segment)
+        head_segment = self.segments[0]
+        head_position = head_segment.base_position
+        # Ursina sphere: scale=X means radius=X/2 (default sphere has diameter 1)
+        head_radius = head_segment.size / 2
+
+        # Position eyes on the front of the head sphere using proper spherical coordinates
+        # Dragon faces in -Z direction (forward)
+
+        for i in range(self.num_eyes):
+            if self.num_eyes == 1:
+                # Single eye: center of head front
+                # Spherical coords: theta=0 (front), phi=0 (equator)
+                theta = 0  # Azimuthal angle (around Y axis)
+                phi = math.pi / 2  # Polar angle from +Y axis (90° = equator)
+            elif self.num_eyes == 2:
+                # Two eyes: symmetrical left/right on front of head
+                # Position at ±30° from center, slightly above equator
+                theta = (math.pi / 6) if i == 0 else (-math.pi / 6)  # ±30° left/right
+                phi = math.pi * 0.45  # Slightly above equator (0.45 * 180 = 81°)
+            else:
+                # Multiple eyes: distribute in a ring on front hemisphere
+                # Ring around the front of the head
+                ring_angle = (i / self.num_eyes) * math.pi * 2  # 0 to 360°
+                # Position eyes in a cone pointing forward
+                theta = math.sin(ring_angle) * (math.pi / 4)  # ±45° max
+                phi = math.pi / 2 - math.cos(ring_angle) * (math.pi / 6)  # Vary elevation
+
+            # Convert spherical to Cartesian coordinates on unit sphere
+            # Standard spherical coordinates: x = sin(phi)*cos(theta), y = cos(phi), z = sin(phi)*sin(theta)
+            # But we want front to be -Z, so we rotate the coordinate system
+            x_normalized = math.sin(phi) * math.sin(theta)  # Left/right
+            y_normalized = math.cos(phi)  # Up/down
+            z_normalized = -math.sin(phi) * math.cos(theta)  # Front/back (negative for front)
+
+            # Calculate eye offset from head center (0.9 to keep eyes slightly inside sphere edge)
+            eye_offset = Vec3(
+                x_normalized * head_radius * 0.9,
+                y_normalized * head_radius * 0.9,
+                z_normalized * head_radius * 0.9
+            )
+            eye_position = head_position + eye_offset
+
+            # Create eye
+            eye = Eye(
+                position=eye_position,
+                size=self.eye_size,
+                eyeball_color=self.eyeball_color,
+                pupil_color=self.pupil_color,
+                parent=self.root,
+                toon_shader=self.toon_shader
+            )
+
+            self.eyes.append(eye)
+            self.eye_offsets.append(eye_offset)  # Store offset for animation updates
+
     def rebuild(self, num_segments, segment_thickness, taper_factor, head_scale,
-                body_color, head_color, weave_amplitude, bob_amplitude, anim_speed):
+                body_color, head_color, weave_amplitude, bob_amplitude, anim_speed,
+                num_eyes=2, eye_size=0.15, eyeball_color=(255, 200, 50), pupil_color=(20, 0, 0)):
         """
         Rebuild dragon with new parameters.
 
@@ -247,6 +330,10 @@ class DragonCreature:
             weave_amplitude: Weaving intensity
             bob_amplitude: Bobbing intensity
             anim_speed: Animation speed
+            num_eyes: Number of eyes on head (0-8)
+            eye_size: Size of each eye (0.05-0.3)
+            eyeball_color: Eyeball RGB (0-255)
+            pupil_color: Pupil RGB (0-255)
         """
         self.num_segments = num_segments
         self.segment_thickness = segment_thickness
@@ -257,6 +344,10 @@ class DragonCreature:
         self.weave_amplitude = weave_amplitude
         self.bob_amplitude = bob_amplitude
         self.anim_speed = anim_speed
+        self.num_eyes = num_eyes
+        self.eye_size = eye_size
+        self.eyeball_color = (eyeball_color[0] / 255.0, eyeball_color[1] / 255.0, eyeball_color[2] / 255.0)
+        self.pupil_color = (pupil_color[0] / 255.0, pupil_color[1] / 255.0, pupil_color[2] / 255.0)
 
         # Regenerate dragon
         self._generate_dragon()
@@ -387,8 +478,33 @@ class DragonCreature:
             # Update connector tube to follow segment
             segment.update_connector_tube()
 
+        # Update eye positions to follow head movement
+        if len(self.segments) > 0 and len(self.eyes) > 0 and len(self.eye_offsets) > 0:
+            head_segment = self.segments[0]
+            head_position = head_segment.base_position
+            head_anim_offset = head_segment.entity.position - head_segment.base_position
+
+            for i, (eye, eye_offset) in enumerate(zip(self.eyes, self.eye_offsets)):
+                # Calculate animated eye position using stored offset
+                animated_eye_position = head_position + eye_offset + head_anim_offset
+
+                # Update eyeball position
+                eye.eyeball.position = animated_eye_position
+                eye.eyeball_base_position = animated_eye_position
+
+                # Calculate surface normal from offset vector (points outward from head center)
+                surface_normal = eye_offset.normalized()
+                pupil_offset = surface_normal * (eye.base_size * 0.5)
+                eye.pupil.position = animated_eye_position + pupil_offset
+                eye.pupil_base_position = animated_eye_position + pupil_offset
+
+                # Update eye animation (blinking)
+                eye.update_animation(time)
+
     def destroy(self):
         """Cleanup all entities."""
         for segment in self.segments:
             segment.destroy()
+        for eye in self.eyes:
+            eye.destroy()
         destroy(self.root)

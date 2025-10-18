@@ -1,7 +1,7 @@
 """Dragon creature control panel."""
 
 from PyQt6.QtWidgets import (
-    QVBoxLayout, QGridLayout, QGroupBox, QLabel
+    QVBoxLayout, QHBoxLayout, QGridLayout, QGroupBox, QLabel
 )
 from PyQt6.QtCore import Qt
 from .base_creature_panel import BaseCreaturePanel
@@ -24,6 +24,10 @@ class DragonPanel(BaseCreaturePanel):
         self._dragon_weave_amplitude = 0.5
         self._dragon_bob_amplitude = 0.3
         self._dragon_anim_speed = 1.5
+        self._dragon_num_eyes = 2
+        self._dragon_eye_size = 0.15
+        self._dragon_eyeball_color = (255, 200, 50)  # RGB 0-255
+        self._dragon_pupil_color = (20, 0, 0)  # RGB 0-255
 
         self._init_ui()
 
@@ -41,6 +45,9 @@ class DragonPanel(BaseCreaturePanel):
 
         # Column 3: Animation
         layout.addWidget(self._create_dragon_animation_section(), 0, 2)
+
+        # Row 2: Eyes section (full width, spanning 3 columns)
+        layout.addWidget(self._create_dragon_eyes_section(), 1, 0, 1, 3)
 
         self.setLayout(layout)
 
@@ -151,6 +158,52 @@ class DragonPanel(BaseCreaturePanel):
         group.setLayout(layout)
         return group
 
+    def _create_dragon_eyes_section(self):
+        """Create Dragon Eyes card (full width)."""
+        group = self._create_card("DRAGON EYES")
+        layout = QHBoxLayout()
+        layout.setSpacing(25)
+        layout.setContentsMargins(15, 15, 15, 15)
+
+        # Number of Eyes
+        eyes_layout = QVBoxLayout()
+        eyes_layout.addWidget(self._create_label("Number of Eyes"))
+        self.dragon_num_eyes_spin = self._create_spinbox(0, 8, self._dragon_num_eyes, self._on_dragon_num_eyes_changed)
+        eyes_layout.addWidget(self.dragon_num_eyes_spin)
+        layout.addLayout(eyes_layout)
+
+        # Eye Size
+        eye_size_layout = QVBoxLayout()
+        eye_size_layout.addWidget(self._create_label("Eye Size"))
+        self.dragon_eye_size_slider = self._create_slider(5, 30, 15, self._on_dragon_eye_size_changed)
+        eye_size_layout.addWidget(self.dragon_eye_size_slider)
+        self.dragon_eye_size_label = QLabel("0.15")
+        self.dragon_eye_size_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.dragon_eye_size_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        eye_size_layout.addWidget(self.dragon_eye_size_label)
+        layout.addLayout(eye_size_layout)
+
+        # Eyeball Color
+        eyeball_color_layout = QVBoxLayout()
+        eyeball_color_layout.addWidget(self._create_label("Eyeball Color"))
+        eyeball_color_01 = tuple(c / 255.0 for c in self._dragon_eyeball_color)
+        self.dragon_eyeball_color_button = ColorButton(eyeball_color_01)
+        self.dragon_eyeball_color_button.colorChanged.connect(self._on_dragon_eyeball_color_changed)
+        eyeball_color_layout.addWidget(self.dragon_eyeball_color_button)
+        layout.addLayout(eyeball_color_layout)
+
+        # Pupil Color
+        pupil_color_layout = QVBoxLayout()
+        pupil_color_layout.addWidget(self._create_label("Pupil Color"))
+        pupil_color_01 = tuple(c / 255.0 for c in self._dragon_pupil_color)
+        self.dragon_pupil_color_button = ColorButton(pupil_color_01)
+        self.dragon_pupil_color_button.colorChanged.connect(self._on_dragon_pupil_color_changed)
+        pupil_color_layout.addWidget(self.dragon_pupil_color_button)
+        layout.addLayout(pupil_color_layout)
+
+        group.setLayout(layout)
+        return group
+
     # Event Handlers
     def _on_dragon_segments_changed(self, value):
         self._dragon_segments = value
@@ -196,6 +249,25 @@ class DragonPanel(BaseCreaturePanel):
         self.dragon_anim_speed_label.setText(f"{self._dragon_anim_speed:.1f}x")
         self._emit_change()
 
+    def _on_dragon_num_eyes_changed(self, value):
+        self._dragon_num_eyes = value
+        self._emit_change()
+
+    def _on_dragon_eye_size_changed(self, value):
+        self._dragon_eye_size = value / 100.0
+        self.dragon_eye_size_label.setText(f"{self._dragon_eye_size:.2f}")
+        self._emit_change()
+
+    def _on_dragon_eyeball_color_changed(self, color):
+        # Convert 0-1 to 0-255
+        self._dragon_eyeball_color = (int(color[0] * 255), int(color[1] * 255), int(color[2] * 255))
+        self._emit_change()
+
+    def _on_dragon_pupil_color_changed(self, color):
+        # Convert 0-1 to 0-255
+        self._dragon_pupil_color = (int(color[0] * 255), int(color[1] * 255), int(color[2] * 255))
+        self._emit_change()
+
     def get_state(self):
         """Get current state."""
         return {
@@ -208,6 +280,10 @@ class DragonPanel(BaseCreaturePanel):
             'dragon_weave_amplitude': self._dragon_weave_amplitude,
             'dragon_bob_amplitude': self._dragon_bob_amplitude,
             'dragon_anim_speed': self._dragon_anim_speed,
+            'dragon_num_eyes': self._dragon_num_eyes,
+            'dragon_eye_size': self._dragon_eye_size,
+            'dragon_eyeball_color': self._dragon_eyeball_color,
+            'dragon_pupil_color': self._dragon_pupil_color,
         }
 
     def set_state(self, state):
@@ -224,6 +300,10 @@ class DragonPanel(BaseCreaturePanel):
         self._dragon_weave_amplitude = state.get('dragon_weave_amplitude', 0.5)
         self._dragon_bob_amplitude = state.get('dragon_bob_amplitude', 0.3)
         self._dragon_anim_speed = state.get('dragon_anim_speed', 1.5)
+        self._dragon_num_eyes = state.get('dragon_num_eyes', 2)
+        self._dragon_eye_size = state.get('dragon_eye_size', 0.15)
+        self._dragon_eyeball_color = state.get('dragon_eyeball_color', (255, 200, 50))
+        self._dragon_pupil_color = state.get('dragon_pupil_color', (20, 0, 0))
 
         # Update UI
         self.dragon_segments_spin.setValue(self._dragon_segments)
@@ -240,5 +320,13 @@ class DragonPanel(BaseCreaturePanel):
         self.dragon_weave_slider.setValue(int(self._dragon_weave_amplitude * 100))
         self.dragon_bob_slider.setValue(int(self._dragon_bob_amplitude * 100))
         self.dragon_anim_speed_slider.setValue(int(self._dragon_anim_speed * 100))
+
+        # Eye parameters
+        self.dragon_num_eyes_spin.setValue(self._dragon_num_eyes)
+        self.dragon_eye_size_slider.setValue(int(self._dragon_eye_size * 100))
+        eyeball_color_01 = tuple(c / 255.0 for c in self._dragon_eyeball_color)
+        self.dragon_eyeball_color_button.set_color(eyeball_color_01)
+        pupil_color_01 = tuple(c / 255.0 for c in self._dragon_pupil_color)
+        self.dragon_pupil_color_button.set_color(pupil_color_01)
 
         self._updating = False
