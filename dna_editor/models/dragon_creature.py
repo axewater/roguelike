@@ -164,8 +164,8 @@ class DragonCreature:
             segment.destroy()
         self.segments.clear()
 
-        # Dragon layout: horizontal chain extending backward
-        # Segments arranged along -Z axis (head at origin, tail extends back)
+        # Dragon layout: horizontal chain extending forward
+        # Segments arranged along +Z axis (head at origin, tail extends forward)
         segment_spacing = self.segment_thickness * 1.8  # Spacing between segment centers
 
         # Elevation (floating/hovering effect)
@@ -175,8 +175,8 @@ class DragonCreature:
 
         for i in range(self.num_segments):
             # Calculate position along chain
-            # Head (i=0) at front, tail (i=max) at back
-            z_offset = -i * segment_spacing
+            # Head (i=0) at front, tail (i=max) at front
+            z_offset = i * segment_spacing
             x_offset = 0  # No initial X offset (weaving happens in animation)
             y_offset = base_elevation  # Floating height
 
