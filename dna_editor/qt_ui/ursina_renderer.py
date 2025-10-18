@@ -289,7 +289,9 @@ class UrsinaRenderer:
                         dragon_head_color=(255, 200, 50), dragon_weave_amplitude=0.5,
                         dragon_bob_amplitude=0.3, dragon_anim_speed=1.5,
                         dragon_num_eyes=2, dragon_eye_size=0.15,
-                        dragon_eyeball_color=(255, 200, 50), dragon_pupil_color=(20, 0, 0)):
+                        dragon_eyeball_color=(255, 200, 50), dragon_pupil_color=(20, 0, 0),
+                        dragon_num_horns=2, dragon_horn_branch_depth=1, dragon_horn_branch_count=2,
+                        dragon_horn_base_size=0.15, dragon_horn_color=(255, 220, 180)):
         """
         Rebuild creature with new parameters.
 
@@ -474,7 +476,12 @@ class UrsinaRenderer:
                     num_eyes=dragon_num_eyes,
                     eye_size=dragon_eye_size,
                     eyeball_color=dragon_eyeball_color,  # RGB 0-255
-                    pupil_color=dragon_pupil_color  # RGB 0-255
+                    pupil_color=dragon_pupil_color,  # RGB 0-255
+                    num_horns=dragon_num_horns,
+                    horn_branch_depth=dragon_horn_branch_depth,
+                    horn_branch_count=dragon_horn_branch_count,
+                    horn_base_size=dragon_horn_base_size,
+                    horn_color=dragon_horn_color  # RGB 0-255
                 )
 
             else:

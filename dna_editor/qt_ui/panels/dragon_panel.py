@@ -28,6 +28,11 @@ class DragonPanel(BaseCreaturePanel):
         self._dragon_eye_size = 0.15
         self._dragon_eyeball_color = (255, 200, 50)  # RGB 0-255
         self._dragon_pupil_color = (20, 0, 0)  # RGB 0-255
+        self._dragon_num_horns = 2
+        self._dragon_horn_branch_depth = 1
+        self._dragon_horn_branch_count = 2
+        self._dragon_horn_base_size = 0.15
+        self._dragon_horn_color = (255, 220, 180)  # RGB 0-255
 
         self._init_ui()
 
@@ -48,6 +53,9 @@ class DragonPanel(BaseCreaturePanel):
 
         # Row 2: Eyes section (full width, spanning 3 columns)
         layout.addWidget(self._create_dragon_eyes_section(), 1, 0, 1, 3)
+
+        # Row 3: Horns section (full width, spanning 3 columns)
+        layout.addWidget(self._create_dragon_horns_section(), 2, 0, 1, 3)
 
         self.setLayout(layout)
 
@@ -204,6 +212,57 @@ class DragonPanel(BaseCreaturePanel):
         group.setLayout(layout)
         return group
 
+    def _create_dragon_horns_section(self):
+        """Create Dragon Horns card (full width)."""
+        group = self._create_card("DRAGON HORNS")
+        layout = QHBoxLayout()
+        layout.setSpacing(25)
+        layout.setContentsMargins(15, 15, 15, 15)
+
+        # Number of Horns
+        horns_layout = QVBoxLayout()
+        horns_layout.addWidget(self._create_label("Number of Horns"))
+        self.dragon_num_horns_spin = self._create_spinbox(0, 4, self._dragon_num_horns, self._on_dragon_num_horns_changed)
+        horns_layout.addWidget(self.dragon_num_horns_spin)
+        layout.addLayout(horns_layout)
+
+        # Horn Branch Depth
+        branch_depth_layout = QVBoxLayout()
+        branch_depth_layout.addWidget(self._create_label("Branch Depth"))
+        self.dragon_horn_branch_depth_spin = self._create_spinbox(0, 2, self._dragon_horn_branch_depth, self._on_dragon_horn_branch_depth_changed)
+        branch_depth_layout.addWidget(self.dragon_horn_branch_depth_spin)
+        layout.addLayout(branch_depth_layout)
+
+        # Horn Branch Count
+        branch_count_layout = QVBoxLayout()
+        branch_count_layout.addWidget(self._create_label("Branches per Segment"))
+        self.dragon_horn_branch_count_spin = self._create_spinbox(1, 3, self._dragon_horn_branch_count, self._on_dragon_horn_branch_count_changed)
+        branch_count_layout.addWidget(self.dragon_horn_branch_count_spin)
+        layout.addLayout(branch_count_layout)
+
+        # Horn Base Size
+        horn_size_layout = QVBoxLayout()
+        horn_size_layout.addWidget(self._create_label("Horn Size"))
+        self.dragon_horn_size_slider = self._create_slider(5, 40, 15, self._on_dragon_horn_size_changed)
+        horn_size_layout.addWidget(self.dragon_horn_size_slider)
+        self.dragon_horn_size_label = QLabel("0.15")
+        self.dragon_horn_size_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.dragon_horn_size_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        horn_size_layout.addWidget(self.dragon_horn_size_label)
+        layout.addLayout(horn_size_layout)
+
+        # Horn Color
+        horn_color_layout = QVBoxLayout()
+        horn_color_layout.addWidget(self._create_label("Horn Color"))
+        horn_color_01 = tuple(c / 255.0 for c in self._dragon_horn_color)
+        self.dragon_horn_color_button = ColorButton(horn_color_01)
+        self.dragon_horn_color_button.colorChanged.connect(self._on_dragon_horn_color_changed)
+        horn_color_layout.addWidget(self.dragon_horn_color_button)
+        layout.addLayout(horn_color_layout)
+
+        group.setLayout(layout)
+        return group
+
     # Event Handlers
     def _on_dragon_segments_changed(self, value):
         self._dragon_segments = value
@@ -268,6 +327,28 @@ class DragonPanel(BaseCreaturePanel):
         self._dragon_pupil_color = (int(color[0] * 255), int(color[1] * 255), int(color[2] * 255))
         self._emit_change()
 
+    def _on_dragon_num_horns_changed(self, value):
+        self._dragon_num_horns = value
+        self._emit_change()
+
+    def _on_dragon_horn_branch_depth_changed(self, value):
+        self._dragon_horn_branch_depth = value
+        self._emit_change()
+
+    def _on_dragon_horn_branch_count_changed(self, value):
+        self._dragon_horn_branch_count = value
+        self._emit_change()
+
+    def _on_dragon_horn_size_changed(self, value):
+        self._dragon_horn_base_size = value / 100.0
+        self.dragon_horn_size_label.setText(f"{self._dragon_horn_base_size:.2f}")
+        self._emit_change()
+
+    def _on_dragon_horn_color_changed(self, color):
+        # Convert 0-1 to 0-255
+        self._dragon_horn_color = (int(color[0] * 255), int(color[1] * 255), int(color[2] * 255))
+        self._emit_change()
+
     def get_state(self):
         """Get current state."""
         return {
@@ -284,6 +365,11 @@ class DragonPanel(BaseCreaturePanel):
             'dragon_eye_size': self._dragon_eye_size,
             'dragon_eyeball_color': self._dragon_eyeball_color,
             'dragon_pupil_color': self._dragon_pupil_color,
+            'dragon_num_horns': self._dragon_num_horns,
+            'dragon_horn_branch_depth': self._dragon_horn_branch_depth,
+            'dragon_horn_branch_count': self._dragon_horn_branch_count,
+            'dragon_horn_base_size': self._dragon_horn_base_size,
+            'dragon_horn_color': self._dragon_horn_color,
         }
 
     def set_state(self, state):
@@ -304,6 +390,11 @@ class DragonPanel(BaseCreaturePanel):
         self._dragon_eye_size = state.get('dragon_eye_size', 0.15)
         self._dragon_eyeball_color = state.get('dragon_eyeball_color', (255, 200, 50))
         self._dragon_pupil_color = state.get('dragon_pupil_color', (20, 0, 0))
+        self._dragon_num_horns = state.get('dragon_num_horns', 2)
+        self._dragon_horn_branch_depth = state.get('dragon_horn_branch_depth', 1)
+        self._dragon_horn_branch_count = state.get('dragon_horn_branch_count', 2)
+        self._dragon_horn_base_size = state.get('dragon_horn_base_size', 0.15)
+        self._dragon_horn_color = state.get('dragon_horn_color', (255, 220, 180))
 
         # Update UI
         self.dragon_segments_spin.setValue(self._dragon_segments)
@@ -328,5 +419,13 @@ class DragonPanel(BaseCreaturePanel):
         self.dragon_eyeball_color_button.set_color(eyeball_color_01)
         pupil_color_01 = tuple(c / 255.0 for c in self._dragon_pupil_color)
         self.dragon_pupil_color_button.set_color(pupil_color_01)
+
+        # Horn parameters
+        self.dragon_num_horns_spin.setValue(self._dragon_num_horns)
+        self.dragon_horn_branch_depth_spin.setValue(self._dragon_horn_branch_depth)
+        self.dragon_horn_branch_count_spin.setValue(self._dragon_horn_branch_count)
+        self.dragon_horn_size_slider.setValue(int(self._dragon_horn_base_size * 100))
+        horn_color_01 = tuple(c / 255.0 for c in self._dragon_horn_color)
+        self.dragon_horn_color_button.set_color(horn_color_01)
 
         self._updating = False

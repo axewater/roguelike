@@ -40,7 +40,9 @@ class StateManager:
                    dragon_head_color=(255, 200, 50), dragon_weave_amplitude=0.5,
                    dragon_bob_amplitude=0.3, dragon_anim_speed=1.5,
                    dragon_num_eyes=2, dragon_eye_size=0.15,
-                   dragon_eyeball_color=(255, 200, 50), dragon_pupil_color=(20, 0, 0)):
+                   dragon_eyeball_color=(255, 200, 50), dragon_pupil_color=(20, 0, 0),
+                   dragon_num_horns=2, dragon_horn_branch_depth=1, dragon_horn_branch_count=2,
+                   dragon_horn_base_size=0.15, dragon_horn_color=(255, 220, 180)):
         """
         Save current state to history.
 
@@ -156,7 +158,12 @@ class StateManager:
             'dragon_num_eyes': dragon_num_eyes,
             'dragon_eye_size': dragon_eye_size,
             'dragon_eyeball_color': dragon_eyeball_color,
-            'dragon_pupil_color': dragon_pupil_color
+            'dragon_pupil_color': dragon_pupil_color,
+            'dragon_num_horns': dragon_num_horns,
+            'dragon_horn_branch_depth': dragon_horn_branch_depth,
+            'dragon_horn_branch_count': dragon_horn_branch_count,
+            'dragon_horn_base_size': dragon_horn_base_size,
+            'dragon_horn_color': dragon_horn_color
         }
 
         # Clear future history if we're not at the end
@@ -262,7 +269,12 @@ class StateManager:
             'dragon_num_eyes': state.get('dragon_num_eyes', 2),
             'dragon_eye_size': state.get('dragon_eye_size', 0.15),
             'dragon_eyeball_color': state.get('dragon_eyeball_color', (255, 200, 50)),
-            'dragon_pupil_color': state.get('dragon_pupil_color', (20, 0, 0))
+            'dragon_pupil_color': state.get('dragon_pupil_color', (20, 0, 0)),
+            'dragon_num_horns': state.get('dragon_num_horns', 2),
+            'dragon_horn_branch_depth': state.get('dragon_horn_branch_depth', 1),
+            'dragon_horn_branch_count': state.get('dragon_horn_branch_count', 2),
+            'dragon_horn_base_size': state.get('dragon_horn_base_size', 0.15),
+            'dragon_horn_color': state.get('dragon_horn_color', (255, 220, 180))
         }
 
     def can_undo(self):

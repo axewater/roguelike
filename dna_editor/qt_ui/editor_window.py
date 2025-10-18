@@ -396,7 +396,12 @@ class EditorWindow(QMainWindow):
             dragon_num_eyes=state.get('dragon_num_eyes', 2),
             dragon_eye_size=state.get('dragon_eye_size', 0.15),
             dragon_eyeball_color=state.get('dragon_eyeball_color', (255, 200, 50)),
-            dragon_pupil_color=state.get('dragon_pupil_color', (20, 0, 0))
+            dragon_pupil_color=state.get('dragon_pupil_color', (20, 0, 0)),
+            dragon_num_horns=state.get('dragon_num_horns', 2),
+            dragon_horn_branch_depth=state.get('dragon_horn_branch_depth', 1),
+            dragon_horn_branch_count=state.get('dragon_horn_branch_count', 2),
+            dragon_horn_base_size=state.get('dragon_horn_base_size', 0.15),
+            dragon_horn_color=state.get('dragon_horn_color', (255, 220, 180))
         )
 
     def _on_undo(self):
@@ -479,7 +484,12 @@ class EditorWindow(QMainWindow):
             dragon_num_eyes=state.get('dragon_num_eyes', 2),
             dragon_eye_size=state.get('dragon_eye_size', 0.15),
             dragon_eyeball_color=state.get('dragon_eyeball_color', (255, 200, 50)),
-            dragon_pupil_color=state.get('dragon_pupil_color', (20, 0, 0))
+            dragon_pupil_color=state.get('dragon_pupil_color', (20, 0, 0)),
+            dragon_num_horns=state.get('dragon_num_horns', 2),
+            dragon_horn_branch_depth=state.get('dragon_horn_branch_depth', 1),
+            dragon_horn_branch_count=state.get('dragon_horn_branch_count', 2),
+            dragon_horn_base_size=state.get('dragon_horn_base_size', 0.15),
+            dragon_horn_color=state.get('dragon_horn_color', (255, 220, 180))
         )
 
     def _update_undo_redo_state(self):
