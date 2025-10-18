@@ -314,3 +314,35 @@ MAX_CURL_FACTOR = 0.8
 # Starfish animation
 STARFISH_ATTACK_DURATION = 1.0  # Attack cycle duration (seconds)
 STARFISH_CURL_SPEED = 2.5  # Speed of curl animation
+
+# ==========================================
+# DRAGON CREATURE CONSTANTS
+# ==========================================
+
+# Dragon defaults (Space Harrier inspired segmented flying serpent)
+DEFAULT_DRAGON_SEGMENTS = 15  # Number of body segments (5-30)
+DEFAULT_DRAGON_THICKNESS = 0.3  # Base segment size
+DEFAULT_DRAGON_TAPER = 0.6  # Tail taper factor (0.0-0.9)
+DEFAULT_DRAGON_HEAD_SCALE = 2.0  # Head size multiplier (1.0-2.5)
+DEFAULT_DRAGON_BODY_COLOR = (200, 40, 40)  # Dark red body (RGB 0-255)
+DEFAULT_DRAGON_HEAD_COLOR = (255, 200, 50)  # Golden head (RGB 0-255)
+DEFAULT_DRAGON_WEAVE_AMPLITUDE = 0.5  # Side-to-side motion (0.0-1.0)
+DEFAULT_DRAGON_BOB_AMPLITUDE = 0.3  # Up-down motion (0.0-1.0)
+DEFAULT_DRAGON_ANIM_SPEED = 1.5  # Animation speed
+
+# Dragon limits
+MIN_DRAGON_SEGMENTS = 5
+MAX_DRAGON_SEGMENTS = 30
+MIN_DRAGON_THICKNESS = 0.1
+MAX_DRAGON_THICKNESS = 0.8
+MIN_DRAGON_TAPER = 0.0
+MAX_DRAGON_TAPER = 0.9
+MIN_DRAGON_HEAD_SCALE = 1.0
+MAX_DRAGON_HEAD_SCALE = 2.5
+MIN_DRAGON_WEAVE = 0.0
+MAX_DRAGON_WEAVE = 1.0
+MIN_DRAGON_BOB = 0.0
+MAX_DRAGON_BOB = 1.0
+
+# Dragon animation
+DRAGON_ATTACK_DURATION = 1.0  # Attack cycle duration (seconds)

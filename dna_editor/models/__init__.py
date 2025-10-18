@@ -6,5 +6,6 @@ from .blob_creature import BlobCreature
 from .polyp_creature import PolypCreature
 from .starfish_creature import StarfishCreature
 from .medusa_creature import MedusaCreature
+from .dragon_creature import DragonCreature
 
-__all__ = ['Tentacle', 'TentacleCreature', 'BlobCreature', 'PolypCreature', 'StarfishCreature', 'MedusaCreature']
+__all__ = ['Tentacle', 'TentacleCreature', 'BlobCreature', 'PolypCreature', 'StarfishCreature', 'MedusaCreature', 'DragonCreature']

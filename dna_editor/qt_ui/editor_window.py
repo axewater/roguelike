@@ -451,7 +451,17 @@ class EditorWindow(QMainWindow):
             starfish_color=state.get('starfish_color', (0.9, 0.5, 0.3)),
             curl_factor=state.get('curl_factor', 0.3),
             starfish_anim_speed=state.get('starfish_anim_speed', 1.5),
-            starfish_pulse_amount=state.get('starfish_pulse_amount', 0.06)
+            starfish_pulse_amount=state.get('starfish_pulse_amount', 0.06),
+            # Dragon parameters
+            dragon_segments=state.get('dragon_segments', 15),
+            dragon_thickness=state.get('dragon_thickness', 0.3),
+            dragon_taper=state.get('dragon_taper', 0.6),
+            dragon_head_scale=state.get('dragon_head_scale', 2.0),
+            dragon_body_color=state.get('dragon_body_color', (200, 40, 40)),
+            dragon_head_color=state.get('dragon_head_color', (255, 200, 50)),
+            dragon_weave_amplitude=state.get('dragon_weave_amplitude', 0.5),
+            dragon_bob_amplitude=state.get('dragon_bob_amplitude', 0.3),
+            dragon_anim_speed=state.get('dragon_anim_speed', 1.5)
         )
 
     def _update_undo_redo_state(self):
@@ -544,6 +554,18 @@ class EditorWindow(QMainWindow):
                 'anim_speed': state.get('starfish_anim_speed', 1.5),
                 'pulse_amount': state.get('starfish_pulse_amount', 0.06)
             })
+        elif creature_type == 'dragon':
+            dna_config.update({
+                'num_segments': state.get('dragon_segments', 15),
+                'segment_thickness': state.get('dragon_thickness', 0.3),
+                'taper_factor': state.get('dragon_taper', 0.6),
+                'head_scale': state.get('dragon_head_scale', 2.0),
+                'body_color': state.get('dragon_body_color', (200, 40, 40)),
+                'head_color': state.get('dragon_head_color', (255, 200, 50)),
+                'weave_amplitude': state.get('dragon_weave_amplitude', 0.5),
+                'bob_amplitude': state.get('dragon_bob_amplitude', 0.3),
+                'anim_speed': state.get('dragon_anim_speed', 1.5)
+            })
 
         # Open save dialog
         file_path, _ = QFileDialog.getSaveFileName(
@@ -585,6 +607,8 @@ class EditorWindow(QMainWindow):
             "<li><b>Blob Creature</b> - Translucent slime cube clusters</li>"
             "<li><b>Polyp Creature</b> - Organic spine with spheres and tentacles</li>"
             "<li><b>Starfish Creature</b> - Radial symmetry with articulated arms</li>"
+            "<li><b>Medusa Creature</b> - Tentacles with eyes at the tips</li>"
+            "<li><b>Dragon Creature</b> - Space Harrier inspired segmented serpent</li>"
             "</ul>"
             "<p><b>Controls:</b></p>"
             "<ul>"

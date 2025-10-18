@@ -282,7 +282,12 @@ class UrsinaRenderer:
                         # Starfish parameters
                         num_arms=5, arm_segments=6, central_body_size=0.8, arm_base_thickness=0.4,
                         starfish_color=(0.9, 0.5, 0.3), curl_factor=0.3,
-                        starfish_anim_speed=1.5, starfish_pulse_amount=0.06):
+                        starfish_anim_speed=1.5, starfish_pulse_amount=0.06,
+                        # Dragon parameters
+                        dragon_segments=15, dragon_thickness=0.3, dragon_taper=0.6,
+                        dragon_head_scale=2.0, dragon_body_color=(200, 40, 40),
+                        dragon_head_color=(255, 200, 50), dragon_weave_amplitude=0.5,
+                        dragon_bob_amplitude=0.3, dragon_anim_speed=1.5):
         """
         Rebuild creature with new parameters.
 
@@ -448,6 +453,22 @@ class UrsinaRenderer:
                     eye_size=eye_size_max,  # Use max eye size for tip eyes
                     eyeball_color=eyeball_color,
                     pupil_color=pupil_color
+                )
+
+            elif creature_type == 'dragon':
+                # Import and create dragon creature (Space Harrier inspired)
+                from ..models.dragon_creature import DragonCreature
+
+                self.creature = DragonCreature(
+                    num_segments=dragon_segments,
+                    segment_thickness=dragon_thickness,
+                    taper_factor=dragon_taper,
+                    head_scale=dragon_head_scale,
+                    body_color=dragon_body_color,  # RGB 0-255
+                    head_color=dragon_head_color,  # RGB 0-255
+                    weave_amplitude=dragon_weave_amplitude,
+                    bob_amplitude=dragon_bob_amplitude,
+                    anim_speed=dragon_anim_speed
                 )
 
             else:

@@ -256,6 +256,17 @@ class ModernControlPanel(QWidget):
         self._starfish_anim_speed = 1.5
         self._starfish_pulse = 0.06
 
+        # Dragon parameters
+        self._dragon_segments = 15
+        self._dragon_thickness = 0.3
+        self._dragon_taper = 0.6
+        self._dragon_head_scale = 2.0
+        self._dragon_body_color = (200, 40, 40)  # RGB 0-255
+        self._dragon_head_color = (255, 200, 50)  # RGB 0-255
+        self._dragon_weave_amplitude = 0.5
+        self._dragon_bob_amplitude = 0.3
+        self._dragon_anim_speed = 1.5
+
         self._updating = False
         self._init_ui()
 
@@ -312,7 +323,7 @@ class ModernControlPanel(QWidget):
         type_selector_layout.addWidget(type_label)
 
         self.creature_type_combo = QComboBox()
-        self.creature_type_combo.addItems(["Tentacle Creature", "Blob Creature", "Polyp Creature", "Starfish Creature", "Medusa Creature"])
+        self.creature_type_combo.addItems(["Tentacle Creature", "Blob Creature", "Polyp Creature", "Starfish Creature", "Medusa Creature", "Dragon Creature"])
         self.creature_type_combo.setMinimumHeight(40)
         self.creature_type_combo.setStyleSheet(self.COMBOBOX_STYLE)
         self.creature_type_combo.currentTextChanged.connect(self._on_creature_type_changed)
@@ -418,11 +429,33 @@ class ModernControlPanel(QWidget):
         self.starfish_container.setLayout(starfish_layout)
         self.starfish_container.setVisible(False)  # Hidden by default
 
+        # ===== DRAGON CREATURE SECTIONS =====
+        self.dragon_container = QWidget()
+        dragon_layout = QVBoxLayout()
+        dragon_layout.setContentsMargins(0, 0, 0, 0)
+
+        dragon_grid = QGridLayout()
+        dragon_grid.setSpacing(20)
+
+        # Column 1: Body Shape
+        dragon_grid.addWidget(self._create_dragon_body_section(), 0, 0)
+
+        # Column 2: Appearance
+        dragon_grid.addWidget(self._create_dragon_appearance_section(), 0, 1)
+
+        # Column 3: Animation
+        dragon_grid.addWidget(self._create_dragon_animation_section(), 0, 2)
+
+        dragon_layout.addLayout(dragon_grid)
+        self.dragon_container.setLayout(dragon_layout)
+        self.dragon_container.setVisible(False)  # Hidden by default
+
         # Add all containers to design layout
         design_layout.addWidget(self.tentacle_container)
         design_layout.addWidget(self.blob_container)
         design_layout.addWidget(self.polyp_container)
         design_layout.addWidget(self.starfish_container)
+        design_layout.addWidget(self.dragon_container)
 
         design_layout.addStretch()
         design_tab.setLayout(design_layout)
@@ -1312,6 +1345,148 @@ class ModernControlPanel(QWidget):
         group.setLayout(layout)
         return group
 
+    # ===== DRAGON CREATURE SECTIONS =====
+
+    def _create_dragon_body_section(self):
+        """Create Dragon Body Shape card."""
+        group = QGroupBox("DRAGON BODY")
+        group.setMinimumWidth(280)
+        layout = QVBoxLayout()
+        layout.setSpacing(12)
+        layout.setContentsMargins(15, 15, 15, 15)
+
+        # Number of Segments (5-30)
+        layout.addWidget(self._create_label("Body Segments"))
+        self.dragon_segments_spin = QSpinBox()
+        self.dragon_segments_spin.setRange(5, 30)
+        self.dragon_segments_spin.setValue(self._dragon_segments)
+        self.dragon_segments_spin.setMinimumHeight(35)
+        self.dragon_segments_spin.setStyleSheet(self.SPINBOX_STYLE)
+        self.dragon_segments_spin.valueChanged.connect(self._on_dragon_segments_changed)
+        layout.addWidget(self.dragon_segments_spin)
+        layout.addSpacing(8)
+
+        # Segment Thickness (0.1-0.8)
+        layout.addWidget(self._create_label("Segment Thickness"))
+        self.dragon_thickness_slider = QSlider(Qt.Orientation.Horizontal)
+        self.dragon_thickness_slider.setRange(10, 80)  # 0.1 to 0.8
+        self.dragon_thickness_slider.setValue(30)  # 0.3 default
+        self.dragon_thickness_slider.setMinimumHeight(30)
+        self.dragon_thickness_slider.valueChanged.connect(self._on_dragon_thickness_changed)
+        layout.addWidget(self.dragon_thickness_slider)
+        self.dragon_thickness_label = QLabel("0.30")
+        self.dragon_thickness_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.dragon_thickness_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.dragon_thickness_label)
+
+        # Taper Factor (0.0-0.9)
+        layout.addWidget(self._create_label("Tail Taper"))
+        self.dragon_taper_slider = QSlider(Qt.Orientation.Horizontal)
+        self.dragon_taper_slider.setRange(0, 90)  # 0.0 to 0.9
+        self.dragon_taper_slider.setValue(60)  # 0.6 default
+        self.dragon_taper_slider.setMinimumHeight(30)
+        self.dragon_taper_slider.valueChanged.connect(self._on_dragon_taper_changed)
+        layout.addWidget(self.dragon_taper_slider)
+        self.dragon_taper_label = QLabel("0.60")
+        self.dragon_taper_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.dragon_taper_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.dragon_taper_label)
+
+        # Head Scale (1.0-2.5)
+        layout.addWidget(self._create_label("Head Size"))
+        self.dragon_head_scale_slider = QSlider(Qt.Orientation.Horizontal)
+        self.dragon_head_scale_slider.setRange(10, 25)  # 1.0 to 2.5
+        self.dragon_head_scale_slider.setValue(20)  # 2.0 default
+        self.dragon_head_scale_slider.setMinimumHeight(30)
+        self.dragon_head_scale_slider.valueChanged.connect(self._on_dragon_head_scale_changed)
+        layout.addWidget(self.dragon_head_scale_slider)
+        self.dragon_head_scale_label = QLabel("2.0x")
+        self.dragon_head_scale_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.dragon_head_scale_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.dragon_head_scale_label)
+
+        layout.addStretch()
+        group.setLayout(layout)
+        return group
+
+    def _create_dragon_appearance_section(self):
+        """Create Dragon Appearance card."""
+        group = QGroupBox("DRAGON APPEARANCE")
+        group.setMinimumWidth(280)
+        layout = QVBoxLayout()
+        layout.setSpacing(12)
+        layout.setContentsMargins(15, 15, 15, 15)
+
+        # Body Color
+        layout.addWidget(self._create_label("Body Color"))
+        # Note: ColorButton expects 0-1 range, but we store 0-255
+        body_color_01 = tuple(c / 255.0 for c in self._dragon_body_color)
+        self.dragon_body_color_button = ColorButton(body_color_01)
+        self.dragon_body_color_button.colorChanged.connect(self._on_dragon_body_color_changed)
+        layout.addWidget(self.dragon_body_color_button)
+
+        # Head Color
+        layout.addWidget(self._create_label("Head Color"))
+        head_color_01 = tuple(c / 255.0 for c in self._dragon_head_color)
+        self.dragon_head_color_button = ColorButton(head_color_01)
+        self.dragon_head_color_button.colorChanged.connect(self._on_dragon_head_color_changed)
+        layout.addWidget(self.dragon_head_color_button)
+
+        layout.addStretch()
+        group.setLayout(layout)
+        return group
+
+    def _create_dragon_animation_section(self):
+        """Create Dragon Animation card."""
+        group = QGroupBox("DRAGON ANIMATION")
+        group.setMinimumWidth(280)
+        layout = QVBoxLayout()
+        layout.setSpacing(12)
+        layout.setContentsMargins(15, 15, 15, 15)
+
+        # Weave Amplitude (0.0-1.0)
+        layout.addWidget(self._create_label("Weave Amount"))
+        self.dragon_weave_slider = QSlider(Qt.Orientation.Horizontal)
+        self.dragon_weave_slider.setRange(0, 100)  # 0.0 to 1.0
+        self.dragon_weave_slider.setValue(50)  # 0.5 default
+        self.dragon_weave_slider.setMinimumHeight(30)
+        self.dragon_weave_slider.valueChanged.connect(self._on_dragon_weave_changed)
+        layout.addWidget(self.dragon_weave_slider)
+        self.dragon_weave_label = QLabel("0.50")
+        self.dragon_weave_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.dragon_weave_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.dragon_weave_label)
+
+        # Bob Amplitude (0.0-1.0)
+        layout.addWidget(self._create_label("Bob Amount"))
+        self.dragon_bob_slider = QSlider(Qt.Orientation.Horizontal)
+        self.dragon_bob_slider.setRange(0, 100)  # 0.0 to 1.0
+        self.dragon_bob_slider.setValue(30)  # 0.3 default
+        self.dragon_bob_slider.setMinimumHeight(30)
+        self.dragon_bob_slider.valueChanged.connect(self._on_dragon_bob_changed)
+        layout.addWidget(self.dragon_bob_slider)
+        self.dragon_bob_label = QLabel("0.30")
+        self.dragon_bob_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.dragon_bob_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.dragon_bob_label)
+
+        # Animation Speed (0.5-5.0)
+        layout.addWidget(self._create_label("Animation Speed"))
+        self.dragon_anim_speed_slider = QSlider(Qt.Orientation.Horizontal)
+        self.dragon_anim_speed_slider.setRange(50, 500)  # 0.5 to 5.0
+        self.dragon_anim_speed_slider.setValue(150)  # 1.5 default
+        self.dragon_anim_speed_slider.setMinimumHeight(30)
+        self.dragon_anim_speed_slider.valueChanged.connect(self._on_dragon_anim_speed_changed)
+        layout.addWidget(self.dragon_anim_speed_slider)
+        self.dragon_anim_speed_label = QLabel("1.5x")
+        self.dragon_anim_speed_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.dragon_anim_speed_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
+        layout.addWidget(self.dragon_anim_speed_label)
+
+        layout.addStretch()
+        group.setLayout(layout)
+        return group
+
     # Event handlers
     def _on_tentacles_changed(self, value):
         if not self._updating:
@@ -1442,8 +1617,10 @@ class ModernControlPanel(QWidget):
                 self._creature_type = 'polyp'
             elif text == "Starfish Creature":
                 self._creature_type = 'starfish'
-            else:  # "Medusa Creature"
+            elif text == "Medusa Creature":
                 self._creature_type = 'medusa'
+            else:  # "Dragon Creature"
+                self._creature_type = 'dragon'
 
             # Show/hide appropriate containers
             # Medusa uses tentacle container (similar parameters)
@@ -1451,6 +1628,7 @@ class ModernControlPanel(QWidget):
             self.blob_container.setVisible(self._creature_type == 'blob')
             self.polyp_container.setVisible(self._creature_type == 'polyp')
             self.starfish_container.setVisible(self._creature_type == 'starfish')
+            self.dragon_container.setVisible(self._creature_type == 'dragon')
 
             # Emit signals
             self.creature_type_changed.emit(self._creature_type)
@@ -1593,6 +1771,59 @@ class ModernControlPanel(QWidget):
             self.starfish_pulse_label.setText(f"{self._starfish_pulse:.2f}")
             self.creature_changed.emit()
 
+    def _on_dragon_segments_changed(self, value):
+        if not self._updating:
+            self._dragon_segments = value
+            self.creature_changed.emit()
+
+    def _on_dragon_thickness_changed(self, value):
+        if not self._updating:
+            self._dragon_thickness = value / 100.0
+            self.dragon_thickness_label.setText(f"{self._dragon_thickness:.2f}")
+            self.creature_changed.emit()
+
+    def _on_dragon_taper_changed(self, value):
+        if not self._updating:
+            self._dragon_taper = value / 100.0
+            self.dragon_taper_label.setText(f"{self._dragon_taper:.2f}")
+            self.creature_changed.emit()
+
+    def _on_dragon_head_scale_changed(self, value):
+        if not self._updating:
+            self._dragon_head_scale = value / 10.0
+            self.dragon_head_scale_label.setText(f"{self._dragon_head_scale:.1f}x")
+            self.creature_changed.emit()
+
+    def _on_dragon_body_color_changed(self, color):
+        if not self._updating:
+            # Convert 0-1 to 0-255
+            self._dragon_body_color = (int(color[0] * 255), int(color[1] * 255), int(color[2] * 255))
+            self.creature_changed.emit()
+
+    def _on_dragon_head_color_changed(self, color):
+        if not self._updating:
+            # Convert 0-1 to 0-255
+            self._dragon_head_color = (int(color[0] * 255), int(color[1] * 255), int(color[2] * 255))
+            self.creature_changed.emit()
+
+    def _on_dragon_weave_changed(self, value):
+        if not self._updating:
+            self._dragon_weave_amplitude = value / 100.0
+            self.dragon_weave_label.setText(f"{self._dragon_weave_amplitude:.2f}")
+            self.creature_changed.emit()
+
+    def _on_dragon_bob_changed(self, value):
+        if not self._updating:
+            self._dragon_bob_amplitude = value / 100.0
+            self.dragon_bob_label.setText(f"{self._dragon_bob_amplitude:.2f}")
+            self.creature_changed.emit()
+
+    def _on_dragon_anim_speed_changed(self, value):
+        if not self._updating:
+            self._dragon_anim_speed = value / 100.0
+            self.dragon_anim_speed_label.setText(f"{self._dragon_anim_speed:.1f}x")
+            self.creature_changed.emit()
+
     def _update_branch_info(self):
         """Update branch info label."""
         if self._branch_count == 1:
@@ -1676,7 +1907,17 @@ class ModernControlPanel(QWidget):
             'starfish_color': self._starfish_color,
             'curl_factor': self._curl_factor,
             'starfish_anim_speed': self._starfish_anim_speed,
-            'starfish_pulse_amount': self._starfish_pulse
+            'starfish_pulse_amount': self._starfish_pulse,
+            # Dragon parameters
+            'dragon_segments': self._dragon_segments,
+            'dragon_thickness': self._dragon_thickness,
+            'dragon_taper': self._dragon_taper,
+            'dragon_head_scale': self._dragon_head_scale,
+            'dragon_body_color': self._dragon_body_color,
+            'dragon_head_color': self._dragon_head_color,
+            'dragon_weave_amplitude': self._dragon_weave_amplitude,
+            'dragon_bob_amplitude': self._dragon_bob_amplitude,
+            'dragon_anim_speed': self._dragon_anim_speed
         }
 
     def get_algorithm_params(self):
@@ -1746,6 +1987,17 @@ class ModernControlPanel(QWidget):
         self._starfish_anim_speed = state.get('starfish_anim_speed', 1.5)
         self._starfish_pulse = state.get('starfish_pulse_amount', 0.06)
 
+        # Dragon parameters
+        self._dragon_segments = state.get('dragon_segments', 15)
+        self._dragon_thickness = state.get('dragon_thickness', 0.3)
+        self._dragon_taper = state.get('dragon_taper', 0.6)
+        self._dragon_head_scale = state.get('dragon_head_scale', 2.0)
+        self._dragon_body_color = state.get('dragon_body_color', (200, 40, 40))
+        self._dragon_head_color = state.get('dragon_head_color', (255, 200, 50))
+        self._dragon_weave_amplitude = state.get('dragon_weave_amplitude', 0.5)
+        self._dragon_bob_amplitude = state.get('dragon_bob_amplitude', 0.3)
+        self._dragon_anim_speed = state.get('dragon_anim_speed', 1.5)
+
         # Update creature type selector
         if self._creature_type == 'tentacle':
             display_name = "Tentacle Creature"
@@ -1755,8 +2007,10 @@ class ModernControlPanel(QWidget):
             display_name = "Polyp Creature"
         elif self._creature_type == 'starfish':
             display_name = "Starfish Creature"
-        else:  # medusa
+        elif self._creature_type == 'medusa':
             display_name = "Medusa Creature"
+        else:  # dragon
+            display_name = "Dragon Creature"
         self.creature_type_combo.setCurrentText(display_name)
 
         # Show/hide appropriate containers
@@ -1765,6 +2019,7 @@ class ModernControlPanel(QWidget):
         self.blob_container.setVisible(self._creature_type == 'blob')
         self.polyp_container.setVisible(self._creature_type == 'polyp')
         self.starfish_container.setVisible(self._creature_type == 'starfish')
+        self.dragon_container.setVisible(self._creature_type == 'dragon')
 
         # Update tentacle UI
         self.tentacles_spin.setValue(self._num_tentacles)
