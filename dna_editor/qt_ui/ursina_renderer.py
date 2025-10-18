@@ -285,7 +285,7 @@ class UrsinaRenderer:
                         starfish_anim_speed=1.5, starfish_pulse_amount=0.06,
                         # Dragon parameters
                         dragon_segments=15, dragon_thickness=0.3, dragon_taper=0.6,
-                        dragon_head_scale=2.0, dragon_body_color=(200, 40, 40),
+                        dragon_head_scale=3.0, dragon_body_color=(200, 40, 40),
                         dragon_head_color=(255, 200, 50), dragon_weave_amplitude=0.5,
                         dragon_bob_amplitude=0.3, dragon_anim_speed=1.5):
         """

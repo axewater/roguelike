@@ -109,7 +109,7 @@ class DragonCreature:
     """Space Harrier inspired dragon - segmented serpent with weaving/bobbing motion."""
 
     def __init__(self, num_segments=15, segment_thickness=0.3, taper_factor=0.6,
-                 head_scale=2.0, body_color=(200, 40, 40), head_color=(255, 200, 50),
+                 head_scale=3.0, body_color=(200, 40, 40), head_color=(255, 200, 50),
                  weave_amplitude=0.5, bob_amplitude=0.3, anim_speed=1.5):
         """
         Create a dragon creature.
@@ -118,7 +118,7 @@ class DragonCreature:
             num_segments: Number of body segments (5-30)
             segment_thickness: Base segment size (0.1-0.8)
             taper_factor: Size reduction toward tail (0.0-0.9, higher = more taper)
-            head_scale: Head size multiplier (1.0-2.5)
+            head_scale: Head size multiplier (1.0-3.5)
             body_color: RGB tuple for body (0-255 range - Ursina compat)
             head_color: RGB tuple for head (0-255 range)
             weave_amplitude: Side-to-side motion intensity (0.0-1.0)
@@ -346,6 +346,15 @@ class DragonCreature:
 
             else:
                 # Idle animation: weaving (X) and bobbing (Y) waves
+                # Head stays stable, motion increases toward tail
+
+                # Position along body (0 = head, 1 = tail tip)
+                body_t = i / max(self.num_segments - 1, 1)
+
+                # Motion multiplier: head barely moves, tail moves fully
+                # Using quadratic curve: head (0) = 0.0, mid = 0.5, tail (1) = 1.5
+                motion_multiplier = body_t ** 1.8 * 1.5
+
                 # Wave propagates along body (each segment phase-delayed)
                 wave_phase = time * self.anim_speed + self.phase_offset + i * 0.3
 
@@ -359,15 +368,19 @@ class DragonCreature:
                 # Secondary bob wave
                 bob_offset_y += math.sin(wave_phase * 0.7 - 0.5) * self.bob_amplitude * 0.2
 
-                # Tail segments move more (whip-like motion)
-                tail_factor = (i / max(self.num_segments - 1, 1)) ** 1.5
-                weave_offset_x *= (1.0 + tail_factor * 0.5)
-                bob_offset_y *= (1.0 + tail_factor * 0.3)
+                # Apply motion multiplier (head stays stable, tail whips)
+                weave_offset_x *= motion_multiplier
+                bob_offset_y *= motion_multiplier
+
+                # Head floating: slow, gentle up-down motion for head and front segments
+                # Inverse of motion_multiplier - strong at head, fades toward tail
+                head_float_strength = (1.0 - body_t) ** 2  # Strong at head, zero at tail
+                head_float_y = math.sin(time * 0.8 + self.phase_offset) * 0.15 * head_float_strength
 
                 # Apply animation offset
                 segment.entity.position = segment.base_position + Vec3(
                     weave_offset_x,
-                    bob_offset_y,
+                    bob_offset_y + head_float_y,
                     0
                 )
 

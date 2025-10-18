@@ -260,7 +260,7 @@ class ModernControlPanel(QWidget):
         self._dragon_segments = 15
         self._dragon_thickness = 0.3
         self._dragon_taper = 0.6
-        self._dragon_head_scale = 2.0
+        self._dragon_head_scale = 3.0
         self._dragon_body_color = (200, 40, 40)  # RGB 0-255
         self._dragon_head_color = (255, 200, 50)  # RGB 0-255
         self._dragon_weave_amplitude = 0.5
@@ -1392,15 +1392,15 @@ class ModernControlPanel(QWidget):
         self.dragon_taper_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
         layout.addWidget(self.dragon_taper_label)
 
-        # Head Scale (1.0-2.5)
+        # Head Scale (1.0-3.5)
         layout.addWidget(self._create_label("Head Size"))
         self.dragon_head_scale_slider = QSlider(Qt.Orientation.Horizontal)
-        self.dragon_head_scale_slider.setRange(10, 25)  # 1.0 to 2.5
-        self.dragon_head_scale_slider.setValue(20)  # 2.0 default
+        self.dragon_head_scale_slider.setRange(10, 35)  # 1.0 to 3.5
+        self.dragon_head_scale_slider.setValue(30)  # 3.0 default
         self.dragon_head_scale_slider.setMinimumHeight(30)
         self.dragon_head_scale_slider.valueChanged.connect(self._on_dragon_head_scale_changed)
         layout.addWidget(self.dragon_head_scale_slider)
-        self.dragon_head_scale_label = QLabel("2.0x")
+        self.dragon_head_scale_label = QLabel("3.0x")
         self.dragon_head_scale_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.dragon_head_scale_label.setStyleSheet("color: #a78bfa; font-size: 13pt; font-weight: bold; background-color: #2d1b4e; padding: 6px 14px; border-radius: 12px; border: 1px solid #6366f1;")
         layout.addWidget(self.dragon_head_scale_label)
@@ -1991,7 +1991,7 @@ class ModernControlPanel(QWidget):
         self._dragon_segments = state.get('dragon_segments', 15)
         self._dragon_thickness = state.get('dragon_thickness', 0.3)
         self._dragon_taper = state.get('dragon_taper', 0.6)
-        self._dragon_head_scale = state.get('dragon_head_scale', 2.0)
+        self._dragon_head_scale = state.get('dragon_head_scale', 3.0)
         self._dragon_body_color = state.get('dragon_body_color', (200, 40, 40))
         self._dragon_head_color = state.get('dragon_head_color', (255, 200, 50))
         self._dragon_weave_amplitude = state.get('dragon_weave_amplitude', 0.5)
